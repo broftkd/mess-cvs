@@ -8,7 +8,9 @@
 #include <stdlib.h>
 #include "mips.h"
 
-#ifndef STANDALONE
+#ifdef STANDALONE
+#define cpu_readop32( p ) ( ( filebuf[ p + order[ 0 ] - offset ] << 24 ) | ( filebuf[ p + order[ 1 ] - offset ] << 16 ) | ( filebuf[ p + order[ 2 ] - offset ] << 8 ) | ( filebuf[ p + order[ 3 ] - offset ] ) )
+#else
 #include "memory.h"
 #endif
 
@@ -106,14 +108,7 @@ unsigned DasmMIPS( char *buffer, UINT32 oldpc )
 	UINT32 pc, op;
 
 	pc = oldpc;
-#ifndef STANDALONE
-	op = mips_readop32( pc );
-#else
-	op = ( filebuf[ pc + order[ 0 ] - offset ] << 24 ) |
-		( filebuf[ pc + order[ 1 ] - offset ] << 16 ) |
-		( filebuf[ pc + order[ 2 ] - offset ] << 8 ) |
-		( filebuf[ pc + order[ 3 ] - offset ] );
-#endif
+	op = cpu_readop32( pc );
 	pc += 4;
 
 	sprintf( buffer, "dw      $%08x", op );
@@ -150,10 +145,7 @@ unsigned DasmMIPS( char *buffer, UINT32 oldpc )
 			sprintf( buffer, "srav    %s,%s,%s", s_cpugenreg[ INS_RD( op ) ], s_cpugenreg[ INS_RT( op ) ], s_cpugenreg[ INS_RS( op ) ] );
 			break;
 		case FUNCT_JR:
-			if( INS_RD( op ) == 0 )
-			{
-				sprintf( buffer, "jr      %s", s_cpugenreg[ INS_RS( op ) ] );
-			}
+			sprintf( buffer, "jr      %s", s_cpugenreg[ INS_RS( op ) ] );
 			break;
 		case FUNCT_JALR:
 			sprintf( buffer, "jalr    %s,%s", s_cpugenreg[ INS_RD( op ) ], s_cpugenreg[ INS_RS( op ) ] );
@@ -168,42 +160,44 @@ unsigned DasmMIPS( char *buffer, UINT32 oldpc )
 			sprintf( buffer, "mfhi    %s", s_cpugenreg[ INS_RD( op ) ] );
 			break;
 		case FUNCT_MTHI:
-			if( INS_RD( op ) == 0 )
-			{
-				sprintf( buffer, "mthi    %s", s_cpugenreg[ INS_RS( op ) ] );
-			}
+			sprintf( buffer, "mthi    %s", s_cpugenreg[ INS_RS( op ) ] );
 			break;
 		case FUNCT_MFLO:
 			sprintf( buffer, "mflo    %s", s_cpugenreg[ INS_RD( op ) ] );
 			break;
 		case FUNCT_MTLO:
-			if( INS_RD( op ) == 0 )
-			{
-				sprintf( buffer, "mtlo    %s", s_cpugenreg[ INS_RS( op ) ] );
-			}
+			sprintf( buffer, "mtlo    %s", s_cpugenreg[ INS_RS( op ) ] );
 			break;
 		case FUNCT_MULT:
-			if( INS_RD( op ) == 0 )
+			switch( INS_RD( op ) )
 			{
+			case 0:
 				sprintf( buffer, "mult    %s,%s", s_cpugenreg[ INS_RS( op ) ], s_cpugenreg[ INS_RT( op ) ] );
+				break;
 			}
 			break;
 		case FUNCT_MULTU:
-			if( INS_RD( op ) == 0 )
+			switch( INS_RD( op ) )
 			{
+			case 0:
 				sprintf( buffer, "multu   %s,%s", s_cpugenreg[ INS_RS( op ) ], s_cpugenreg[ INS_RT( op ) ] );
+				break;
 			}
 			break;
 		case FUNCT_DIV:
-			if( INS_RD( op ) == 0 )
+			switch( INS_RD( op ) )
 			{
+			case 0:
 				sprintf( buffer, "div     %s,%s", s_cpugenreg[ INS_RS( op ) ], s_cpugenreg[ INS_RT( op ) ] );
+				break;
 			}
 			break;
 		case FUNCT_DIVU:
-			if( INS_RD( op ) == 0 )
+			switch( INS_RD( op ) )
 			{
+			case 0:
 				sprintf( buffer, "divu    %s,%s", s_cpugenreg[ INS_RS( op ) ], s_cpugenreg[ INS_RT( op ) ] );
+				break;
 			}
 			break;
 		case FUNCT_ADD:
@@ -268,15 +262,19 @@ unsigned DasmMIPS( char *buffer, UINT32 oldpc )
 		sprintf( buffer, "bne     %s,%s,$%08x", s_cpugenreg[ INS_RS( op ) ], s_cpugenreg[ INS_RT( op ) ], pc + ( MIPS_WORD_EXTEND( INS_IMMEDIATE( op ) ) << 2 ) );
 		break;
 	case OP_BLEZ:
-		if( INS_RT( op ) == 0 )
+		switch( INS_RT( op ) )
 		{
+		case OP_BLEZ:
 			sprintf( buffer, "blez    %s,$%08x", s_cpugenreg[ INS_RS( op ) ], pc + ( MIPS_WORD_EXTEND( INS_IMMEDIATE( op ) ) << 2 ) );
+			break;
 		}
 		break;
 	case OP_BGTZ:
-		if( INS_RT( op ) == 0 )
+		switch( INS_RT( op ) )
 		{
+		case OP_BGTZ:
 			sprintf( buffer, "bgtz    %s,$%08x", s_cpugenreg[ INS_RS( op ) ], pc + ( MIPS_WORD_EXTEND( INS_IMMEDIATE( op ) ) << 2 ) );
+			break;
 		}
 		break;
 	case OP_ADDI:

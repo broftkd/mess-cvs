@@ -2,50 +2,37 @@
 
         nc.c
 
-        NC100/NC150/NC200 Notepad computer 
+        NC100/NC150 Notepad computer 
+
 
         system driver
 
-
         Documentation:
-        
-		NC100:
-			NC100 I/O Specification by Cliff Lawson,
-			NC100EM by Russell Marks
-		NC200:
-			Dissassembly of the NC200 ROM + e-mail
-			exchange with Russell Marks
-
-
-		NC100:
+        NC100 I/O Specification by Cliff Lawson,
+        NC100EM by Russell Marks
 
         Hardware:
-            - Z80 CPU
-            - memory powered by lithium batterys!
-            - 2 channel tone (programmable frequency beep's)
-            - LCD screen
-            - laptop/portable computer
-            - qwerty keyboard
-            - serial/parallel connection
-            - Amstrad custom ASIC chip
-			- tc8521 real time clock
-			- intel 8251 compatible uart
+                - Z80 CPU
+                - memory powered by lithium batterys!
+                - 2 channel tone (programmable frequency beep's)
+                - LCD screen
+                - laptop/portable computer
+                - qwerty keyboard
+                - serial/parallel connection
+                - Amstrad custom ASIC chip
 
 
-		NC200:
+
+        nc200
 
         Hardware:
-			- Z80 CPU
-			- Intel 8251 compatible uart
-            - nec765 compatible floppy disc controller
-			- mc146818 real time clock
+                - nec765 compatible floppy disc controller
 
         TODO:
            - find out what the unused key bits are for
            - serial, parallel and loads more!!!
            - overlay would be nice!
-
-		Kevin Thacker [MESS driver]
+        Kevin Thacker [MESS driver]
 
  ******************************************************************************/
 #include "driver.h"
@@ -54,15 +41,13 @@
 #include "includes/tc8521.h"
 /* for NC100 uart */
 #include "includes/msm8251.h"
-/* for NC200 real time clock */
-#include "includes/mc146818.h"
+
 /* for NC200 disk drive interface */
 #include "includes/nec765.h"
-/* for NC200 disk image */
+/* for PC disk images */
 #include "includes/pc_flopp.h"
 
-/* uncomment for verbose debugging information */
-//#define VERBOSE
+//#include "sound/beep.h"
 
 static unsigned long nc_memory_size;
 UINT8 nc_type;
@@ -182,9 +167,7 @@ static void nc_update_interrupts(void)
 
 static void nc_keyboard_timer_callback(int dummy)
 {
-#ifdef VERBOSE
-		logerror("keyboard int\n");
-#endif
+        logerror("keyboard int\r\n");
 
         /* set int */
         nc_irq_status |= (1<<3);
@@ -206,9 +189,7 @@ static void dummy_timer_callback(int dummy)
     {
         if (on_off_button_state)
         {
-#ifdef VERBOSE
-            logerror("nmi triggered\n");
-#endif
+            logerror("nmi triggered\r\n");
             cpu_set_nmi_line(0, PULSE_LINE);
         }
     }
@@ -250,9 +231,9 @@ static void nc_refresh_memory_bank_config(int bank)
                    cpu_setbank(bank+1, addr);
 
                    cpu_setbankhandler_w(bank+5, MWA_NOP);
-#ifdef VERBOSE
-                   logerror("BANK %d: ROM %d\n",bank,mem_bank);
-#endif
+
+                   logerror("BANK %d: ROM %d\r\n",bank,mem_bank);
+
                 }
                 break;
 
@@ -269,9 +250,9 @@ static void nc_refresh_memory_bank_config(int bank)
                    cpu_setbank(bank+5, addr);
 
                    cpu_setbankhandler_w(bank+5, nc_bankhandler_w[bank]);
-#ifdef VERBOSE
-                   logerror("BANK %d: RAM\n",bank);
-#endif
+
+                   logerror("BANK %d: RAM\r\n",bank);
+
                 }
                 break;
 
@@ -290,10 +271,9 @@ static void nc_refresh_memory_bank_config(int bank)
                            cpu_setbank(bank+5, addr);
         
                            cpu_setbankhandler_w(bank+5, nc_bankhandler_w[bank]);
-#ifdef VERBOSE        
-                           logerror("BANK %d: CARD-RAM\n",bank);
-#endif
-				   }
+        
+                           logerror("BANK %d: CARD-RAM\r\n",bank);
+                    }
                     else
                     {
                         /* if no card connected, then writes fail */
@@ -307,9 +287,7 @@ static void nc_refresh_memory_bank_config(int bank)
                 default:
                 case 3:
                 {
-#ifdef VERBOSE
-					logerror("Invalid memory selection\n");
-#endif
+                        logerror("Invalid memory selection\r\n");
                 }
                 break;
 
@@ -427,6 +405,8 @@ void nc_common_init_machine(void)
 
 /*        nc_set_card_present_state(0); */
         
+        /*nc_card_ram = (unsigned char *)malloc(1024*1024);*/
+
         nc_keyboard_timer = timer_set(TIME_IN_MSEC(10), 0, nc_keyboard_timer_callback);
 
         dummy_timer = timer_pulse(TIME_IN_HZ(50), 0, dummy_timer_callback);
@@ -445,16 +425,15 @@ void nc_common_init_machine(void)
         
                 if (file!=NULL)
                 {
-#ifdef VERBOSE
-					logerror("restoring nc memory\n");
-#endif
-					osd_fread(file, nc_memory, nc_memory_size);
+                   logerror("restoring nc memory\r\n");
+                   osd_fread(file, nc_memory, nc_memory_size);
                    osd_fclose(file);
                 }
         }
 
 		nc_uart_control = 0x0ff;
 
+        tc8521_init(&nc100_tc8521_interface);
 
 		msm8251_init(&nc100_uart_interface);
 }
@@ -471,8 +450,6 @@ void nc100_init_machine(void)
         nc_membank_card_ram_mask = 0x03f;
 
         nc_common_init_machine();
-
-	    tc8521_init(&nc100_tc8521_interface);
 }
 
 #if 0
@@ -523,12 +500,13 @@ void nc200_init_machine(void)
         floppy_drive_set_motor_state(0,1);
         floppy_drive_set_ready_state(0,1,0);
 
-		mc146818_init(MC146818_STANDARD);
 }
 
-void nc_common_shutdown_machine(void)
+void nc_shutdown_machine(void)
 {
         
+        tc8521_stop();
+
 		msm8251_stop();
 
         if (nc_memory!=NULL)
@@ -543,10 +521,8 @@ void nc_common_shutdown_machine(void)
 
                 if (file!=NULL)
                 {
-#ifdef VERBOSE
-					logerror("writing nc memory!\n");
-#endif
-					osd_fwrite(file, nc_memory, nc_memory_size);
+                   logerror("writing nc memory!\r\n");
+                   osd_fwrite(file, nc_memory, nc_memory_size);
                    osd_fclose(file);
                 }
 
@@ -554,6 +530,11 @@ void nc_common_shutdown_machine(void)
                 nc_memory = NULL;
         }
 
+//        if (nc_card_ram!=NULL)
+  //      {
+    //            free(nc_card_ram);
+    //            nc_card_ram = NULL;
+    //    }
 
         if (nc_keyboard_timer!=NULL)
         {
@@ -567,20 +548,6 @@ void nc_common_shutdown_machine(void)
                 dummy_timer = NULL;
         }
 }
-
-void	nc100_shutdown_machine(void)
-{
-	nc_common_shutdown_machine();
-    tc8521_stop();
-}
-
-
-void	nc200_shutdown_machine(void)
-{
-	nc_common_shutdown_machine();
-	mc146818_close();
-}
-
 
 static struct MemoryReadAddress readmem_nc[] =
 {
@@ -609,9 +576,8 @@ READ_HANDLER(nc_memory_management_r)
 
 WRITE_HANDLER(nc_memory_management_w)
 {
-#ifdef VERBOSE
-	logerror("Memory management W: %02x %02x\n",offset,data);
-#endif
+        logerror("Memory management W: %02x %02x\r\n",offset,data);
+
         nc_memory_config[offset] = data;
 
         nc_refresh_memory_config();
@@ -619,9 +585,7 @@ WRITE_HANDLER(nc_memory_management_w)
 
 WRITE_HANDLER(nc_irq_mask_w)
 {
-#ifdef VERBOSE
-	logerror("irq mask w: %02x\n", data);
-#endif
+        logerror("irq mask w: %02x\r\n", data);
 
         nc_irq_mask = data;
 
@@ -630,9 +594,8 @@ WRITE_HANDLER(nc_irq_mask_w)
 
 WRITE_HANDLER(nc_irq_status_w)
 {
-#ifdef VERBOSE
-	logerror("irq status w: %02x\n", data);
-#endif
+        logerror("irq status w: %02x\r\n", data);
+
         data = data^0x0ff;
         if (
                 /* clearing keyboard int? */
@@ -672,9 +635,7 @@ WRITE_HANDLER(nc_display_memory_start_w)
 
         nc_display_memory_start = (data & 0x0f0)<<(12-4);
 
-#ifdef VERBOSE
-        logerror("disp memory w: %04x\n", nc_display_memory_start);
-#endif
+        logerror("disp memory w: %04x\r\n", nc_display_memory_start);
 
 }
 
@@ -735,9 +696,8 @@ static void nc_sound_update(int channel)
 
 WRITE_HANDLER(nc_sound_w)
 {
-#ifdef VERBOSE
-	logerror("sound w: %04x %02x\n", offset, data);
-#endif
+        logerror("sound w: %04x %02x\r\n", offset, data);
+
         switch (offset)
         {
                 case 0x0:
@@ -843,13 +803,30 @@ static struct IOWritePort writeport_nc[] =
         
 };
 
+static UINT8 nc200_rtc_register_index;
+
+static WRITE_HANDLER(nc200_rtc_register_index_w)
+{
+        nc200_rtc_register_index = data;
+}
+
+static READ_HANDLER(nc200_rtc_register_r)
+{
+        return tc8521_r(nc200_rtc_register_index);
+}
+
+static WRITE_HANDLER(nc200_rtc_register_w)
+{
+        tc8521_w(nc200_rtc_register_index, data);
+}
+
 static struct IOReadPort readport_nc200[] =
 {
         {0x010, 0x013, nc_memory_management_r},
 //        {0x0a0, 0x0a0, nc_card_battery_status_r},
         {0x0b0, 0x0b9, nc_key_data_in_r},
         {0x090, 0x090, nc_irq_status_r},
-		{0x0d0, 0x0d1, mc146818_port_r },
+        {0x0d1, 0x0d1, nc200_rtc_register_r},
         {0x0e0, 0x0e0, nec765_status_r},
         {0x0e1, 0x0e1, nec765_data_r},
         {-1}							   /* end of table */
@@ -862,7 +839,8 @@ static struct IOWritePort writeport_nc200[] =
         {0x060, 0x060, nc_irq_mask_w},
   //      {0x070, 0x070, nc_poweroff_control_w},
         {0x090, 0x090, nc_irq_status_w},
-		{0x0d0, 0x0d1, mc146818_port_w },
+        {0x0d0, 0x0d0, nc200_rtc_register_index_w},
+        {0x0d1, 0x0d1, nc200_rtc_register_w},
         {0x050, 0x053, nc_sound_w},
         {0x0e1, 0x0e1, nec765_data_w},
         {-1}                                                       /* end of table */
@@ -886,7 +864,7 @@ INPUT_PORTS_START(nc100)
         PORT_BITX(0x001, IP_ACTIVE_HIGH, IPT_KEYBOARD, "YELLOW/FUNCTION", KEYCODE_INSERT, IP_JOY_NONE)
         PORT_BITX(0x002, IP_ACTIVE_HIGH, IPT_KEYBOARD, "CONTROL", KEYCODE_LCONTROL, IP_JOY_NONE)
         PORT_BITX(0x002, IP_ACTIVE_HIGH, IPT_KEYBOARD, "CONTROL", KEYCODE_RCONTROL, IP_JOY_NONE)
-        PORT_BITX(0x004, IP_ACTIVE_HIGH, IPT_KEYBOARD, "ESCAPE/STOP", KEYCODE_ESC, IP_JOY_NONE)
+        PORT_BITX(0x004, IP_ACTIVE_HIGH, IPT_KEYBOARD, "ESCAPE", KEYCODE_ESC, IP_JOY_NONE)
         PORT_BITX(0x008, IP_ACTIVE_HIGH, IPT_KEYBOARD, "SPACE", KEYCODE_SPACE, IP_JOY_NONE)
         PORT_BIT (0x010, 0x00, IPT_UNUSED)
         PORT_BIT (0x020, 0x00, IPT_UNUSED)
@@ -997,7 +975,7 @@ INPUT_PORTS_START(nc200)
         PORT_BITX(0x001, IP_ACTIVE_HIGH, IPT_KEYBOARD, "YELLOW/FUNCTION", KEYCODE_INSERT, IP_JOY_NONE)
         PORT_BITX(0x002, IP_ACTIVE_HIGH, IPT_KEYBOARD, "CONTROL", KEYCODE_LCONTROL, IP_JOY_NONE)
         PORT_BITX(0x002, IP_ACTIVE_HIGH, IPT_KEYBOARD, "CONTROL", KEYCODE_RCONTROL, IP_JOY_NONE)
-        PORT_BITX(0x004, IP_ACTIVE_HIGH, IPT_KEYBOARD, "ESCAPE/STOP", KEYCODE_ESC, IP_JOY_NONE)
+        PORT_BITX(0x004, IP_ACTIVE_HIGH, IPT_KEYBOARD, "ESCAPE", KEYCODE_ESC, IP_JOY_NONE)
         PORT_BITX(0x008, IP_ACTIVE_HIGH, IPT_KEYBOARD, "SPACE", KEYCODE_SPACE, IP_JOY_NONE)
         PORT_BIT (0x010, 0x00, IPT_UNUSED)
         PORT_BIT (0x020, 0x00, IPT_UNUSED)
@@ -1120,7 +1098,7 @@ static struct MachineDriver machine_driver_nc100 =
 	DEFAULT_60HZ_VBLANK_DURATION,	   /* vblank duration */
 	1,								   /* cpu slices per frame */
         nc100_init_machine,                      /* init machine */
-        nc100_shutdown_machine,
+        nc_shutdown_machine,
 	/* video hardware */
         NC_SCREEN_WIDTH, /* screen width */
         NC_SCREEN_HEIGHT,  /* screen height */
@@ -1174,7 +1152,7 @@ static struct MachineDriver machine_driver_nc200 =
 	DEFAULT_60HZ_VBLANK_DURATION,	   /* vblank duration */
 	1,								   /* cpu slices per frame */
         nc200_init_machine,                      /* init machine */
-        nc200_shutdown_machine,
+        nc_shutdown_machine,
 	/* video hardware */
         NC200_SCREEN_WIDTH, /* screen width */
         NC200_SCREEN_HEIGHT,  /* screen height */

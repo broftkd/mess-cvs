@@ -67,7 +67,7 @@ void vsnes_vh_screenrefresh( struct osd_bitmap *bitmap,int full_refresh )
 {
 	/* render the ppu */
 	ppu2c03b_render( 0, bitmap, 0, 0, 0, 0 );
-
+		
 	/* if this is a gun game, draw a simple crosshair */
 	if ( vsnes_gun_controller )
 	{
@@ -76,7 +76,7 @@ void vsnes_vh_screenrefresh( struct osd_bitmap *bitmap,int full_refresh )
 		UINT16 color;
 		int x, y;
 		int minmax_x[2], minmax_y[2];
-
+		
 		minmax_x[0] = Machine->visible_area.min_x;
 		minmax_x[1] = Machine->visible_area.max_x;
 		minmax_y[0] = Machine->visible_area.min_y;

@@ -56,7 +56,6 @@ struct tPixelInfo
 
 struct tDisplay_private
 {
-    struct osd_bitmap*  m_pBitmap;
     tRect               m_GameRect;         /* possibly doubled and clipped */
     UINT                m_nDisplayLines;    /* # of visible lines of bitmap */
     UINT                m_nDisplayColumns;  /* # of visible columns of bitmap */
@@ -67,7 +66,6 @@ struct tDisplay_private
     BOOL                m_bPanScreen;
     BOOL                m_bUseBackBuffer;
     BOOL                m_bVDouble;         /* for 1:2 aspect ratio */
-    BOOL                m_bHDouble;         /* for 2:1 aspect ratio */
     enum DirtyMode      m_eDirtyMode;
 
     /* Options/Parameters */
@@ -153,7 +151,7 @@ static void               DDraw_modify_pen(int pen, unsigned char red, unsigned 
 static void               DDraw_get_pen(int pen, unsigned char* pRed, unsigned char* pGreen, unsigned char* pBlue);
 static void               DDraw_mark_dirty(int x1, int y1, int x2, int y2, int ui);
 static void               DDraw_update_display(struct osd_bitmap *game_bitmap, struct osd_bitmap *debug_bitmap);
-static void               DDraw_led_w(int leds_status);
+static void               DDraw_led_w(int led, int on);
 static void               DDraw_set_gamma(float gamma);
 static void               DDraw_set_brightness(int brightness);
 static void               DDraw_save_snapshot(struct osd_bitmap *bitmap);
@@ -214,7 +212,6 @@ static int DDraw_init(options_type *options)
 {
     OSDDisplay.init(options);
 
-    This.m_pBitmap           = NULL;
     This.m_GameRect.m_Top    = 0;
     This.m_GameRect.m_Left   = 0;
     This.m_GameRect.m_Width  = 0;
@@ -228,7 +225,6 @@ static int DDraw_init(options_type *options)
     This.m_nSkipColumnsMin   = 0;
     This.m_bUseBackBuffer    = FALSE;
     This.m_bVDouble          = FALSE;
-    This.m_bHDouble          = FALSE;
     This.m_eDirtyMode        = NO_DIRTY;
 
     This.m_nDisplayIndex     = options->display_monitor;
@@ -379,38 +375,9 @@ static int DDraw_create_display(int width, int height, int depth, int fps, int a
 
     if ((attributes & VIDEO_PIXEL_ASPECT_RATIO_MASK) == VIDEO_PIXEL_ASPECT_RATIO_1_2)
     {
-        if (orientation & ORIENTATION_SWAP_XY)
-        {
-            This.m_bHDouble    = TRUE;
-            This.m_bVDouble    = FALSE;
-            This.m_bDouble     = FALSE;
-            This.m_bHScanLines = FALSE;
-        }
-        else
-        {
-            This.m_bHDouble    = FALSE;
-            This.m_bVDouble    = TRUE;
-            This.m_bDouble     = FALSE;
-            This.m_bVScanLines = FALSE;
-        }
-    }
-
-    if ((attributes & VIDEO_PIXEL_ASPECT_RATIO_MASK) == VIDEO_PIXEL_ASPECT_RATIO_2_1)
-    {
-        if (orientation & ORIENTATION_SWAP_XY)
-        {
-            This.m_bHDouble    = FALSE;
-            This.m_bVDouble    = TRUE;
-            This.m_bDouble     = FALSE;
-            This.m_bVScanLines = FALSE;
-        }
-        else
-        {
-            This.m_bHDouble    = TRUE;
-            This.m_bVDouble    = FALSE;
-            This.m_bDouble     = FALSE;
-            This.m_bHScanLines = FALSE;
-        }
+        This.m_bVDouble    = TRUE;
+        This.m_bDouble     = FALSE;
+        This.m_bVScanLines = FALSE;
     }
 
     if (This.m_bBestFit == TRUE)
@@ -915,7 +882,6 @@ static int DDraw_allocate_colors(unsigned int totalcolors,
                                          FALSE,
                                          FALSE,
                                          FALSE,
-                                         FALSE,
                                          This.m_eDirtyMode,
                                          This.m_nDepth == 16 ? TRUE : FALSE,
                                          bPalette16,
@@ -925,7 +891,6 @@ static int DDraw_allocate_colors(unsigned int totalcolors,
     else
     {
         This.Render = SelectRenderMethod(This.m_bDouble,
-                                         This.m_bHDouble,
                                          This.m_bVDouble,
                                          This.m_bHScanLines,
                                          This.m_bVScanLines,
@@ -1004,7 +969,7 @@ static void DDraw_mark_dirty(int x1, int y1, int x2, int y2, int ui)
 }
 
 /*
-    Update the display.
+    Update the display using Machine->scrbitmap.
 */
 static void DDraw_update_display(struct osd_bitmap *game_bitmap, struct osd_bitmap *debug_bitmap)
 {
@@ -1014,8 +979,6 @@ static void DDraw_update_display(struct osd_bitmap *game_bitmap, struct osd_bitm
     ||  This.m_pDDSPrimary == NULL)
         return;
 
-    This.m_pBitmap = game_bitmap;
-
     if (This.m_triple_buffer)
         ClearSurface(This.m_pDDSBack);
 
@@ -1023,7 +986,9 @@ static void DDraw_update_display(struct osd_bitmap *game_bitmap, struct osd_bitm
     {
         This.m_nBlackPen = FindBlackPen();
         ClearSurface(This.m_pDDSPrimary);
-        MarkAllDirty();
+        osd_mark_dirty(0, 0,
+                       Machine->scrbitmap->width  - 1,
+                       Machine->scrbitmap->height - 1, 1);
 
         This.m_bUpdateBackground = FALSE;
     }
@@ -1041,7 +1006,7 @@ static void DDraw_update_display(struct osd_bitmap *game_bitmap, struct osd_bitm
     {
         while (1)
         {
-            hResult = IDirectDrawSurface_Flip(This.m_pDDSPrimary, NULL, DDFLIP_WAIT);
+            hResult = IDirectDrawSurface_Flip(This.m_pDDSPrimary,NULL,DDFLIP_WAIT);
                 
             if (hResult == DD_OK)
                 break;
@@ -1132,9 +1097,9 @@ static void DDraw_update_display(struct osd_bitmap *game_bitmap, struct osd_bitm
 }
 
 /* control keyboard leds or other indicators */
-static void DDraw_led_w(int leds_status)
+static void DDraw_led_w(int led, int on)
 {
-    LED_StatusWrite(leds_status);
+    LED_write(led, on & 1);
 }
 
 static void DDraw_set_gamma(float gamma)
@@ -1185,8 +1150,6 @@ static void DrawSurface(IDirectDrawSurface* pddSurface)
 
     if (pddSurface == NULL)
         return;
-
-    assert(This.m_pBitmap != NULL);
 
     ddSurfaceDesc.dwSize = sizeof(ddSurfaceDesc);
 
@@ -1243,7 +1206,7 @@ static void DrawSurface(IDirectDrawSurface* pddSurface)
     }
 
     if (This.m_bAviRun) /* add avi frame */
-        AviAddBitmap(This.m_pBitmap, This.m_pPalEntries);
+        AviAddBitmap(Machine->scrbitmap, This.m_pPalEntries);
     
     if (This.m_nAviShowMessage > 0)
     {
@@ -1252,12 +1215,12 @@ static void DrawSurface(IDirectDrawSurface* pddSurface)
         This.m_nAviShowMessage--;
                
         sprintf(buf, "AVI Capture %s", (This.m_bAviRun) ? "ON" : "OFF");
-        ui_text(This.m_pBitmap, buf, Machine->uiwidth - strlen(buf) * Machine->uifontwidth, 0);        
+        ui_text(Machine->scrbitmap, buf, Machine->uiwidth - strlen(buf) * Machine->uifontwidth, 0);        
     }
 
     assert(This.Render != NULL);
 
-    This.Render(This.m_pBitmap,
+    This.Render(Machine->scrbitmap,
                 This.m_nSkipLines,
                 This.m_nSkipColumns,
                 This.m_nDisplayLines,
@@ -1615,15 +1578,10 @@ static void SelectDisplayMode(int width, int height, int depth)
         {
             BOOL    bResult;
 
-            if (This.m_bHDouble == TRUE)
-            {
-                width *= 2;
-            }
             if (This.m_bVDouble == TRUE)
             {
                 height *= 2;
             }
-
             if (This.m_bDouble == TRUE)
             {
                 width  *= 2;
@@ -1700,14 +1658,7 @@ static void AdjustDisplay(int xmin, int ymin, int xmax, int ymax)
 
     This.m_nDisplayLines   = visheight;
     This.m_nDisplayColumns = viswidth;
-    if (This.m_bDouble == TRUE && This.m_bHDouble == TRUE)
-    {
-        gfx_xoffset = (int)(This.m_nScreenWidth - viswidth * 4) / 2;
-        if (This.m_nDisplayColumns > This.m_nScreenWidth / 4)
-            This.m_nDisplayColumns = This.m_nScreenWidth / 4;
-    }
-    else
-    if (This.m_bDouble == TRUE || This.m_bHDouble == TRUE)
+    if (This.m_bDouble == TRUE)
     {
         gfx_xoffset = (int)(This.m_nScreenWidth - viswidth * 2) / 2;
         if (This.m_nDisplayColumns > This.m_nScreenWidth / 2)
@@ -1778,15 +1729,10 @@ static void AdjustDisplay(int xmin, int ymin, int xmax, int ymax)
     This.m_GameRect.m_Width  = This.m_nDisplayColumns;
     This.m_GameRect.m_Height = This.m_nDisplayLines;
 
-    if (This.m_bHDouble == TRUE)
-    {
-        This.m_GameRect.m_Width *= 2;
-    }
     if (This.m_bVDouble == TRUE)
     {
         This.m_GameRect.m_Height *= 2;
     }
-
     if (This.m_bDouble == TRUE)
     {
         This.m_GameRect.m_Width  *= 2;
@@ -1868,7 +1814,9 @@ static void PanDisplay(void)
 
     if (bMarkDirty == TRUE)
     {
-        MarkAllDirty();
+        osd_mark_dirty(0, 0,
+                       Machine->scrbitmap->width  - 1,
+                       Machine->scrbitmap->height - 1, 1);
 
         set_ui_visarea(This.m_nSkipColumns, This.m_nSkipLines,
                        This.m_nDisplayColumns + This.m_nSkipColumns - 1,
@@ -1887,8 +1835,9 @@ static BOOL DDraw_OnMessage(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam, L
 
 static BOOL OnSetCursor(HWND hWnd, HWND hWndCursor, UINT codeHitTest, UINT msg)
 {
-    SetCursor(NULL);
- 
+    /* Remove the cursor only after display is setup. */
+    if (Machine->scrbitmap != NULL)
+        SetCursor(NULL);
     return TRUE;
 }
 
@@ -1896,7 +1845,7 @@ static void DDraw_Refresh()
 {
     This.m_bUpdateBackground = TRUE;
 
-    DDraw_update_display(This.m_pBitmap, Machine->debug_bitmap);
+    DDraw_update_display(Machine->scrbitmap, Machine->debug_bitmap);
 }
 
 static int DDraw_GetBlackPen(void)
@@ -1911,12 +1860,12 @@ static void DDraw_UpdateFPS(BOOL bShow, int nSpeed, int nFPS, int nMachineFPS, i
     if (bShow)
     {
         sprintf(buf, "fskp%2d%4d%%%4d/%d fps", nFrameskip, nSpeed, nFPS, nMachineFPS);
-        ui_text(This.m_pBitmap, buf, Machine->uiwidth - strlen(buf) * Machine->uifontwidth, 0);
+        ui_text(Machine->scrbitmap, buf, Machine->uiwidth - strlen(buf) * Machine->uifontwidth, 0);
 
         if (Machine->drv->video_attributes & VIDEO_TYPE_VECTOR)
         {
             sprintf(buf, " %d vector updates", nVecUPS);
-            ui_text(This.m_pBitmap, buf,
+            ui_text(Machine->scrbitmap, buf,
                     Machine->uiwidth - strlen(buf) * Machine->uifontwidth,
                     Machine->uifontheight);
         }

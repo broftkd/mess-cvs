@@ -179,7 +179,7 @@ void vsnes_init_machine( void )
 	input_latch[2] = input_latch[3] = 0;
 
 	/* reset the ppu */
-	ppu2c03b_reset( 0, 1 );
+	ppu2c03b_reset( 0, cpu_getscanlineperiod() );
 
 	/* if we need to remap, install the callback */
 	if ( remapped_colortable )
@@ -197,8 +197,8 @@ void vsdual_init_machine( void )
 	input_latch[2] = input_latch[3] = 0;
 
 	/* reset the ppu */
-	ppu2c03b_reset( 0, 1 );
-	ppu2c03b_reset( 1, 1 );
+	ppu2c03b_reset( 0, cpu_getscanlineperiod() / 2 );
+	ppu2c03b_reset( 1, cpu_getscanlineperiod() / 2 );
 }
 
 /*************************************
@@ -929,6 +929,113 @@ void init_vsskykid( void )
 	/* this *is* the VS games protection, I guess */
 //	remapped_colortable = ???;
 }
+
+/**********************************************************************************/
+
+/* Platoon: ROMs bankings at $8000-$ffff */
+/* lifted er.. borrowed.. from Brad's Nes code in Mess */
+
+static void mapper68_mirror (int map68_mirror, int m0, int m1)
+{
+	/* The 0x20000 (128k) offset is a magic number */
+	#define M68_OFFSET 0x20000
+
+	switch (map68_mirror)
+	{
+		case 0x00: ppu2c03b_set_mirroring(0,PPU_MIRROR_HORZ); break;
+		case 0x01: ppu2c03b_set_mirroring(0,PPU_MIRROR_VERT); break;
+		case 0x02: ppu2c03b_set_mirroring(0,PPU_MIRROR_LOW); break;
+		case 0x03: ppu2c03b_set_mirroring(0,PPU_MIRROR_HIGH); break;
+#if 0
+		case 0x10:
+			ppu_mirror_custom_vrom (0, (m0 << 10) + M68_OFFSET);
+			ppu_mirror_custom_vrom (1, (m1 << 10) + M68_OFFSET);
+			ppu_mirror_custom_vrom (2, (m0 << 10) + M68_OFFSET);
+			ppu_mirror_custom_vrom (3, (m1 << 10) + M68_OFFSET);
+			break;
+		case 0x11:
+			ppu_mirror_custom_vrom (0, (m0 << 10) + M68_OFFSET);
+			ppu_mirror_custom_vrom (1, (m0 << 10) + M68_OFFSET);
+			ppu_mirror_custom_vrom (2, (m1 << 10) + M68_OFFSET);
+			ppu_mirror_custom_vrom (3, (m1 << 10) + M68_OFFSET);
+			break;
+		case 0x12:
+			ppu_mirror_custom_vrom (0, (m0 << 10) + M68_OFFSET);
+			ppu_mirror_custom_vrom (1, (m0 << 10) + M68_OFFSET);
+			ppu_mirror_custom_vrom (2, (m0 << 10) + M68_OFFSET);
+			ppu_mirror_custom_vrom (3, (m0 << 10) + M68_OFFSET);
+			break;
+		case 0x13:
+			ppu_mirror_custom_vrom (0, (m1 << 10) + M68_OFFSET);
+			ppu_mirror_custom_vrom (1, (m1 << 10) + M68_OFFSET);
+			ppu_mirror_custom_vrom (2, (m1 << 10) + M68_OFFSET);
+			ppu_mirror_custom_vrom (3, (m1 << 10) + M68_OFFSET);
+			break;
+#endif
+	}
+}
+
+
+static WRITE_HANDLER( mapper68_rom_banking ){
+	static int map68_mirror;
+	static int m0, m1;
+
+logerror("mapper68_w uncaught offset: %04x, data: %02x\n", offset&0x7000, data);
+
+	switch (offset & 0x7000)
+	{
+
+		case 0x0000:
+		ppu2c03b_set_videorom_bank( 0, 0, 2, (data&0xff)*0x800, 128);
+
+		break;
+
+		case 0x1000:
+		ppu2c03b_set_videorom_bank( 0, 2, 2, (data&0xff)*0x800, 128 );
+
+		break;
+
+		case 0x2000:
+		ppu2c03b_set_videorom_bank( 0, 4, 2, (data&0xff)*0x800, 128 );
+
+		break;
+
+		case 0x3000:
+		ppu2c03b_set_videorom_bank( 0, 6, 2, (data&0xff)*0x800, 128 );
+
+		break;
+
+		case 0x6000:
+		map68_mirror = data & 0x13;
+		mapper68_mirror (map68_mirror, m0, m1);
+
+		break;
+
+		case 0x7000:
+		memcpy( &memory_region( REGION_CPU1 )[0x08000], &memory_region( REGION_CPU1 )[0x10000 +(data&0xff)*0x4000], 0x4000 );
+		break;
+
+		default:
+		logerror("mapper68_w uncaught offset: %04x, data: %02x\n", offset&0x7000, data);
+	}
+}
+
+
+
+void init_platoon( void )
+{
+
+/* when starting a mapper 68 game  the first 16K ROM bank in the cart is loaded into $8000
+	the LAST 16K ROM bank is loaded into $C000. The last 16K of ROM cannot be swapped. */
+
+	memcpy( &memory_region( REGION_CPU1 )[0x08000], &memory_region( REGION_CPU1 )[0x10000], 0x4000 );
+	memcpy( &memory_region( REGION_CPU1 )[0x0c000], &memory_region( REGION_CPU1 )[0x2c000], 0x4000 );
+
+	install_mem_write_handler( 0, 0x8000, 0xffff, mapper68_rom_banking );
+
+	init_vsnes();
+}
+
 
 /**********************************************************************************/
 

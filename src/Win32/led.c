@@ -36,14 +36,13 @@ struct tLED_private
     HANDLE                          m_hKeyboard;
     KEYBOARD_INDICATOR_PARAMETERS	m_KeyboardIndicators;
     KEYBOARD_INDICATOR_PARAMETERS	m_InitialKeyboardIndicators;
-    int                             m_nLedsOld;
 };
 
 /***************************************************************************
     Internal variables
  ***************************************************************************/
 
-static struct tLED_private This = {FALSE, NULL, {0, 0}, {0, 0}, 0};
+static struct tLED_private This = {FALSE, NULL, {0, 0}, {0, 0}};
 
 static const int led_flags[] =
 {
@@ -64,7 +63,6 @@ void LED_init()
 
     This.m_bInitialized = FALSE;
     This.m_hKeyboard    = NULL;
-    This.m_nLedsOld     = 0;
 
     /* Check to see if the device link is already there. */
     if (QueryDosDevice(MAMEKBD_NAME, pTargetPath, MAX_PATH) == 0)
@@ -137,33 +135,39 @@ void LED_exit()
     This.m_bInitialized = FALSE;
 }
 
-void LED_StatusWrite(int leds_status)
+void LED_write(int nLED, BOOL bOn)
 {
-    USHORT  LedFlags = 0;
-    DWORD   dwBytesRead;
+    USHORT  LedFlags;
 
     if (This.m_bInitialized == FALSE)
         return;
 
-    if (leds_status == This.m_nLedsOld)
+    if (3 <= nLED)
         return;
-    This.m_nLedsOld = leds_status;
 
-    if (leds_status & 0x1) LedFlags |= led_flags[0];
-    if (leds_status & 0x2) LedFlags |= led_flags[1];
-    if (leds_status & 0x4) LedFlags |= led_flags[2];
+    LedFlags = This.m_KeyboardIndicators.LedFlags;
 
-    This.m_KeyboardIndicators.LedFlags = LedFlags;
+    if (bOn)
+	    LedFlags |=  led_flags[nLED];
+    else
+	    LedFlags &= ~led_flags[nLED];
 
-    /* Set keyboard indicator LEDs. */
-    DeviceIoControl(This.m_hKeyboard,
-	                IOCTL_KEYBOARD_SET_INDICATORS,
-	                &This.m_KeyboardIndicators,
-                    sizeof(This.m_KeyboardIndicators),
-	                NULL,
-                    0,
-	                &dwBytesRead,
-	                NULL);
+    if (LedFlags != This.m_KeyboardIndicators.LedFlags)
+    {
+        DWORD   dwBytesRead;
+
+        This.m_KeyboardIndicators.LedFlags = LedFlags;
+
+        /* Set keyboard indicator LEDs. */
+        DeviceIoControl(This.m_hKeyboard,
+	                    IOCTL_KEYBOARD_SET_INDICATORS,
+	                    &This.m_KeyboardIndicators,
+                        sizeof(This.m_KeyboardIndicators),
+	                    NULL,
+                        0,
+	                    &dwBytesRead,
+	                    NULL);
+    }
 }
 
 /***************************************************************************

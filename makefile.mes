@@ -34,11 +34,6 @@ ASMFLAGS = -f coff
 MD = -mkdir
 RM = @rm -f
 
-
-# Utility source path
-UTIL = src/util
-MAKELIST = $(UTIL)/makelist$(EXE)
-
 ifdef DEBUG
 NAME = $(TARGET)d
 else
@@ -64,7 +59,7 @@ OBJ = $(NAME).obj
 
 EMULATOR = $(NAME)$(EXE)
 
-DEFS = -DX86_ASM -DLSB_FIRST -DINLINE="static __inline__" -Dasm=__asm__
+DEFS = -DDEVELOPING -DX86_ASM -DLSB_FIRST -DINLINE="static __inline__" -Dasm=__asm__
 
 ifdef SYMBOLS
 CFLAGS = -Isrc -Imess -Isrc/msdos -I$(OBJ)/cpu/m68000 -Isrc/cpu/m68000 \
@@ -137,7 +132,7 @@ DBGDEFS =
 DBGOBJS =
 endif
 
-extra:	romcmp$(EXE) $(MAKELIST) $(TOOLS) $(TEXTS)
+extra:  romcmp$(EXE) $(TOOLS) $(TEXTS)
 
 # combine the various definitions to one
 CDEFS = $(DEFS) $(COREDEFS) $(CPUDEFS) $(SOUNDDEFS) $(ASMDEFS) $(DBGDEFS)
@@ -153,19 +148,7 @@ endif
 
 romcmp$(EXE): $(OBJ)/romcmp.o $(OBJ)/unzip.o
 	@echo Linking $@...
-	$(LD) $(LDFLAGS) $^ $(LIBS) -o $@
-
-src/cpuintrf.h src/cpuintrf.c: src/rules.mak $(MAKELIST)
-	@echo Checking CPU core build rules...
-	@$(MAKELIST) src/cpuintrf.h src/cpuintrf.c src/rules.mak
-
-src/sndintrf.h src/sndintrf.c: src/rules.mak $(MAKELIST)
-	@echo Checking sound chip build rules...
-	@$(MAKELIST) src/sndintrf.h src/sndintrf.c src/rules.mak
-
-$(MAKELIST): $(UTIL)/makelist.c
-	@echo Compling $@...
-	$(CC) $(CDEFS) $(CLAGS) -o $@ $<
+	$(LD) $(LDFLAGS) $^ -lz -o $@
 
 $(OBJ)/%.o: src/%.c
 	@echo Compiling $<...
@@ -218,8 +201,6 @@ maketree: $(sort $(OBJDIRS))
 clean:
 	@echo Deleting object tree $(OBJ)...
 	$(RM) -r $(OBJ)
-	@echo Deleting $(MAKELIST)...
-	$(RM) $(MAKELIST)
 	@echo Deleting $(EMULATOR)...
 	$(RM) $(EMULATOR)
 

@@ -30,7 +30,6 @@
 #include "dirty.h"
 #include "avi.h"
 #include "png.h"
-#include "artwork.h"
 
 #define FRAMESKIP_LEVELS 12
 #define INTENSITY_LEVELS 256
@@ -200,16 +199,15 @@ static void Display_clearbitmap(struct osd_bitmap* bitmap)
     int i;
 
     for (i = 0; i < bitmap->height; i++)
-        memset(bitmap->line[i],
-               MAME32App.m_pDisplay->GetBlackPen(),
+        memset(bitmap->line[i], MAME32App.m_pDisplay->GetBlackPen(),
                bitmap->width * (bitmap->depth / 8));
 
-    if (bitmap == Machine->scrbitmap || bitmap == artwork_real_scrbitmap)
+    if (bitmap == Machine->scrbitmap)
     {
         extern int bitmap_dirty;
         bitmap_dirty = 1;
 
-        MarkAllDirty();
+        osd_mark_dirty(0, 0, bitmap->width - 1, bitmap->height - 1, 1);
     }
 }
 
@@ -366,12 +364,12 @@ static void Display_update_display(struct osd_bitmap *game_bitmap, struct osd_bi
         MAME32App.m_pDisplay->update_display(game_bitmap, debug_bitmap);
 
         if (need_to_clear_bitmap)
-            osd_clearbitmap(game_bitmap);
+            osd_clearbitmap(Machine->scrbitmap);
 
-        ClearDirty();
+        SwitchDirty();
 
         if (need_to_clear_bitmap)
-            osd_clearbitmap(game_bitmap);
+            osd_clearbitmap(Machine->scrbitmap);
 
         if (This.m_bThrottled
         &&  This.m_bAutoFrameskip
@@ -536,7 +534,7 @@ void Display_WriteBitmap(struct osd_bitmap* tBitmap, PALETTEENTRY* pPalEntries)
     pFile = osd_fopen(sFileName, "", OSD_FILETYPE_SCREENSHOT, TRUE);
     if (pFile != NULL)
     {
-		save_screen_snapshot_as(pFile, tBitmap);
+		save_screen_snapshot_as(pFile, Machine->scrbitmap);
         osd_fclose(pFile);
     }
 }

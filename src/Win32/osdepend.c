@@ -377,13 +377,10 @@ void osd_get_pen(int pen, unsigned char* red, unsigned char* green, unsigned cha
 }
 
 void osd_update_video_and_audio(struct osd_bitmap *game_bitmap,
-                                struct osd_bitmap *debug_bitmap,
-                                int leds_status)
+                                struct osd_bitmap *debug_bitmap)
 {
     MAME32App.m_pSound->update_audio();
     OSDDisplay.update_display(game_bitmap, debug_bitmap);
-
-    MAME32App.m_pDisplay->led_w(leds_status);
 
     MAME32App.HandleAutoPause();
 
@@ -398,6 +395,11 @@ void osd_clearbitmap(struct osd_bitmap *bitmap)
 void osd_mark_dirty(int x1, int y1, int x2, int y2, int ui)
 {
     MAME32App.m_pDisplay->mark_dirty(x1, y1, x2, y2, ui);
+}
+
+void osd_led_w(int led, int on)
+{
+    MAME32App.m_pDisplay->led_w(led, on);
 }
 
 int osd_skip_this_frame()
@@ -428,11 +430,6 @@ int osd_get_brightness(void)
 void osd_save_snapshot(struct osd_bitmap *bitmap)
 {
     MAME32App.m_pDisplay->save_snapshot(bitmap);
-}
-
-void osd_debugger_focus(int debugger_has_focus)
-{
-	MAME32App.m_pDisplay->set_debugger_focus(debugger_has_focus);
 }
 
 /***************************************************************************
@@ -553,7 +550,7 @@ void osd_pause(int paused)
 		osd_set_brightness(orig_brt);
     }
 
-    MAME32App.m_pDisplay->Refresh();
+    MAME32App.m_pDisplay->update_display(Machine->scrbitmap, Machine->debug_bitmap);
 }
 
 /***************************************************************************
@@ -563,6 +560,11 @@ void osd_pause(int paused)
 const struct JoystickInfo *osd_get_joy_list(void)
 {
     return MAME32App.m_pJoystick->get_joy_list();
+}
+
+void osd_poll_joysticks(void)
+{
+    MAME32App.m_pJoystick->poll_joysticks();
 }
 
 int osd_is_joy_pressed(int joycode)

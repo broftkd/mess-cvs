@@ -70,7 +70,7 @@ static void               GDI_modify_pen(int pen, unsigned char red, unsigned ch
 static void               GDI_get_pen(int pen, unsigned char* pRed, unsigned char* pGreen, unsigned char* pBlue);
 static void               GDI_mark_dirty(int x1, int y1, int x2, int y2, int ui);
 static void               GDI_update_display(struct osd_bitmap *game_bitmap, struct osd_bitmap *debug_bitmap);
-static void               GDI_led_w(int leds_status);
+static void               GDI_led_w(int led, int on);
 static void               GDI_set_gamma(float gamma);
 static void               GDI_set_brightness(int brightness);
 static void               GDI_save_snapshot(struct osd_bitmap *bitmap);
@@ -119,7 +119,6 @@ struct OSDDisplay   GDIDisplay =
 
 struct tDisplay_private
 {
-    struct osd_bitmap*  m_pBitmap;
     struct osd_bitmap*  m_pTempBitmap;
     BITMAPINFO*         m_pInfo;
 
@@ -171,7 +170,6 @@ static int GDI_init(options_type *options)
 {
     OSDDisplay.init(options);
 
-    This.m_pBitmap          = NULL;
     This.m_pTempBitmap      = NULL;
     This.m_pInfo            = NULL;
 
@@ -284,16 +282,6 @@ static int GDI_create_display(int width, int height, int depth, int fps, int att
             This.m_nClientWidth  *= 2;
         else
             This.m_nClientHeight *= 2;
-
-        This.m_bDouble = FALSE;
-    }
-
-    if ((attributes & VIDEO_PIXEL_ASPECT_RATIO_MASK) == VIDEO_PIXEL_ASPECT_RATIO_2_1)
-    {
-        if (orientation & ORIENTATION_SWAP_XY)
-            This.m_nClientHeight *= 2;
-        else
-            This.m_nClientWidth  *= 2;
 
         This.m_bDouble = FALSE;
     }
@@ -661,8 +649,6 @@ static void GDI_mark_dirty(int x1, int y1, int x2, int y2, int ui)
 */
 static void GDI_update_display(struct osd_bitmap *game_bitmap, struct osd_bitmap *debug_bitmap)
 {
-    This.m_pBitmap = game_bitmap;
-
     if (This.m_bUpdatePalette == TRUE)
     {
         SetPaletteColors();
@@ -679,9 +665,9 @@ static void GDI_update_display(struct osd_bitmap *game_bitmap, struct osd_bitmap
 }
 
 /* control keyboard leds or other indicators */
-static void GDI_led_w(int leds_status)
+static void GDI_led_w(int led, int on)
 {
-    StatusWrite(leds_status);
+    StatusWrite(led, on & 1);
 }
 
 static void GDI_set_gamma(float gamma)
@@ -865,16 +851,11 @@ static void OnPaint(HWND hWnd)
 {
     PAINTSTRUCT     ps;
 
-    BeginPaint(hWnd, &ps);
-
-    if (This.m_pBitmap == NULL)
-    {
-        EndPaint(hWnd, &ps); 
+    if (Machine->scrbitmap == 0)
         return;
-    }
 
     if (This.m_bAviRun) /* add avi frame */
-        AviAddBitmap(This.m_pBitmap, This.m_PalEntries);
+        AviAddBitmap(Machine->scrbitmap, This.m_PalEntries);
     
     if (This.m_nAviShowMessage > 0)
     {
@@ -884,6 +865,8 @@ static void OnPaint(HWND hWnd)
         sprintf(buf, "AVI Capture %s", (This.m_bAviRun) ? "ON" : "OFF");
         StatusSetString(buf);
     }
+
+    BeginPaint(hWnd, &ps);
 
     if (This.m_nDepth == 8)
     {
@@ -900,8 +883,8 @@ static void OnPaint(HWND hWnd)
                       0,
                       0,
                       This.m_VisibleRect.m_Width,
-                      This.m_VisibleRect.m_Height,                      
-                      This.m_pBitmap->line[This.m_VisibleRect.m_Top] + This.m_VisibleRect.m_Left,
+                      This.m_VisibleRect.m_Height,
+                      Machine->scrbitmap->line[This.m_VisibleRect.m_Top] + This.m_VisibleRect.m_Left,
                       This.m_pInfo,
                       DIB_PAL_COLORS,
                       SRCCOPY);
@@ -918,7 +901,7 @@ static void OnPaint(HWND hWnd)
             /* ugh, map indexes to 555 rgb */
             for (y = 0; y < This.m_VisibleRect.m_Height; y++)
             {
-                UINT16* pSrc = (UINT16*)(This.m_pBitmap->line[This.m_VisibleRect.m_Top + y]
+                UINT16* pSrc = (UINT16*)(Machine->scrbitmap->line[This.m_VisibleRect.m_Top + y]
                              + (This.m_VisibleRect.m_Left * 2));
                 UINT32* pDst = (UINT32*)(This.m_pTempBitmap->line[This.m_VisibleRect.m_Top + y]
                              + (This.m_VisibleRect.m_Left * 2));
@@ -956,7 +939,7 @@ static void OnPaint(HWND hWnd)
                           0,
                           This.m_VisibleRect.m_Width,
                           This.m_VisibleRect.m_Height,
-                          This.m_pBitmap->line[This.m_VisibleRect.m_Top] + (This.m_VisibleRect.m_Left * 2),
+                          Machine->scrbitmap->line[This.m_VisibleRect.m_Top] + (This.m_VisibleRect.m_Left * 2),
                           This.m_pInfo,
                           DIB_RGB_COLORS,
                           SRCCOPY);

@@ -2,14 +2,10 @@
 
 Note: .inp record/playback does still not work currently.
 
-NOTE: DOS Version: Real disc reading is not working fully in this release.
-
-
 New System Drivers Supported (in no particular order):
 ------------------------------------------------------
 - Amstrad NC200 (preliminary) [Kev Thacker]
-- RCA Studio II [Peter Trauner]
-- Sharp Pocket Computer PC1251 [Peter Trauner]
+
 
 System Driver Changes:
 ----------------------
@@ -18,21 +14,16 @@ System Driver Changes:
 
 - [BBC B] Updated to use updated 8271 FDC code. Disk images can be used and games
   can be loaded and played. [Kev Thacker]
-  
-- [BBC B] Cleaned up the memory accessing a little. This fixed a problem with
-  the DNFS rom thinking it found an econet controller. [Gordon Jefferyes]
 
-- [SAM COUPE] Updated Sam Coupe to use WD179x code (same as WD1772). [Kev Thacker]
+- [SAM COUPE] Updated Sam Coupe to use WD179x code (same as WD1772). However, this
+may not work because the implementation of how this works in the Sam Coupe
+hardware is not complete yet [Kev Thacker]
 
-- [COCO] Updated CoCo and CoCo 3 drivers with new romsets to match the actual chips 
-  in the system.  coco.rom split into bas12.rom, extbas11.rom and disk11.rom, and 
-  coco3.rom now must be of length 32768.  This requires a dump from an EPROM reader.  
-  Fixed a bug in cassette writing.  Cassette tape controls and CoCo motor signal now 
-  operate independently.  [Nate Woods]
-
-- [C16] added SIDCARD support at address $d400 [Peter Trauner]
-
-- [NES] new sound core. [Matt Conte]
+- [COCO] Updated CoCo and CoCo 3 drivers with new romsets to match the actual
+chips in the system.  coco.rom split into bas12.rom, extbas11.rom and
+disk11.rom, and coco3.rom now must be of length 32768.  This requires a dump
+from an EPROM reader.  Fixed a bug in cassette writing.  Cassette tape controls
+and CoCo motor signal now operate independently.  [Nate Woods]
 
 Other Changes:
 --------------
@@ -59,8 +50,7 @@ Other Changes:
 
 - Imgtool now supports CoCo cassette files (both .CAS and .WAV).  This is done
   through a framework that makes it easy to implement cassette images in
-  general.  Also, the CoCo RSDOS disk handling is now a bit more tolerant
-  [Nate Woods]
+  general. [Nate Woods]
 
 - Updated Intel 8271 floppy disc controller emulation. [Kev Thacker]
 
@@ -68,11 +58,6 @@ Other Changes:
   http://mess.emuverse.com
   Please send all CRC/sysinfo file contributions to Chris Henry. 
   (battlepriest@hotmail.com).
-
-- M6510 cpu core added first write cycle for NMOS memory modifying instructions
-  [Peter Trauner]
-
-- CDP1802 cpu core [Peter Trauner]
 
 ------------------------
 

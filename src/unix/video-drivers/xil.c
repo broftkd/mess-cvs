@@ -4,11 +4,9 @@
  *  Elias Mårtenson (elias-m@algonet.se)
  */
 
-/* moved above the #ifdef to avoid warning about empty c-files */
-#include <stdio.h>
-
 #ifdef USE_XIL
 
+#include <stdio.h>
 #include <thread.h>
 #include <pthread.h>
 #include <X11/Xlib.h>

@@ -8,6 +8,8 @@ typedef enum {
         DEN_MFM_HI
 } DENSITY;
 
+#define REAL_FDD ((void *)-1)
+
 /* sector has a deleted data address mark */
 #define ID_FLAG_DELETED_DATA	0x0001
 /* CRC error in id field */
@@ -63,7 +65,7 @@ typedef struct floppy_interface
 	/* read sector data into buffer, length = number of bytes to read */
 	void	(*read_sector_data_into_buffer)(int drive, int side,int data_id,char *, int length);
 	/* write sector data from buffer, length = number of bytes to read  */
-	void	(*write_sector_data_from_buffer)(int drive, int side,int data_id, char *, int length, int ddam);
+	void	(*write_sector_data_from_buffer)(int drive, int side,int data_id, char *, int length);
 	/* format */
 	void (*format_sector)(int drive, int side, int sector_index,int c, int h, int r, int n, int filler);
 } floppy_interface;
@@ -83,8 +85,6 @@ typedef struct floppy_drive
 
     /* physical real drive unit */
     int fdd_unit;
-
-	unsigned char id_buffer[4];
 
 	int id_index;
     chrn_id ids[32];
@@ -111,7 +111,6 @@ int floppy_drive_get_current_track(int drive);
 void	floppy_drive_set_geometry(int,floppy_type type);
 
 void	floppy_drives_init(void);
-void	floppy_drives_exit(void);
 
 /* get next id from track, 1 if got a id, 0 if no id was got */
 int floppy_drive_get_next_id(int drive, int side, chrn_id *);
@@ -133,7 +132,7 @@ void floppy_drive_seek(int drive, signed int signed_tracks);
 
 void	floppy_drive_format_sector(int drive, int side, int sector_index, int c, int h, int r, int n, int filler);
 void    floppy_drive_read_sector_data(int drive, int side, int index1, char *pBuffer, int length);
-void    floppy_drive_write_sector_data(int drive, int side, int index1, char *pBuffer, int length, int ddam);
+void    floppy_drive_write_sector_data(int drive, int side, int index1, char *pBuffer, int length);
 
 
 

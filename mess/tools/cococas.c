@@ -4,7 +4,6 @@
 #include "osdepend.h"
 #include "imgtool.h"
 #include "formats/cococas.h"
-#include "utils.h"
 
 static int cococas_initalt(STREAM *instream, STREAM **outstream, int *basepos,
 	int *length, int *channels, int *frequency, int *resolution);
@@ -42,6 +41,9 @@ enum {
 	COCOCAS_BLOCKTYPE_DATA = 1,
 	COCOCAS_BLOCKTYPE_EOF = 0xff
 };
+
+/* from rsdos.c */
+extern void rtrim(char *buf);
 
 static int readblock(IMAGE *img, casblock *blk)
 {

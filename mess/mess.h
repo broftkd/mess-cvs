@@ -141,8 +141,6 @@ void osd_fdc_format(int t, int h, int spt, UINT8 *fmt);
 void osd_fdc_put_sector(int unit, int side, int C, int H, int R, int N, UINT8 *buff, int ddam);
 void osd_fdc_get_sector(int unit, int side, int C, int H, int R, int N, UINT8 *buff, int ddma);
 
-void osd_fdc_read_id(int unit, int side, unsigned char *pBuffer);
-
 /* perform a seek on physical drive 'unit'. dir will be -ve or +ve.
 For a single step this will be -1 or +1. */
 void osd_fdc_seek(int unit, int dir);
@@ -261,7 +259,7 @@ extern void device_output_chunk(int type, int id, void *src, int chunks);
 
 /* This is the dummy GameDriver with flag NOT_A_DRIVER set
    It allows us to use an empty PARENT field in the macros. */
-extern const struct GameDriver driver_0;
+extern struct GameDriver driver_0;
 
 /* Flag is used to bail out in mame.c/run_game() and cpuintrf.c/run_cpu()
  * but keep the program going. It will be set eg. if the filename for a
@@ -275,8 +273,8 @@ extern int mess_keep_going;
  * COMP and COMPX are for computers
  ******************************************************************************/
 #define CONS(YEAR,NAME,PARENT,MACHINE,INPUT,INIT,COMPANY,FULLNAME)	\
-extern const struct GameDriver driver_##PARENT; \
-const struct GameDriver driver_##NAME = 	\
+extern struct GameDriver driver_##PARENT;	\
+struct GameDriver driver_##NAME =			\
 {											\
 	__FILE__,								\
 	&driver_##PARENT,						\
@@ -293,8 +291,8 @@ const struct GameDriver driver_##NAME = 	\
 };
 
 #define CONSX(YEAR,NAME,PARENT,MACHINE,INPUT,INIT,COMPANY,FULLNAME,FLAGS)	\
-extern const struct GameDriver driver_##PARENT;   \
-const struct GameDriver driver_##NAME = 	\
+extern struct GameDriver driver_##PARENT;	\
+struct GameDriver driver_##NAME =			\
 {											\
 	__FILE__,								\
 	&driver_##PARENT,						\
@@ -311,8 +309,8 @@ const struct GameDriver driver_##NAME = 	\
 };
 
 #define COMP(YEAR,NAME,PARENT,MACHINE,INPUT,INIT,COMPANY,FULLNAME)	\
-extern const struct GameDriver driver_##PARENT;   \
-const struct GameDriver driver_##NAME = 	\
+extern struct GameDriver driver_##PARENT;	\
+struct GameDriver driver_##NAME =			\
 {											\
 	__FILE__,								\
 	&driver_##PARENT,						\
@@ -329,8 +327,8 @@ const struct GameDriver driver_##NAME = 	\
 };
 
 #define COMPX(YEAR,NAME,PARENT,MACHINE,INPUT,INIT,COMPANY,FULLNAME,FLAGS)	\
-extern const struct GameDriver driver_##PARENT;   \
-const struct GameDriver driver_##NAME = 	\
+extern struct GameDriver driver_##PARENT;	\
+struct GameDriver driver_##NAME =			\
 {											\
 	__FILE__,								\
 	&driver_##PARENT,						\

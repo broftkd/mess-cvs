@@ -112,8 +112,6 @@ SOUNDS+=RF5C68@
 SOUNDS+=CEM3394@
 SOUNDS+=C140@
 SOUNDS+=QSOUND@
-#SOUNDS+=SAA1099@
-SOUNDS+=IREMGA20@
 #SOUNDS+=SPEAKER@
 #SOUNDS+=WAVE@
 #SOUNDS+=BEEP@
@@ -199,7 +197,6 @@ $(OBJ)/nintendo.a: \
 	$(OBJ)/vidhrdw/punchout.o $(OBJ)/drivers/punchout.o \
 	$(OBJ)/machine/rp5h01.o $(OBJ)/vidhrdw/ppu2c03b.o \
 	$(OBJ)/machine/playch10.o $(OBJ)/vidhrdw/playch10.o $(OBJ)/drivers/playch10.o \
-	$(OBJ)/machine/vsnes.o $(OBJ)/vidhrdw/vsnes.o $(OBJ)/drivers/vsnes.o \
 
 $(OBJ)/midw8080.a: \
 	$(OBJ)/machine/8080bw.o $(OBJ)/machine/74123.o \
@@ -232,9 +229,7 @@ $(OBJ)/irem.a: \
 	$(OBJ)/vidhrdw/vigilant.o $(OBJ)/drivers/vigilant.o \
 	$(OBJ)/vidhrdw/m72.o $(OBJ)/sndhrdw/m72.o $(OBJ)/drivers/m72.o \
 	$(OBJ)/vidhrdw/shisen.o $(OBJ)/drivers/shisen.o \
-	$(OBJ)/machine/irem_cpu.o \
-        $(OBJ)/vidhrdw/m90.o $(OBJ)/drivers/m90.o \
-        $(OBJ)/vidhrdw/m92.o $(OBJ)/drivers/m92.o \
+	$(OBJ)/vidhrdw/m92.o $(OBJ)/drivers/m92.o \
 	$(OBJ)/drivers/m97.o \
 	$(OBJ)/vidhrdw/m107.o $(OBJ)/drivers/m107.o \
 
@@ -247,7 +242,7 @@ $(OBJ)/taito.a: \
 	$(OBJ)/machine/taitosj.o $(OBJ)/vidhrdw/taitosj.o $(OBJ)/drivers/taitosj.o \
 	$(OBJ)/vidhrdw/bking2.o $(OBJ)/drivers/bking2.o \
 	$(OBJ)/vidhrdw/gsword.o $(OBJ)/drivers/gsword.o $(OBJ)/machine/tait8741.o \
-	$(OBJ)/machine/retofinv.o $(OBJ)/vidhrdw/retofinv.o $(OBJ)/drivers/retofinv.o \
+	$(OBJ)/vidhrdw/retofinv.o $(OBJ)/drivers/retofinv.o \
 	$(OBJ)/vidhrdw/tsamurai.o $(OBJ)/drivers/tsamurai.o \
 	$(OBJ)/machine/flstory.o $(OBJ)/vidhrdw/flstory.o $(OBJ)/drivers/flstory.o \
 	$(OBJ)/vidhrdw/gladiatr.o $(OBJ)/drivers/gladiatr.o \
@@ -507,7 +502,6 @@ $(OBJ)/atari.a: \
 	$(OBJ)/vidhrdw/relief.o $(OBJ)/drivers/relief.o \
 	$(OBJ)/vidhrdw/offtwall.o $(OBJ)/drivers/offtwall.o \
 	$(OBJ)/vidhrdw/arcadecl.o $(OBJ)/drivers/arcadecl.o \
-	$(OBJ)/machine/harddriv.o $(OBJ)/vidhrdw/harddriv.o $(OBJ)/drivers/harddriv.o \
 
 $(OBJ)/snk.a: \
 	$(OBJ)/vidhrdw/rockola.o $(OBJ)/sndhrdw/rockola.o $(OBJ)/drivers/rockola.o \
@@ -521,7 +515,6 @@ $(OBJ)/snk.a: \
 
 $(OBJ)/alpha.a: \
 	$(OBJ)/vidhrdw/alpha68k.o $(OBJ)/drivers/alpha68k.o \
-	$(OBJ)/vidhrdw/pushman.o $(OBJ)/drivers/pushman.o \
 	$(OBJ)/vidhrdw/champbas.o $(OBJ)/drivers/champbas.o \
 	$(OBJ)/machine/exctsccr.o $(OBJ)/vidhrdw/exctsccr.o $(OBJ)/drivers/exctsccr.o \
 
@@ -656,6 +649,7 @@ $(OBJ)/dooyong.a: \
 	$(OBJ)/vidhrdw/dooyong.o $(OBJ)/drivers/dooyong.o \
 
 $(OBJ)/nmk.a: \
+	$(OBJ)/vidhrdw/macross.o $(OBJ)/drivers/macross.o \
 	$(OBJ)/vidhrdw/bjtwin.o $(OBJ)/drivers/bjtwin.o \
 
 $(OBJ)/comad.a: \
@@ -699,7 +693,6 @@ $(OBJ)/other.a: \
 COREOBJS += $(OBJ)/driver.o
 
 # generated text files
-ifneq ($(OS),win32)
 TEXTS += gamelist.txt
 
 gamelist.txt: $(EMULATOR)
@@ -707,5 +700,5 @@ gamelist.txt: $(EMULATOR)
 	@$(EMULATOR) -gamelistheader -noclones > gamelist.txt
 	@$(EMULATOR) -gamelist -noclones | sort >> gamelist.txt
 	@$(EMULATOR) -gamelistfooter >> gamelist.txt
-endif
+
 

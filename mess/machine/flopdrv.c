@@ -28,43 +28,45 @@ static floppy_drive	drives[MAX_DRIVES];
 /* and initialise real disc access */
 void	floppy_drives_init(void)
 {
-	int i;
+		int i;
 
-	/* if no floppies, no point setting this up */
-	if (device_count(IO_FLOPPY)==0)
-		return;
+		/* if no floppies, no point setting this up */
+		if (device_count(IO_FLOPPY)==0)
+			return;
 
-	/* initialise osd fdc hardware */
-	osd_fdc_init();
+		/* initialise osd fdc hardware */
+		osd_fdc_init();
 
-	/* ensure first drive is present, all other drives are marked
-	as not present - override in driver if more are to be made available */
-	for (i=0; i<MAX_DRIVES; i++)
-	{
-		floppy_drive *pDrive = &drives[i];
-
-		/* not real fdd to start off with */
-		pDrive->flags &= ~FLOPPY_DRIVE_REAL_FDD;
-
-		if (i==0)
+		/* ensure first drive is present, all other drives are marked
+		as not present - override in driver if more are to be made available */
+		for (i=0; i<MAX_DRIVES; i++)
 		{
-			/* set first drive present */
-			floppy_drive_set_flag_state(i, FLOPPY_DRIVE_PRESENT, 1);
-		}
-		else
-		{
-			floppy_drive_set_flag_state(i, FLOPPY_DRIVE_PRESENT, 0);
-		}
+			floppy_drive *pDrive = &drives[i];
 
-		floppy_drive_set_geometry(i, FLOPPY_DRIVE_DS_80);
+			/* not real fdd to start off with */
+			pDrive->flags &= ~FLOPPY_DRIVE_REAL_FDD;
 
-		pDrive->fdd_unit = i;
-	}
+			if (i==0)
+			{
+				/* set first drive present */
+				floppy_drive_set_flag_state(i, FLOPPY_DRIVE_PRESENT, 1);
+			}
+			else
+			{
+				floppy_drive_set_flag_state(i, FLOPPY_DRIVE_PRESENT, 0);
+			}
+
+			floppy_drive_set_geometry(i, FLOPPY_DRIVE_DS_80);
+
+			pDrive->fdd_unit = i;
+		}
 }
 
 void	floppy_drives_exit(void)
 {
-	osd_fdc_exit();
+
+
+
 }
 
 /*************************************************************************/
@@ -117,16 +119,13 @@ void	floppy_drive_set_disk_image_interface(int id, floppy_interface *iface)
 }
 
 /* set flag state */
-void	floppy_drive_set_flag_state(int id, int flag, int state)
+void	floppy_drive_set_flag_state(int drive, int flag, int state)
 {
-	if ((id<0) || (id>=MAX_DRIVES))
-		return;
-
-	drives[id].flags &= ~flag;
+	drives[drive].flags &= ~flag;
 
 	if (state)
 	{
-		drives[id].flags |= flag;
+		drives[drive].flags |= flag;
 	}
 }
 
@@ -134,10 +133,10 @@ void	floppy_drive_set_motor_state(int drive, int state)
 {
 	floppy_drive_set_flag_state(drive, FLOPPY_DRIVE_MOTOR_ON, state);
 
-//	if (floppy_drive_get_flag_state(drive, FLOPPY_DRIVE_REAL_FDD))
-//	{
-//		osd_fdc_motors(drive,state);
-//	}
+        if (floppy_drive_get_flag_state(drive, FLOPPY_DRIVE_REAL_FDD))
+        {
+             osd_fdc_motors(drive,state);
+        }
 }
 
 /* for pc, drive is always ready, for amstrad,pcw,spectrum it is only ready under
@@ -151,17 +150,17 @@ void	floppy_drive_set_ready_state(int drive, int state, int flag)
 		and disk motor is on - for Amstrad, Spectrum and PCW*/
 	
 		/* drive present? */
-		if (floppy_drive_get_flag_state(drive, FLOPPY_DRIVE_PRESENT))
+		if (drives[drive].flags & FLOPPY_DRIVE_PRESENT)
 		{
 			/* disk inserted? */
-			if (floppy_drive_get_flag_state(drive, FLOPPY_DRIVE_DISK_PRESENT))
+			if (drives[drive].flags & FLOPPY_DRIVE_DISK_PRESENT)
 			{
-				if (floppy_drive_get_flag_state(drive, FLOPPY_DRIVE_MOTOR_ON))
+				if (drives[drive].flags & FLOPPY_DRIVE_MOTOR_ON)
 				{
 					/* set state */
 					floppy_drive_set_flag_state(drive, FLOPPY_DRIVE_READY, state);
-                    return;
-				}
+                                        return;
+                                }
 			}
 		}
 		floppy_drive_set_flag_state(drive, FLOPPY_DRIVE_READY, 0);
@@ -190,7 +189,7 @@ int		floppy_drive_get_flag_state(int id, int flag)
 	drive_flags = drives[id].flags;
 
 	/* these flags are independant of a real drive/disk image */
-    flags |= drive_flags & (FLOPPY_DRIVE_PRESENT | FLOPPY_DRIVE_REAL_FDD | FLOPPY_DRIVE_READY | FLOPPY_DRIVE_MOTOR_ON | FLOPPY_DRIVE_INDEX);
+    flags |= drive_flags & (FLOPPY_DRIVE_PRESENT | FLOPPY_DRIVE_REAL_FDD | FLOPPY_DRIVE_READY | FLOPPY_DRIVE_MOTOR_ON);
 
 	/* real drive? */
 	if (drive_flags & FLOPPY_DRIVE_REAL_FDD)
@@ -268,6 +267,16 @@ int		floppy_drive_get_flag_state(int id, int flag)
 }
 
 
+
+
+//static int floppy_drive_motor_state;
+//
+//void	floppy_drive_set_motor_state(int state)
+//{
+//	floppy_drive_motor_state = state;
+//
+//}
+
 #if 0
 void	floppy_drive_init(void)
 {
@@ -293,51 +302,42 @@ void	floppy_drive_init(void)
 }
 #endif
 
-void	floppy_drive_set_geometry(int id, floppy_type type)
+void	floppy_drive_set_geometry(int drive, floppy_type type)
 {
-	if ((id<0) || (id>=MAX_DRIVES))
-		return;
-
 	switch (type)
 	{
 		/* single sided, 40 track drive e.g. Amstrad CPC internal 3" drive */
 		case FLOPPY_DRIVE_SS_40:
 		{
-			drives[id].max_track = 42;
-			drives[id].num_sides = 1;
+			drives[drive].max_track = 42;
+			drives[drive].num_sides = 1;
 		}
 		break;
 
 		case FLOPPY_DRIVE_DS_80:
 		{
-			drives[id].max_track = 83;
-			drives[id].num_sides = 2;
+			drives[drive].max_track = 83;
+			drives[drive].num_sides = 2;
 		}
 		break;
 	}
 
-	drives[id].id_index = 0;
-    drives[id].current_track = 3;
-    floppy_drive_seek(id, -1);
+	drives[drive].id_index = 0;
+    drives[drive].current_track = 3;
+    floppy_drive_seek(drive, -1);
 }
 
-void    floppy_drive_seek(int id, signed int signed_tracks)
+void    floppy_drive_seek(int drive, signed int signed_tracks)
 {
-	floppy_drive *pDrive;
+	floppy_drive *pDrive = &drives[drive];
 
-	if ((id<0) || (id>=MAX_DRIVES))
-		return;
-
-	pDrive = &drives[id];
-
-	if (floppy_drive_get_flag_state(id,FLOPPY_DRIVE_REAL_FDD))
+	if (floppy_drive_get_flag_state(drive,FLOPPY_DRIVE_REAL_FDD))
 	{
 		/* real drive */
         osd_fdc_seek(pDrive->fdd_unit,signed_tracks);
 	}
 	else
 	{
-
 		/* update position */
         pDrive->current_track+=signed_tracks;
 
@@ -351,6 +351,8 @@ void    floppy_drive_seek(int id, signed int signed_tracks)
 			pDrive->current_track = pDrive->max_track-1;
 		}
 
+        logerror("CUR TRACK: %04x\r\n", pDrive->current_track);
+
 		/* set track 0 flag */
 		pDrive->flags &= ~FLOPPY_DRIVE_HEAD_AT_TRACK_0;
 
@@ -360,72 +362,56 @@ void    floppy_drive_seek(int id, signed int signed_tracks)
 		}
 
 		/* inform disk image of step operation so it can cache information */
-		if (pDrive->interface.seek_callback)
-			pDrive->interface.seek_callback(id, pDrive->current_track);
+		if (drives[drive].interface.seek_callback)
+			drives[drive].interface.seek_callback(drive, pDrive->current_track);
 	}
 }
 
 /* this is not accurate. But it will do for now */
 int	floppy_drive_get_next_id(int drive, int side, chrn_id *id)
 {
-	if (floppy_drive_get_flag_state(drive, FLOPPY_DRIVE_REAL_FDD))
+	int spt;
+
+	/* get sectors per track */
+	spt = 0;
+	if (drives[drive].interface.get_sectors_per_track)
+		spt = drives[drive].interface.get_sectors_per_track(drive, side);
+
+	/* set index */
+	if ((drives[drive].id_index==(spt-1)) || (spt==0))
 	{
-		osd_fdc_read_id(drive, side, drives[drive].id_buffer);
-
-		id->C = drives[drive].id_buffer[0];
-		id->H = drives[drive].id_buffer[1];
-		id->R = drives[drive].id_buffer[2];
-		id->N = drives[drive].id_buffer[3];
-		id->flags = 0;
-		id->data_id = 0;
-		return 1;
-
-	//	id.flags = 0;
-	//	id.data_id = i;
+		floppy_drive_set_flag_state(drive, FLOPPY_DRIVE_INDEX, 1);
 	}
 	else
 	{
-		int spt;
-
-		/* get sectors per track */
-		spt = 0;
-		if (drives[drive].interface.get_sectors_per_track)
-			spt = drives[drive].interface.get_sectors_per_track(drive, side);
-
-		/* set index */
-		if ((drives[drive].id_index==(spt-1)) || (spt==0))
-		{
-			floppy_drive_set_flag_state(drive, FLOPPY_DRIVE_INDEX, 1);
-		}
-		else
-		{
-			floppy_drive_set_flag_state(drive, FLOPPY_DRIVE_INDEX, 0);
-		}
-
-		/* get id */
-		if (spt!=0)
-		{
-			if (drives[drive].interface.get_id_callback)
-			{
-				drives[drive].interface.get_id_callback(drive, id, drives[drive].id_index, side);
-			}
-		}
-
-		drives[drive].id_index++;
-		if (spt!=0)
-		{
-			drives[drive].id_index %= spt;
-		}
-		else
-		{
-			drives[drive].id_index = 0;
-		}
-
-		if (spt==0)
-			return 0;
-		
-		return 1;
+		floppy_drive_set_flag_state(drive, FLOPPY_DRIVE_INDEX, 0);
 	}
+
+	/* get id */
+	if (spt!=0)
+	{
+		if (drives[drive].interface.get_id_callback)
+		{
+			drives[drive].interface.get_id_callback(drive, id, drives[drive].id_index, side);
+		}
+	}
+
+	drives[drive].id_index++;
+	if (spt!=0)
+	{
+		drives[drive].id_index %= spt;
+	}
+	else
+	{
+		drives[drive].id_index = 0;
+	}
+
+	if (spt==0)
+		return 0;
+	
+	return 1;
+
+
 }
 
 int	floppy_drive_get_current_track(int drive)
@@ -443,14 +429,18 @@ void    floppy_drive_read_sector_data(int drive, int side, int index1, char *pBu
 {
 	if (floppy_drive_get_flag_state(drive, FLOPPY_DRIVE_REAL_FDD))
 	{
-		floppy_drive *pDrive = &drives[drive];
+                floppy_drive *pDrive = &drives[drive];
+                chrn_id      *id = &pDrive->ids[index1];
 
-		logerror("real floppy read\n");
+                id->C = pDrive->current_track;
+                id->H = 0;
+                id->R = 0x0c1 + index1;
+                id->N = 2;
 
-        /* track, head, sector */
-		osd_fdc_get_sector(pDrive->fdd_unit,side, pDrive->id_buffer[0],
-			pDrive->id_buffer[1], pDrive->id_buffer[2], pDrive->id_buffer[3],
-			(unsigned char *)pBuffer, 0);
+                logerror("real floppy read\r\n");
+
+                /* track, head, sector */
+				osd_fdc_get_sector(pDrive->fdd_unit,side, id->C, id->H, id->R, id->N,(unsigned char *)pBuffer, 0);
 	}
 	else
 	{
@@ -459,21 +449,20 @@ void    floppy_drive_read_sector_data(int drive, int side, int index1, char *pBu
 	}
 }
 
-void    floppy_drive_write_sector_data(int drive, int side, int index1, char *pBuffer,int length, int ddam)
+void    floppy_drive_write_sector_data(int drive, int side, int index1, char *pBuffer,int length)
 {
 	if (floppy_drive_get_flag_state(drive, FLOPPY_DRIVE_REAL_FDD))
 	{
-		floppy_drive *pDrive = &drives[drive];
+                floppy_drive *pDrive = &drives[drive];
+                chrn_id      *id = &pDrive->ids[index1];
 
-        /* track, head, sector */
-		osd_fdc_put_sector(pDrive->fdd_unit,side, pDrive->id_buffer[0],
-			pDrive->id_buffer[1], pDrive->id_buffer[2], pDrive->id_buffer[3],
-			(unsigned char *)pBuffer, ddam);
+                
+                osd_fdc_put_sector(pDrive->fdd_unit,side, id->C, id->H,id->R, id->N,(unsigned char *)pBuffer, 0);
 	}
 	else
 	{
 		if (drives[drive].interface.write_sector_data_from_buffer)
-                drives[drive].interface.write_sector_data_from_buffer(drive, side, index1, pBuffer,length,ddam);
+                drives[drive].interface.write_sector_data_from_buffer(drive, side, index1, pBuffer,length);
 	}
 }
 

@@ -5,7 +5,7 @@
 VERSION = -DVERSION=37
 
 # uncomment out the BETA_VERSION = line to build a beta version of MAME
-BETA_VERSION = -DBETA_VERSION=7
+BETA_VERSION = -DBETA_VERSION=6
 
 # uncomment this to build an release canidate version
 # RELEASE_CANDIDATE = -DRELEASE_CANDIDATE=1
@@ -279,8 +279,7 @@ SNDOBJS = \
 		 $(OBJ)/sound/saa1099.o \
          $(OBJ)/sound/wave.o \
          $(OBJ)/sound/speaker.o \
-		 $(OBJ)/sound/beep.o \
-		 $(OBJ)/sound/nesintf.o
+		 $(OBJ)/sound/beep.o
 
 COREOBJS = \
          $(OBJ)/version.o $(OBJ)/mame.o \
@@ -310,7 +309,6 @@ COREOBJS = \
           $(OBJ)/mess/machine/wd179x.o   \
           $(OBJ)/mess/machine/basicdsk.o \
           $(OBJ)/mess/diskctrl.o         \
-		  $(OBJ)/mess/utils.o			\
 	 $(OBJ)/mess/machine/6522via.o	\
 	 $(OBJ)/mess/machine/nec765.o	\
 	 $(OBJ)/mess/machine/dsk.o	\
@@ -512,10 +510,9 @@ DRV_OBJS = \
           $(OBJ)/mess/vidhrdw/enterp.o   \
           $(OBJ)/mess/machine/enterp.o   \
           $(OBJ)/mess/systems/enterp.o	\
-	  $(OBJ)/mess/sndhrdw/scc.o	 	 \
-	  $(OBJ)/mess/machine/msx.o	 	 \
-	  $(OBJ)/mess/formats/fmsx_cas.o \
-	  $(OBJ)/mess/systems/msx.o	\
+          $(OBJ)/mess/sndhrdw/scc.o      \
+          $(OBJ)/mess/machine/msx.o      \
+          $(OBJ)/mess/systems/msx.o	\
           $(OBJ)/mess/vidhrdw/kim1.o     \
           $(OBJ)/mess/machine/kim1.o     \
           $(OBJ)/mess/systems/kim1.o	\
@@ -581,7 +578,6 @@ IMGTOOL_OBJS= \
           $(OBJ)/mess/tools/stubs.o   \
           $(OBJ)/mess/config.o        \
           $(OBJ)/unzip.o              \
-		  $(OBJ)/mess/utils.o		\
           $(OBJ)/mess/tools/main.o    \
           $(OBJ)/mess/tools/imgtool.o \
 		  $(OBJ)/mess/tools/imgwave.o \
@@ -649,8 +645,8 @@ romcmp: $(OBJ)/romcmp.o $(OBJ)/unzip.o $(OBJ)/Win32/dirent.o
 	$(LD) $(LDFLAGS) -out:romcmp.exe $(CONSOLE_PROGRAM) $(OBJ)/romcmp.o $(OBJ)/unzip.o $(OBJ)/Win32/dirent.o $(LIBS)
 
 
-dat2html.exe:	$(OBJ)/mess/tools/dat2html.o $(OBJ)/mess/utils.o
-	$(LD) $(LDFLAGS) -out:dat2html.exe $(CONSOLE_PROGRAM) $(OBJ)/mess/tools/dat2html.o $(OBJ)/mess/utils.o
+dat2html.exe:	$(OBJ)/mess/tools/dat2html.o
+	$(LD) $(LDFLAGS) -out:dat2html.exe $(CONSOLE_PROGRAM) $(OBJ)/mess/tools/mkhdimg.o
 
 
 mkhdimg.exe:	$(OBJ)/mess/tools/mkhdimg.o

@@ -129,17 +129,11 @@ static void set_tweaked_mode(void)
 int sysdep_init(void)
 {
    vga_init();
-   
-   if(svga_input_init())
-      return OSD_NOT_OK;
-   
    return OSD_OK;
 }
 
 void sysdep_close(void)
 {
-   svga_input_exit();
-
    /* close svgalib */
    vga_setmode(TEXT);
 }
@@ -185,7 +179,7 @@ int sysdep_set_video_mode (void)
          video_mem += startx * video_modeinfo.bytesperpixel;
          video_mem += starty * video_modeinfo.width *
             video_modeinfo.bytesperpixel;
-         if ((widthscale > 1 || heightscale > 1) &&
+         if ((widthscale > 1 || heightscale > 2) &&
              doublebuffer_buffer == NULL)
          {
             doublebuffer_buffer = malloc(scaled_visual_width * 
@@ -224,6 +218,16 @@ int sysdep_set_video_mode (void)
       
    if (video_modeinfo.bytesperpixel == 2)
       update_function+=4;
+   else
+   {
+      /* this is needed if we get called from the debugger, if we're
+         called for the first time sysdep_palette doesn't exist yet */
+      if (sysdep_palette)
+         sysdep_palette_mark_dirty(sysdep_palette);
+   }
+   
+   /* we don't now the exact bitmap size, so just mark a HUGE area dirty */
+   osd_mark_dirty (0,0,2048,2048,1);
    
    return OSD_OK;
 }
@@ -243,13 +247,6 @@ int sysdep_create_display(int depth)
    int i;
    int score, best_score = 0;
    vga_modeinfo *my_modeinfo;
-   
-   video_mode       = -1;
-   tweaked_mode     = -1;
-   update_function  = -1;
-   text_mode        = TRUE;
-   video_mem        = NULL;
-   doublebuffer_buffer = NULL;
    
    scaled_visual_width  = visual_width  * widthscale;
    scaled_visual_height = visual_height * heightscale;
@@ -372,9 +369,9 @@ int sysdep_create_display(int depth)
 
    /* init input */
 #ifdef __CPU_i386
-   if(svga_input_open(NULL, set_tweaked_mode))
+   if(svga_input_init(NULL, set_tweaked_mode))
 #else
-   if(svga_input_open(NULL, NULL))
+   if(svga_input_init(NULL, NULL))
 #endif
       return OSD_NOT_OK;
    
@@ -385,17 +382,14 @@ int sysdep_create_display(int depth)
 void sysdep_display_close(void)
 {
    /* close input */
-   svga_input_close();
+   svga_input_exit();
    
    /* close svgalib */
    sysdep_set_text_mode();
 
    /* and don't forget to free our other resources */
    if (doublebuffer_buffer)
-   {
       free(doublebuffer_buffer);
-      doublebuffer_buffer = NULL;
-   }
 }
 
 int sysdep_display_alloc_palette(int writable_colors)
@@ -415,7 +409,7 @@ void sysdep_update_display(struct osd_bitmap *bitmap)
 {
    int old_use_dirty = use_dirty;
    
-   if (current_palette->lookup_dirty)
+   if (sysdep_palette->lookup_dirty)
       use_dirty = 0;
    
    update_functions[update_function](bitmap);
@@ -498,9 +492,9 @@ static void svgalib_update_linear_16bpp(struct osd_bitmap *bitmap)
 #define DEST video_mem
 #define DEST_WIDTH linewidth
 #define DOUBLEBUFFER
-   if(current_palette->lookup)
+   if(sysdep_palette->lookup)
    {
-#define INDIRECT current_palette->lookup
+#define INDIRECT sysdep_palette->lookup
 #include "blit.h"
 #undef INDIRECT
    }
@@ -517,7 +511,7 @@ static void svgalib_update_linear_16bpp(struct osd_bitmap *bitmap)
 
 static void svgalib_update_gl_16bpp(struct osd_bitmap *bitmap)
 {
-   if(current_palette->lookup)
+   if(sysdep_palette->lookup)
    {
       /* since we need the lookups we need to go through an extra buffer,
          just like svgalib_update_gl_scaled_16bpp() does */
@@ -543,9 +537,9 @@ static void svgalib_update_gl_scaled_16bpp(struct osd_bitmap *bitmap)
          WIDTH, HEIGHT, \
          scaled_visual_width, scaled_visual_height, \
          doublebuffer_buffer, X, Y );
-   if(current_palette->lookup)
+   if(sysdep_palette->lookup)
    {
-#define INDIRECT current_palette->lookup
+#define INDIRECT sysdep_palette->lookup
 #include "blit.h"
 #undef INDIRECT
    }

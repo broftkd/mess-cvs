@@ -35,7 +35,6 @@
 #include "Trak.h"
 #include "resource.h"
 #include "M32Util.h"
-#include "dirty.h"
 
 /***************************************************************************
     Function prototypes
@@ -130,6 +129,15 @@ void MAME32App_init(options_type *options)
     auto_pause = options->auto_pause;
 #endif
 
+    /*
+        Machine->scrbitmap is not initialized in the mame source
+        until after the call to osd_create_display().
+        This causes a problem if osd_create_display() detects an error,
+        then shows the error message box, which causes focus to change,
+        which causes OnPause() to be called, which uses Machine->scrbitmap.
+        Whew. So it needs to be set to NULL so it doesn't crash in OnPause().
+    */
+    Machine->scrbitmap = NULL;
 }
 
 /***************************************************************************
@@ -294,7 +302,8 @@ static void OnActivateApp(HWND hWnd, BOOL fActivate, DWORD dwThreadId)
                 orig_brt = osd_get_brightness();
 		        osd_set_brightness(orig_brt * 0.65);
 
-                MAME32App.m_pDisplay->Refresh();
+                MAME32App.m_pDisplay->update_display(Machine->scrbitmap,
+                                                     Machine->debug_bitmap);
 
                 osd_sound_enable(0);
             }
@@ -315,9 +324,12 @@ static void OnActivateApp(HWND hWnd, BOOL fActivate, DWORD dwThreadId)
             }
 
             bitmap_dirty = 1;
-            MarkAllDirty();
+            osd_mark_dirty(0, 0,
+                           Machine->scrbitmap->width  - 1,
+                           Machine->scrbitmap->height - 1, 1);
            
-            MAME32App.m_pDisplay->Refresh();
+            MAME32App.m_pDisplay->update_display(Machine->scrbitmap,
+                                                 Machine->debug_bitmap);
         }
     }
 }
