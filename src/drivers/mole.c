@@ -149,7 +149,7 @@ static struct MemoryWriteAddress moleattack_writemem[] =
 	{ -1 }
 };
 
-const struct MachineDriver machine_driver_mole =
+struct MachineDriver machine_driver_mole =
 {
 	{
 		{

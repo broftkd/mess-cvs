@@ -231,7 +231,7 @@ static struct VLM5030interface vlm5030_interface =
 	0           /* VCU pin level (default)     */
 };
 
-static const struct MachineDriver machine_driver_jailbrek =
+static struct MachineDriver machine_driver_jailbrek =
 {
 	/* basic machine hardware */
 	{

@@ -353,7 +353,7 @@ static struct DACinterface dac_interface =
 
 
 
-static const struct MachineDriver machine_driver_megazone =
+static struct MachineDriver machine_driver_megazone =
 {
 	/* basic machine hardware */
 	{

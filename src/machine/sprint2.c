@@ -309,12 +309,12 @@ Lamps
 ***************************************************************************/
 WRITE_HANDLER( sprint2_lamp1_w )
 {
-	set_led_status(0,offset & 1);
+	osd_led_w(0,(data>0));
 }
 
 WRITE_HANDLER( sprint2_lamp2_w )
 {
-	set_led_status(1,offset & 1);
+	osd_led_w(1,(data>0));
 }
 
 

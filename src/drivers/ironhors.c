@@ -452,7 +452,7 @@ static struct YM2203interface ym2203_interface =
 
 
 
-static const struct MachineDriver machine_driver_ironhors =
+static struct MachineDriver machine_driver_ironhors =
 {
 	/* basic machine hardware */
 	{
@@ -495,7 +495,7 @@ static const struct MachineDriver machine_driver_ironhors =
 	}
 };
 
-static const struct MachineDriver machine_driver_farwest =
+static struct MachineDriver machine_driver_farwest =
 {
 	/* basic machine hardware */
 	{

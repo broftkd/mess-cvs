@@ -315,7 +315,7 @@ static struct YM3526interface ym3526_interface =
 };
 
 
-static const struct MachineDriver machine_driver_battlane =
+static struct MachineDriver machine_driver_battlane =
 {
 	/* basic machine hardware */
 	{

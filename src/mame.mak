@@ -62,7 +62,7 @@ CPUS+=CCPU@
 #CPUS+=PDP1@
 CPUS+=ADSP2100@
 CPUS+=ADSP2105@
-CPUS+=PSXCPU@
+CPUS+=MIPS@
 #CPUS+=SC61860@
 #CPUS+=ARM@
 #CPUS+=G65816@
@@ -112,8 +112,6 @@ SOUNDS+=RF5C68@
 SOUNDS+=CEM3394@
 SOUNDS+=C140@
 SOUNDS+=QSOUND@
-#SOUNDS+=SAA1099@
-SOUNDS+=IREMGA20@
 #SOUNDS+=SPEAKER@
 #SOUNDS+=WAVE@
 #SOUNDS+=BEEP@
@@ -132,8 +130,7 @@ DRVLIBS = \
 	$(OBJ)/valadon.a $(OBJ)/seibu.a $(OBJ)/tad.a $(OBJ)/jaleco.a \
 	$(OBJ)/vsystem.a $(OBJ)/psikyo.a $(OBJ)/orca.a $(OBJ)/gaelco.a \
 	$(OBJ)/kaneko.a $(OBJ)/seta.a $(OBJ)/atlus.a \
-	$(OBJ)/sun.a $(OBJ)/suna.a $(OBJ)/dooyong.a $(OBJ)/nmk.a \
-	$(OBJ)/comad.a $(OBJ)/playmark.a $(OBJ)/pacific.a \
+	$(OBJ)/sun.a $(OBJ)/suna.a $(OBJ)/dooyong.a $(OBJ)/nmk.a $(OBJ)/comad.a \
 	$(OBJ)/other.a $(OBJ)/neogeo.a \
 
 $(OBJ)/pacman.a: \
@@ -148,7 +145,6 @@ $(OBJ)/nichibut.a: \
 	$(OBJ)/drivers/yamato.o \
 	$(OBJ)/vidhrdw/seicross.o $(OBJ)/sndhrdw/wiping.o $(OBJ)/drivers/seicross.o \
 	$(OBJ)/vidhrdw/wiping.o $(OBJ)/drivers/wiping.o \
-	$(OBJ)/vidhrdw/magmax.o $(OBJ)/drivers/magmax.o \
 	$(OBJ)/vidhrdw/cop01.o $(OBJ)/drivers/cop01.o \
 	$(OBJ)/vidhrdw/terracre.o $(OBJ)/drivers/terracre.o \
 	$(OBJ)/vidhrdw/galivan.o $(OBJ)/drivers/galivan.o \
@@ -199,7 +195,7 @@ $(OBJ)/nintendo.a: \
 	$(OBJ)/vidhrdw/punchout.o $(OBJ)/drivers/punchout.o \
 	$(OBJ)/machine/rp5h01.o $(OBJ)/vidhrdw/ppu2c03b.o \
 	$(OBJ)/machine/playch10.o $(OBJ)/vidhrdw/playch10.o $(OBJ)/drivers/playch10.o \
-	$(OBJ)/machine/vsnes.o $(OBJ)/vidhrdw/vsnes.o $(OBJ)/drivers/vsnes.o \
+        $(OBJ)/machine/vsnes.o $(OBJ)/vidhrdw/vsnes.o $(OBJ)/drivers/vsnes.o \
 
 $(OBJ)/midw8080.a: \
 	$(OBJ)/machine/8080bw.o $(OBJ)/machine/74123.o \
@@ -232,9 +228,7 @@ $(OBJ)/irem.a: \
 	$(OBJ)/vidhrdw/vigilant.o $(OBJ)/drivers/vigilant.o \
 	$(OBJ)/vidhrdw/m72.o $(OBJ)/sndhrdw/m72.o $(OBJ)/drivers/m72.o \
 	$(OBJ)/vidhrdw/shisen.o $(OBJ)/drivers/shisen.o \
-	$(OBJ)/machine/irem_cpu.o \
-        $(OBJ)/vidhrdw/m90.o $(OBJ)/drivers/m90.o \
-        $(OBJ)/vidhrdw/m92.o $(OBJ)/drivers/m92.o \
+	$(OBJ)/vidhrdw/m92.o $(OBJ)/drivers/m92.o \
 	$(OBJ)/drivers/m97.o \
 	$(OBJ)/vidhrdw/m107.o $(OBJ)/drivers/m107.o \
 
@@ -247,7 +241,7 @@ $(OBJ)/taito.a: \
 	$(OBJ)/machine/taitosj.o $(OBJ)/vidhrdw/taitosj.o $(OBJ)/drivers/taitosj.o \
 	$(OBJ)/vidhrdw/bking2.o $(OBJ)/drivers/bking2.o \
 	$(OBJ)/vidhrdw/gsword.o $(OBJ)/drivers/gsword.o $(OBJ)/machine/tait8741.o \
-	$(OBJ)/machine/retofinv.o $(OBJ)/vidhrdw/retofinv.o $(OBJ)/drivers/retofinv.o \
+	$(OBJ)/vidhrdw/retofinv.o $(OBJ)/drivers/retofinv.o \
 	$(OBJ)/vidhrdw/tsamurai.o $(OBJ)/drivers/tsamurai.o \
 	$(OBJ)/machine/flstory.o $(OBJ)/vidhrdw/flstory.o $(OBJ)/drivers/flstory.o \
 	$(OBJ)/vidhrdw/gladiatr.o $(OBJ)/drivers/gladiatr.o \
@@ -261,8 +255,7 @@ $(OBJ)/taito.a: \
 	$(OBJ)/vidhrdw/superman.o $(OBJ)/drivers/superman.o $(OBJ)/machine/cchip.o \
 	$(OBJ)/vidhrdw/minivadr.o $(OBJ)/drivers/minivadr.o \
 	$(OBJ)/machine/tnzs.o $(OBJ)/vidhrdw/tnzs.o $(OBJ)/drivers/tnzs.o \
-	$(OBJ)/machine/buggychl.o $(OBJ)/vidhrdw/buggychl.o $(OBJ)/drivers/buggychl.o \
-	$(OBJ)/machine/lkage.o $(OBJ)/vidhrdw/lkage.o $(OBJ)/drivers/lkage.o \
+	$(OBJ)/machine/lkage.o $(OBJ)/drivers/lkage.o $(OBJ)/vidhrdw/lkage.o \
 	$(OBJ)/vidhrdw/taito_l.o $(OBJ)/drivers/taito_l.o \
 	$(OBJ)/vidhrdw/taito_b.o $(OBJ)/drivers/taito_b.o \
 	$(OBJ)/vidhrdw/taitoic.o \
@@ -507,7 +500,6 @@ $(OBJ)/atari.a: \
 	$(OBJ)/vidhrdw/relief.o $(OBJ)/drivers/relief.o \
 	$(OBJ)/vidhrdw/offtwall.o $(OBJ)/drivers/offtwall.o \
 	$(OBJ)/vidhrdw/arcadecl.o $(OBJ)/drivers/arcadecl.o \
-	$(OBJ)/machine/harddriv.o $(OBJ)/vidhrdw/harddriv.o $(OBJ)/drivers/harddriv.o \
 
 $(OBJ)/snk.a: \
 	$(OBJ)/vidhrdw/rockola.o $(OBJ)/sndhrdw/rockola.o $(OBJ)/drivers/rockola.o \
@@ -521,7 +513,6 @@ $(OBJ)/snk.a: \
 
 $(OBJ)/alpha.a: \
 	$(OBJ)/vidhrdw/alpha68k.o $(OBJ)/drivers/alpha68k.o \
-	$(OBJ)/vidhrdw/pushman.o $(OBJ)/drivers/pushman.o \
 	$(OBJ)/vidhrdw/champbas.o $(OBJ)/drivers/champbas.o \
 	$(OBJ)/machine/exctsccr.o $(OBJ)/vidhrdw/exctsccr.o $(OBJ)/drivers/exctsccr.o \
 
@@ -550,7 +541,6 @@ $(OBJ)/stratvox.a: \
 	$(OBJ)/vidhrdw/ttmahjng.o $(OBJ)/drivers/ttmahjng.o \
 
 $(OBJ)/zaccaria.a: \
-	$(OBJ)/vidhrdw/zac2650.o $(OBJ)/drivers/zac2650.o \
 	$(OBJ)/vidhrdw/zaccaria.o $(OBJ)/drivers/zaccaria.o \
 
 $(OBJ)/upl.a: \
@@ -580,7 +570,6 @@ $(OBJ)/valadon.a: \
 
 $(OBJ)/seibu.a: \
 	$(OBJ)/vidhrdw/wiz.o $(OBJ)/drivers/wiz.o \
-	$(OBJ)/vidhrdw/kncljoe.o $(OBJ)/drivers/kncljoe.o \
 	$(OBJ)/machine/stfight.o $(OBJ)/vidhrdw/stfight.o $(OBJ)/drivers/stfight.o \
 	$(OBJ)/sndhrdw/seibu.o \
 	$(OBJ)/vidhrdw/dynduke.o $(OBJ)/drivers/dynduke.o \
@@ -624,7 +613,6 @@ $(OBJ)/orca.a: \
 	$(OBJ)/vidhrdw/vastar.o $(OBJ)/drivers/vastar.o \
 
 $(OBJ)/gaelco.a: \
-	$(OBJ)/vidhrdw/splash.o $(OBJ)/drivers/splash.o \
 	$(OBJ)/vidhrdw/gaelco.o $(OBJ)/drivers/gaelco.o \
 
 $(OBJ)/kaneko.a: \
@@ -656,18 +644,12 @@ $(OBJ)/dooyong.a: \
 	$(OBJ)/vidhrdw/dooyong.o $(OBJ)/drivers/dooyong.o \
 
 $(OBJ)/nmk.a: \
+	$(OBJ)/vidhrdw/macross.o $(OBJ)/drivers/macross.o \
 	$(OBJ)/vidhrdw/bjtwin.o $(OBJ)/drivers/bjtwin.o \
 
 $(OBJ)/comad.a: \
 	$(OBJ)/vidhrdw/zerozone.o $(OBJ)/drivers/zerozone.o \
 	$(OBJ)/vidhrdw/galspnbl.o $(OBJ)/drivers/galspnbl.o \
-	$(OBJ)/drivers/ladyfrog.o \
-
-$(OBJ)/playmark.a: \
-	$(OBJ)/vidhrdw/playmark.o $(OBJ)/drivers/playmark.o \
-
-$(OBJ)/pacific.a: \
-	$(OBJ)/vidhrdw/thief.o $(OBJ)/drivers/thief.o \
 
 $(OBJ)/other.a: \
 	$(OBJ)/vidhrdw/spacefb.o $(OBJ)/drivers/spacefb.o \
@@ -680,6 +662,7 @@ $(OBJ)/other.a: \
 	$(OBJ)/machine/irobot.o $(OBJ)/vidhrdw/irobot.o $(OBJ)/drivers/irobot.o \
 	$(OBJ)/machine/spiders.o $(OBJ)/vidhrdw/crtc6845.o $(OBJ)/vidhrdw/spiders.o $(OBJ)/drivers/spiders.o \
 	$(OBJ)/machine/stactics.o $(OBJ)/vidhrdw/stactics.o $(OBJ)/drivers/stactics.o \
+	$(OBJ)/vidhrdw/sharkatt.o $(OBJ)/drivers/sharkatt.o \
 	$(OBJ)/vidhrdw/kingobox.o $(OBJ)/drivers/kingobox.o \
 	$(OBJ)/vidhrdw/speedbal.o $(OBJ)/drivers/speedbal.o \
 	$(OBJ)/vidhrdw/sauro.o $(OBJ)/drivers/sauro.o \
@@ -699,7 +682,6 @@ $(OBJ)/other.a: \
 COREOBJS += $(OBJ)/driver.o
 
 # generated text files
-ifneq ($(OS),win32)
 TEXTS += gamelist.txt
 
 gamelist.txt: $(EMULATOR)
@@ -707,5 +689,5 @@ gamelist.txt: $(EMULATOR)
 	@$(EMULATOR) -gamelistheader -noclones > gamelist.txt
 	@$(EMULATOR) -gamelist -noclones | sort >> gamelist.txt
 	@$(EMULATOR) -gamelistfooter >> gamelist.txt
-endif
+
 

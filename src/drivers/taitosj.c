@@ -1676,7 +1676,7 @@ static struct DACinterface dac_interface =
 
 
 
-static const struct MachineDriver machine_driver_nomcu =
+static struct MachineDriver machine_driver_nomcu =
 {
 	/* basic machine hardware */
 	{
@@ -1730,7 +1730,7 @@ static const struct MachineDriver machine_driver_nomcu =
 };
 
 /* same as above, but with additional 68705 MCU */
-static const struct MachineDriver machine_driver_mcu =
+static struct MachineDriver machine_driver_mcu =
 {
 	/* basic machine hardware */
 	{

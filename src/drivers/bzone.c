@@ -505,7 +505,7 @@ static struct CustomSound_interface bzone_custom_interface =
 };
 
 
-static const struct MachineDriver machine_driver_bzone =
+static struct MachineDriver machine_driver_bzone =
 {
 	/* basic machine hardware */
 	{
@@ -526,7 +526,7 @@ static const struct MachineDriver machine_driver_bzone =
 	256+32768, 0,
 	avg_init_palette_bzone,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	avg_start_bzone,
 	avg_stop,
@@ -574,7 +574,7 @@ static struct CustomSound_interface redbaron_custom_interface =
 	redbaron_sh_update
 };
 
-static const struct MachineDriver machine_driver_redbaron =
+static struct MachineDriver machine_driver_redbaron =
 {
 	/* basic machine hardware */
 	{
@@ -595,7 +595,7 @@ static const struct MachineDriver machine_driver_redbaron =
 	256, 0,
 	avg_init_palette_aqua,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	avg_start_redbaron,
 	avg_stop,

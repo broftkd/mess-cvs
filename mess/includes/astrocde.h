@@ -26,4 +26,4 @@ WRITE_HANDLER ( astrocade_colour_register_w );
 WRITE_HANDLER ( astrocade_colour_block_w );
 WRITE_HANDLER ( astrocade_colour_split_w );
 
-void astrocade_copy_line(int line);
+extern void AstrocadeCopyLine(int Line);

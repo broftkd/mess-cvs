@@ -17,10 +17,9 @@
 #include "options.h"
 #include "ScreenShot.h"
 
-extern const struct GameDriver driver_0;
+extern struct GameDriver driver_0;
 
 #define DRIVER_ROOT &driver_0
-#define GAME_BROKEN (GAME_NOT_WORKING | GAME_UNEMULATED_PROTECTION)
 
 extern struct GameDriver driver_neogeo;
 

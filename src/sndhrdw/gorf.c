@@ -85,7 +85,7 @@ static const char *GorfWordTable[] =
 
 #define num_samples (sizeof(GorfWordTable)/sizeof(char *))
 
-const char *gorf_sample_names[] =
+static const char *gorf_sample_names[] =
 {
  "*gorf","a.wav","a.wav","again.wav","am.wav","am.wav","and.wav","anhilatn.wav",
  "another.wav","another.wav","are.wav","are.wav",
@@ -108,7 +108,7 @@ const char *gorf_sample_names[] =
  "to.wav","to.wav","unbeatab.wav",
  "warrior.wav","warriors.wav","will.wav",
  "you.wav","you.wav","you.wav","you.wav","your.wav","your.wav","yourself.wav",
- "s.wav","for.wav","for.wav","will.wav","gorph.wav",
+ "s.wav","for.wav","for.wav","will.wav","Gorph.wav",
 // Missing Samples
  "coin.wav", "attack.wav","bite.wav","conquer.wav","devour.wav","dust.wav",
  "galaxy.wav","got.wav","power.wav","try.wav","supreme.wav","all.wav",
@@ -124,6 +124,8 @@ int plural = 0;
 
 int gorf_sh_start(const struct MachineSound *msound)
 {
+	Machine->samples = readsamples(gorf_sample_names,Machine->gamedrv->name);
+
     GorfBaseFrequency = 11025;
     GorfBaseVolume = 230;
     GorfChannel = 0;

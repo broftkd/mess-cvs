@@ -31,6 +31,7 @@ struct ADPCMinterface hyprolyb_adpcm_interface =
 	1,          /* 1 channel */
 	4000,       /* 4000Hz playback */
 	REGION_CPU3,	/* memory region */
+	0,          /* init function */
 	{ 100 }
 };
 

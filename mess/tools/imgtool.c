@@ -30,7 +30,6 @@ CARTMODULE(vectrex,  "Vectrex Cartridge",				"bin")
 CARTMODULE(vic20,    "Commodore Vic-20 Cartridge",		"a0")
 
 extern struct ImageModule imgmod_rsdos;	/* CoCo RS-DOS disks */
-extern struct ImageModule imgmod_cococas;	/* CoCo cassettes */
 extern struct ImageModule imgmod_pchd;	/* PC HD images */
 extern struct ImageModule imgmod_msdos;	/* FAT/MSDOS diskett images */
 extern struct ImageModule imgmod_msdoshd;	/* FAT/MSDOS harddisk images */
@@ -47,7 +46,6 @@ extern struct ImageModule imgmod_fs;
 
 static const struct ImageModule *images[] = {
 	&imgmod_rsdos,
-	&imgmod_cococas,
 	&imgmod_pchd,
 	&imgmod_msdos,
 	&imgmod_msdoshd,
@@ -116,8 +114,7 @@ static const char *msgs[] = {
 	"Missing parameter not found",
 	"Inappropriate parameter",
 	"Bad file name",
-	"Out of space on image",
-	"Input past end of file"
+	"Out of space on image"
 };
 
 const char *imageerror(int err)
@@ -198,8 +195,6 @@ void img_close(IMAGE *img)
 int img_beginenum(IMAGE *img, IMAGEENUM **outenum)
 {
 	int err;
-
-	assert(img);
 
 	if (!img->module->beginenum)
 		return IMGTOOLERR_UNIMPLEMENTED | IMGTOOLERR_SRC_FUNCTIONALITY;

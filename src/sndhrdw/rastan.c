@@ -188,17 +188,7 @@ WRITE_HANDLER( rastan_a001_w )
 
 WRITE_HANDLER( rastan_adpcm_trigger_w )
 {
-	UINT8 *rom = memory_region(REGION_SOUND1);
-	int len = memory_region_length(REGION_SOUND1);
-	int start = data << 8;
-	int end;
-
-	/* look for end of sample */
-	end = (start + 3) & ~3;
-	while (end < len && *((UINT32 *)(&rom[end])) != 0x08080808)
-		end += 4;
-
-	ADPCM_play(0,start,(end-start)*2);
+	ADPCM_trigger(0,data);
 }
 
 void rastan_irq_handler (int irq)

@@ -81,7 +81,7 @@ static const char *wowWordTable[] =
 #define num_samples (sizeof(wowWordTable)/sizeof(char *))
 
 
-const char *wow_sample_names[] =
+static const char *wow_sample_names[] =
 {
 	"*wow",
 	"a.wav", "again.wav", "ahh.wav", "am.wav", "and.wav",
@@ -117,6 +117,8 @@ extern int plural;
 
 int wow_sh_start(const struct MachineSound *msound)
 {
+	Machine->samples = readsamples(wow_sample_names,Machine->gamedrv->name);
+
 	wowBaseFrequency = 11025;
 	wowBaseVolume = 230;
 	wowChannel = 0;

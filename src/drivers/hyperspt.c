@@ -486,7 +486,7 @@ struct VLM5030interface hyperspt_vlm5030_interface =
 };
 
 
-static const struct MachineDriver machine_driver_hyperspt =
+static struct MachineDriver machine_driver_hyperspt =
 {
 	/* basic machine hardware */
 	{
@@ -539,7 +539,7 @@ static const struct MachineDriver machine_driver_hyperspt =
 	nvram_handler
 };
 
-static const struct MachineDriver machine_driver_roadf =
+static struct MachineDriver machine_driver_roadf =
 {
 	/* basic machine hardware */
 	{

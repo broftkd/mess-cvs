@@ -1,7 +1,7 @@
 Whats new:
 
 ----------
-0.37 BETA 7
+0.37 BETA 6
 ------------
 
 - MESS32 will now remember what items were selected in the software picker.
@@ -33,8 +33,6 @@ Whats new:
 
 - Fixed a bug that caused ROMless drivers to be marked as "Missing ROMs" [Nate
   Woods]
-
-- New help file for MESS32 [Juan Rivera]
 
 ----------
 0.37 BETA 5

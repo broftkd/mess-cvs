@@ -399,7 +399,7 @@ struct MSM5205interface magix_msm5205_interface =
 };
 
 
-static const struct MachineDriver machine_driver_magix =
+static struct MachineDriver machine_driver_magix =
 {
 	{
 		{

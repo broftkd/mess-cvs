@@ -195,7 +195,7 @@ static struct GfxDecodeInfo gfxdecodeinfo[] =
 };
 
 
-static const struct MachineDriver machine_driver_skychut =
+static struct MachineDriver machine_driver_skychut =
 {
 	/* basic machine hardware */
 	{
@@ -226,7 +226,7 @@ static const struct MachineDriver machine_driver_skychut =
 	0,0,0,0,
 };
 
-static const struct MachineDriver machine_driver_greenberet =
+static struct MachineDriver machine_driver_greenberet =
 {
 	/* basic machine hardware */
 	{

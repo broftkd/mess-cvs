@@ -9,7 +9,7 @@
 ******************************************************************************/
 
 #include "driver.h"
-#include "includes/bbc.h"
+#include "machine/bbc.h"
 #include "vidhrdw/bbc.h"
 #include "vidhrdw/m6845.h"
 #include "vidhrdw/ttchar.h"

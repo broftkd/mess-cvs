@@ -164,11 +164,11 @@ bsktball_led_w
 ***************************************************************************/
 WRITE_HANDLER( bsktball_led1_w )
 {
-	set_led_status(0,offset & 0x01);
+        osd_led_w(0,(offset & 0x01));
 }
 
 WRITE_HANDLER( bsktball_led2_w )
 {
-	set_led_status(1,offset & 0x01);
+        osd_led_w(1,(offset & 0x01));
 }
 

@@ -156,7 +156,7 @@ static Z80_DaisyChain daisy_chain[] =
 	{ 0,0,0,-1} 		/* end mark */
 };
 
-static const struct MachineDriver machine_driver_cchasm =
+static struct MachineDriver machine_driver_cchasm =
 {
 	/* basic machine hardware */
 	{
@@ -184,11 +184,11 @@ static const struct MachineDriver machine_driver_cchasm =
 	256, 256,
 	cchasm_init_colors,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	cchasm_vh_start,
 	cchasm_vh_stop,
-	vector_vh_screenrefresh,
+	vector_vh_update,
 
 	/* sound hardware */
 	0,0,0,0,

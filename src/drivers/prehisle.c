@@ -251,7 +251,7 @@ static struct UPD7759_interface upd7759_interface =
 
 /******************************************************************************/
 
-static const struct MachineDriver machine_driver_prehisle =
+static struct MachineDriver machine_driver_prehisle =
 {
 	/* basic machine hardware */
 	{

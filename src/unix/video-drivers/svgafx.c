@@ -42,15 +42,11 @@ int sysdep_init(void)
       return OSD_NOT_OK;
    if (vga_init())
       return OSD_NOT_OK;
-   if (svga_input_init())
-      return OSD_NOT_OK;
-   
    return OSD_OK;
 }
 
 void sysdep_close(void)
 {
-   svga_input_exit();
 }
 
 static void release_function(void)
@@ -82,7 +78,7 @@ int sysdep_create_display(int depth)
   vga_setmode(G320x200x16);
   
   /* init input */
-  if(svga_input_open(release_function, acquire_function))
+  if(svga_input_init(release_function, acquire_function))
      return OSD_NOT_OK;
    
   return OSD_OK;
@@ -93,7 +89,7 @@ int sysdep_create_display(int depth)
 void sysdep_display_close(void)
 {
    /* close input */
-   svga_input_close();
+   svga_input_exit();
    
    /* close svgalib */
    vga_setmode(TEXT);

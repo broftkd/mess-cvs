@@ -11,6 +11,7 @@
 extern int half_yres;
 extern int unchained;
 
+extern char *dirty_old;
 extern char *dirty_new;
 
 extern int gfx_xoffset;

@@ -643,7 +643,7 @@ static struct UPD7759_interface upd7759_interface =
 
 
 /* combat school (original) */
-static const struct MachineDriver machine_driver_combasc =
+static struct MachineDriver machine_driver_combasc =
 {
 	{
 		{
@@ -689,7 +689,7 @@ static const struct MachineDriver machine_driver_combasc =
 };
 
 /* combat school (bootleg on different hardware) */
-static const struct MachineDriver machine_driver_combascb =
+static struct MachineDriver machine_driver_combascb =
 {
 	{
 		{

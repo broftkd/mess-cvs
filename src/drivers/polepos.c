@@ -470,7 +470,7 @@ static struct Samplesinterface samples_interface =
  * Machine driver
  *********************************************************************/
 
-static const struct MachineDriver machine_driver_polepos =
+static struct MachineDriver machine_driver_polepos =
 {
 	/* basic machine hardware */
 	{

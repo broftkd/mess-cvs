@@ -319,7 +319,7 @@ static int exprraid_interrupt(void)
 	return ignore_interrupt();
 }
 
-static const struct MachineDriver machine_driver_exprraid =
+static struct MachineDriver machine_driver_exprraid =
 {
 	/* basic machine hardware */
 	{
@@ -347,7 +347,7 @@ static const struct MachineDriver machine_driver_exprraid =
 	256, 256,
 	exprraid_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER | VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_vh_start,
 	generic_vh_stop,

@@ -1914,7 +1914,7 @@ static const struct IODevice io_specpls3[] = {
 		NULL,				/* info */
 		NULL,				/* open */
 		NULL,				/* close */
-                floppy_status,                           /* status */
+		NULL,				/* status */
 		NULL,				/* seek */
 		NULL,				/* input */
 		NULL,				/* output */

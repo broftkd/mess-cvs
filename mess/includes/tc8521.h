@@ -7,8 +7,9 @@ WRITE_HANDLER(tc8521_w);
 
 struct tc8521_interface
 {
-	/* output of alarm */
-	void (*alarm_output_callback)(int);
+        /* tc8521 causes an interrupt */
+      void (*interrupt_1hz_callback)(int);
+      void (*interrupt_16hz_callback)(int);
 };
 
 void tc8521_init(struct tc8521_interface *);

@@ -571,7 +571,7 @@ static struct AY8910interface ay8910_interface =
 
 
 
-static const struct MachineDriver machine_driver_amidar =
+static struct MachineDriver machine_driver_amidar =
 {
 	/* basic machine hardware */
 	{
@@ -598,7 +598,7 @@ static const struct MachineDriver machine_driver_amidar =
 	32,32,
 	amidar_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER|VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_vh_start,
 	generic_vh_stop,

@@ -437,7 +437,7 @@ static struct CustomSound_interface custom_interface =
 
 #define DRIVER(GAMENAME,NVRAM)											\
 																		\
-static const struct MachineDriver machine_driver_##GAMENAME =					\
+static struct MachineDriver machine_driver_##GAMENAME =					\
 {																		\
 	/* basic machine hardware */										\
 	{																	\

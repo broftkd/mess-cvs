@@ -39,7 +39,7 @@ extern int wave_output_chunk(int id, void *src, int chunks);
 	IO_CASSETTE,		/* type */						\
 	count,				/* count */ 					\
 	fileext,			/* file extensions */			\
-	IO_RESET_NONE,		/* reset depth */				\
+	NULL,				/* private */					\
 	id, 				/* id */						\
 	init,				/* init */						\
 	exit,				/* exit */						\
@@ -95,8 +95,5 @@ struct wave_args {
 #define CODE_HEADER 	((UINT8*)-1)
 #define CODE_TRAILER	((UINT8*)-2)
 
-#define WAVE_STATUS_MOTOR_ENABLE	1
-#define WAVE_STATUS_MUTED			2
-#define WAVE_STATUS_MOTOR_INHIBIT	4
 #endif
 

@@ -260,7 +260,7 @@ static struct SN76496interface sn76496_interface =
 
 
 
-static const struct MachineDriver machine_driver_mikie =
+static struct MachineDriver machine_driver_mikie =
 {
 	/* basic machine hardware */
 	{

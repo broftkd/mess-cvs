@@ -1,4 +1,5 @@
 #include "driver.h"
+#include "mess.h"
 #include "cpu/i86/i286.h"
 
 #include "includes/pic8259.h"

@@ -79,6 +79,7 @@ extern void init_vstopgun( void );
 extern void init_vsgradus( void );
 extern void init_vspinbal( void );
 extern void init_vsskykid( void );
+extern void init_platoon(void);
 extern void init_vstennis( void );
 extern READ_HANDLER( vsnes_in0_r );
 extern READ_HANDLER( vsnes_in1_r );
@@ -145,6 +146,8 @@ static struct MemoryWriteAddress writemem[] =
 	{ 0x0000, 0x07ff, MWA_RAM, &work_ram },
 	{ 0x0800, 0x1fff, mirror_ram_w },
 	{ 0x2000, 0x3fff, ppu2c03b_0_w },
+	{ 0x4011, 0x4011, DAC_0_data_w },
+	{ 0x4014, 0x4014, sprite_dma_w },
 	{ 0x4000, 0x4015, NESPSG_0_w },
 	{ 0x4016, 0x4016, vsnes_in0_w },
 	{ 0x4017, 0x4017, MWA_NOP }, /* in 1 writes ignored */
@@ -169,6 +172,8 @@ static struct MemoryWriteAddress writemem_1[] =
 	{ 0x0000, 0x07ff, MWA_RAM, &work_ram_1 },
 	{ 0x0800, 0x1fff, mirror_ram_1_w },
 	{ 0x2000, 0x3fff, ppu2c03b_1_w },
+	{ 0x4011, 0x4011, DAC_1_data_w },
+	{ 0x4014, 0x4014, sprite_dma_1_w },
 	{ 0x4000, 0x4015, NESPSG_1_w },
 	{ 0x4016, 0x4016, vsnes_in0_1_w },
 	{ 0x4017, 0x4017, MWA_NOP }, /* in 1 writes ignored */
@@ -178,36 +183,64 @@ static struct MemoryWriteAddress writemem_1[] =
 
 /******************************************************************************/
 
-INPUT_PORTS_START( vsnes )
-	PORT_START	/* IN0 */
-	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON2 )					/* BUTTON A on a nes */
-	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON1 )					/* BUTTON B on a nes */
-	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_START1 )					/* SELECT on a nes */
-	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON3 )					/* START on a nes */
-	PORT_BIT ( 0x10, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP )
-	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN )
-	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT )
-	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT )
-
-	PORT_START	/* IN1 */
-	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON2 | IPF_PLAYER2 )	/* BUTTON A on a nes */
-	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON1 | IPF_PLAYER2 )	/* BUTTON B on a nes */
-	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_START2 )					/* SELECT on a nes */
-	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON3 | IPF_PLAYER2 ) 	/* START on a nes */
-	PORT_BIT ( 0x10, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP | IPF_PLAYER2 )
-	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN | IPF_PLAYER2 )
-	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT | IPF_PLAYER2 )
-	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT | IPF_PLAYER2 )
-
-	PORT_START	/* IN2 */
-	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_UNUSED ) /* serial pin from controller */
-	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_UNKNOWN )
-	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_SERVICE1 ) /* service credit? */
-	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_UNUSED )	/* bit 0 of dsw goes here */
-	PORT_BIT ( 0x10, IP_ACTIVE_HIGH, IPT_UNUSED )	/* bit 1 of dsw goes here */
-	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_COIN1 )
-	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_COIN2 )
+#define VS_CONTROLS \
+	PORT_START	/* IN0 */ \
+	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON2 )					/* BUTTON A on a nes */ \
+	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON1 )					/* BUTTON B on a nes */ \
+	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_START1 )					/* SELECT on a nes */ \
+	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON3 )					/* START on a nes */ \
+	PORT_BIT ( 0x10, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) \
+	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN ) \
+	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT ) \
+	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) \
+\
+\
+	PORT_START	/* IN1 */ \
+	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON2 | IPF_PLAYER2 )	/* BUTTON A on a nes */ \
+	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON1 | IPF_PLAYER2 )	/* BUTTON B on a nes */ \
+	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_START2 )					/* SELECT on a nes */ \
+	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON3 | IPF_PLAYER2 ) 	/* START on a nes */ \
+	PORT_BIT ( 0x10, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP | IPF_PLAYER2 ) \
+	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN | IPF_PLAYER2 ) \
+	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT | IPF_PLAYER2 ) \
+	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT | IPF_PLAYER2 ) \
+\
+\
+	PORT_START	/* IN2 */ \
+	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_UNUSED ) /* serial pin from controller */ \
+	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_UNKNOWN ) \
+	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_SERVICE1 ) /* service credit? */ \
+	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_UNUSED )	/* bit 0 of dsw goes here */ \
+	PORT_BIT ( 0x10, IP_ACTIVE_HIGH, IPT_UNUSED )	/* bit 1 of dsw goes here */ \
+	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_COIN1 ) \
+	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_COIN2 ) \
 	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_UNKNOWN )
+
+
+#define VS_ZAPPER \
+PORT_START	/* IN0 */ \
+	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_UNUSED ) \
+	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_UNUSED ) \
+	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_UNUSED ) \
+	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_UNUSED ) \
+	PORT_BIT ( 0x10, IP_ACTIVE_HIGH, IPT_UNUSED ) \
+	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_UNUSED ) \
+	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_UNUSED )	/* sprite hit */ \
+	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_BUTTON1 )	/* gun trigger */ \
+	\
+	PORT_START	/* IN1 */ \
+	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_UNUSED ) \
+	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_UNUSED ) \
+	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_UNUSED ) \
+	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_UNUSED ) \
+	PORT_BIT ( 0x10, IP_ACTIVE_HIGH, IPT_UNUSED ) \
+	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_UNUSED ) \
+	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_UNUSED ) \
+	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_UNUSED ) \
+
+
+INPUT_PORTS_START( vsnes )
+	VS_CONTROLS
 
 	PORT_START /* DSW0 - bit 0 and 1 read from bit 3 and 4 on $4016, rest of the bits read on $4017 */
 	PORT_DIPNAME( 0x01, 0x00, DEF_STR( Unknown ) )
@@ -326,20 +359,20 @@ INPUT_PORTS_END
 
 INPUT_PORTS_START( drmario )
 	PORT_START	/* IN0 */
-	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON2 | IPF_PLAYER2 )	/* BUTTON A on a nes */
-	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON1 | IPF_PLAYER2 )	/* BUTTON B on a nes */
+	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON2 | IPF_PLAYER2)					/* BUTTON A on a nes */
+	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON1 | IPF_PLAYER2 )					/* BUTTON B on a nes */
 	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_START1 )					/* SELECT on a nes */
-	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON3 | IPF_PLAYER2 )	/* START on a nes */
+	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON3 | IPF_PLAYER2)					/* START on a nes */
 	PORT_BIT ( 0x10, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP | IPF_PLAYER2)
 	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN | IPF_PLAYER2)
 	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT | IPF_PLAYER2)
 	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT | IPF_PLAYER2)
 
 	PORT_START	/* IN1 */
-	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON2 )					/* BUTTON A on a nes */
-	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON1 )					/* BUTTON B on a nes */
+	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON2  )	/* BUTTON A on a nes */
+	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON1 )	/* BUTTON B on a nes */
 	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_START2 )					/* SELECT on a nes */
-	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON3 )					/* START on a nes */
+	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON3  ) 	/* START on a nes */
 	PORT_BIT ( 0x10, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP  )
 	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN  )
 	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT  )
@@ -362,9 +395,160 @@ INPUT_PORTS_START( drmario )
 	PORT_DIPNAME( 0x02, 0x00, DEF_STR( Unknown ) )
 	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
 	PORT_DIPSETTING(	0x02, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0c, 0x00, "Virus Level"  )
+	PORT_DIPSETTING(	0x00, "1" )
+	PORT_DIPSETTING(	0x04, "3" )
+	PORT_DIPSETTING(	0x08, "5" )
+	PORT_DIPSETTING(	0x0c, "7" )
+	PORT_DIPNAME( 0x10, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x10, DEF_STR( On ) )
+	PORT_DIPNAME( 0x20, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x20, DEF_STR( On ) )
+	PORT_DIPNAME( 0x40, 0x00, DEF_STR( Coinage ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( 1C_1C ) )
+	PORT_DIPSETTING(	0x40, DEF_STR( Free_Play ) )
+	PORT_DIPNAME( 0x80, 0x80, DEF_STR( Demo_Sounds ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x80, DEF_STR( On ) )
+INPUT_PORTS_END
+
+INPUT_PORTS_START( btlecity )
+	VS_CONTROLS
+
+	PORT_START /* DSW0 - bit 0 and 1 read from bit 3 and 4 on $4016, rest of the bits read on $4017 */
+	PORT_DIPNAME( 0x01, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x01, DEF_STR( On ) )
+	PORT_DIPNAME( 0x02, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x02, DEF_STR( On ) )
 	PORT_DIPNAME( 0x04, 0x00, DEF_STR( Unknown ) )
 	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
 	PORT_DIPSETTING(	0x04, DEF_STR( On ) )
+	PORT_DIPNAME( 0x08, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x08, DEF_STR( On ) )
+	PORT_DIPNAME( 0x10, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x10, DEF_STR( On ) )
+	PORT_DIPNAME( 0x20, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x20, DEF_STR( On ) )
+	PORT_DIPNAME( 0xc0, 0x00, "Color Palette" )
+	PORT_DIPSETTING(	0x00, "1" )
+	PORT_DIPSETTING(	0x40, "2" )
+	PORT_DIPSETTING(	0x80, "3" )
+	PORT_DIPSETTING(	0xc0, "4" )
+INPUT_PORTS_END
+
+
+INPUT_PORTS_START( cluclu )
+	VS_CONTROLS
+
+	PORT_START /* DSW0 - bit 0 and 1 read from bit 3 and 4 on $4016, rest of the bits read on $4017 */
+	PORT_DIPNAME( 0x07, 0x00, DEF_STR( Coinage ) )
+	PORT_DIPSETTING(	0x03, DEF_STR( 4C_1C ) )
+	PORT_DIPSETTING(	0x05, DEF_STR( 3C_1C) )
+	PORT_DIPSETTING(	0x01, DEF_STR( 2C_1C ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( 1C_1C ) )
+	PORT_DIPSETTING(	0x04, DEF_STR( 1C_2C ) )
+	PORT_DIPSETTING(	0x02, DEF_STR( 1C_3C ) )
+	PORT_DIPSETTING(	0x06, DEF_STR( 1C_4C ) )
+	PORT_DIPSETTING(	0x07, DEF_STR( Free_Play ) )
+	PORT_DIPNAME( 0x08, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x08, DEF_STR( On ) )
+	PORT_DIPNAME( 0x10, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x10, DEF_STR( On ) )
+	PORT_DIPNAME( 0x20, 0x00, DEF_STR( Lives ) )
+	PORT_DIPSETTING(	0x00,  "3"  )
+	PORT_DIPSETTING(	0x20,  "5"  )
+	PORT_DIPNAME( 0x40, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x40, DEF_STR( On ) )
+	PORT_DIPNAME( 0x80, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x80, DEF_STR( On ) )
+INPUT_PORTS_END
+
+
+INPUT_PORTS_START( cstlevna )
+	VS_CONTROLS
+
+	PORT_START /* DSW0 - bit 0 and 1 read from bit 3 and 4 on $4016, rest of the bits read on $4017 */
+	PORT_DIPNAME( 0x07, 0x00, DEF_STR( Coinage ) )
+	PORT_DIPSETTING(	0x03, DEF_STR( 5C_1C ) )
+	PORT_DIPSETTING(	0x05, DEF_STR( 4C_1C ) )
+	PORT_DIPSETTING(	0x01, DEF_STR( 3C_1C ) )
+	PORT_DIPSETTING(	0x06, DEF_STR( 2C_1C ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( 1C_1C ) )
+	PORT_DIPSETTING(	0x04, DEF_STR( 1C_2C ) )
+	PORT_DIPSETTING(	0x02, DEF_STR( 1C_3C ) )
+	PORT_DIPSETTING(	0x07, DEF_STR( Free_Play ) )
+
+	PORT_DIPNAME( 0x08, 0x00, DEF_STR( Lives ) )
+	PORT_DIPSETTING(	0x00, "2" )
+	PORT_DIPSETTING(	0x08, "1" )
+	PORT_DIPNAME( 0x10, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x10, DEF_STR( On ) )
+	PORT_DIPNAME( 0x20, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x20, DEF_STR( On ) )
+	PORT_DIPNAME( 0x40, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x40, DEF_STR( On ) )
+	PORT_DIPNAME( 0x80, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x80, DEF_STR( On ) )
+INPUT_PORTS_END
+
+INPUT_PORTS_START( iceclimb )
+	VS_CONTROLS
+
+	PORT_START /* DSW0 - bit 0 and 1 read from bit 3 and 4 on $4016, rest of the bits read on $4017 */
+	PORT_DIPNAME( 0x07, 0x00, DEF_STR( Coinage ) )
+	PORT_DIPSETTING(	0x03, DEF_STR( 4C_1C ) )
+	PORT_DIPSETTING(	0x05, DEF_STR( 3C_1C ) )
+	PORT_DIPSETTING(	0x01, DEF_STR( 2C_1C ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( 1C_1C ) )
+	PORT_DIPSETTING(	0x04, DEF_STR( 1C_2C ) )
+	PORT_DIPSETTING(	0x02, DEF_STR( 1C_3C ) )
+	PORT_DIPSETTING(	0x06, DEF_STR( 1C_4C ) )
+	PORT_DIPSETTING(	0x07, DEF_STR( Free_Play ) )
+	PORT_DIPNAME( 0x18, 0x00, DEF_STR( Lives ) )
+	PORT_DIPSETTING(	0x00,  "2")
+	PORT_DIPSETTING(	0x10,  "3")
+	PORT_DIPSETTING(	0x08,  "4")
+	PORT_DIPSETTING(	0x18,  "6")
+	PORT_DIPNAME( 0x20, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x20, DEF_STR( On ) )
+	PORT_DIPNAME( 0x40, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x40, DEF_STR( On ) )
+	PORT_DIPNAME( 0x80, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x80, DEF_STR( On ) )
+INPUT_PORTS_END
+
+INPUT_PORTS_START( excitebk )
+	VS_CONTROLS
+
+	PORT_START /* DSW0 - bit 0 and 1 read from bit 3 and 4 on $4016, rest of the bits read on $4017 */
+	PORT_DIPNAME( 0x07, 0x00, DEF_STR( Coinage ) )
+	PORT_DIPSETTING(	0x03, DEF_STR( 4C_1C ) )
+	PORT_DIPSETTING(	0x05, DEF_STR( 3C_1C ) )
+	PORT_DIPSETTING(	0x01, DEF_STR( 2C_1C ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( 1C_1C ) )
+	PORT_DIPSETTING(	0x04, DEF_STR( 1C_2C ) )
+	PORT_DIPSETTING(	0x02, DEF_STR( 1C_3C ) )
+	PORT_DIPSETTING(	0x06, DEF_STR( 1C_4C ) )
+	PORT_DIPSETTING(	0x07, DEF_STR( Free_Play ) )
+
 	PORT_DIPNAME( 0x08, 0x00, DEF_STR( Unknown ) )
 	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
 	PORT_DIPSETTING(	0x08, DEF_STR( On ) )
@@ -382,36 +566,70 @@ INPUT_PORTS_START( drmario )
 	PORT_DIPSETTING(	0x80, DEF_STR( On ) )
 INPUT_PORTS_END
 
+
+INPUT_PORTS_START( ladygolf )
+	VS_CONTROLS
+
+	PORT_START /* DSW0 - bit 0 and 1 read from bit 3 and 4 on $4016, rest of the bits read on $4017 */
+	PORT_DIPNAME( 0x07, 0x01, DEF_STR( Coinage ) )
+	PORT_DIPSETTING(	0x07, DEF_STR( 4C_1C ) )
+	PORT_DIPSETTING(	0x03, DEF_STR( 3C_1C ) )
+	PORT_DIPSETTING(	0x05, DEF_STR( 2C_1C ) )
+	PORT_DIPSETTING(	0x01, DEF_STR( 1C_1C ) )
+	PORT_DIPSETTING(	0x06, DEF_STR( 1C_2C ) )
+	PORT_DIPSETTING(	0x02, DEF_STR( 1C_3C ) )
+	PORT_DIPSETTING(	0x04, DEF_STR( 1C_4C ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Free_Play ) )
+	PORT_DIPNAME( 0x08, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x08, DEF_STR( On ) )
+	PORT_DIPNAME( 0x10, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x10, DEF_STR( On ) )
+	PORT_DIPNAME( 0x20, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x20, DEF_STR( On ) )
+	PORT_DIPNAME( 0x40, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x40, DEF_STR( On ) )
+	PORT_DIPNAME( 0x80, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x80, DEF_STR( On ) )
+INPUT_PORTS_END
+
+
+INPUT_PORTS_START( machridr )
+	VS_CONTROLS
+
+	PORT_START /* DSW0 - bit 0 and 1 read from bit 3 and 4 on $4016, rest of the bits read on $4017 */
+	PORT_DIPNAME( 0x07, 0x00, DEF_STR( Coinage ) )
+	PORT_DIPSETTING(	0x03, DEF_STR( 4C_1C ) )
+	PORT_DIPSETTING(	0x05, DEF_STR( 3C_1C ) )
+	PORT_DIPSETTING(	0x01, DEF_STR( 2C_1C ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( 1C_1C ) )
+	PORT_DIPSETTING(	0x04, DEF_STR( 1C_2C ) )
+	PORT_DIPSETTING(	0x02, DEF_STR( 1C_3C ) )
+	PORT_DIPSETTING(	0x06, DEF_STR( 1C_4C ) )
+	PORT_DIPSETTING(	0x07, DEF_STR( Free_Play ) )
+	PORT_DIPNAME( 0x18, 0x00, "Timer" )
+	PORT_DIPSETTING(	0x00, "280" )
+	PORT_DIPSETTING(	0x10, "250" )
+	PORT_DIPSETTING(	0x08, "220" )
+	PORT_DIPSETTING(	0x18, "200" )
+	PORT_DIPNAME( 0x20, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x20, DEF_STR( On ) )
+	PORT_DIPNAME( 0x40, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x40, DEF_STR( On ) )
+	PORT_DIPNAME( 0x80, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x80, DEF_STR( On ) )
+INPUT_PORTS_END
+
+
 INPUT_PORTS_START( suprmrio )
-	PORT_START	/* IN0 */
-	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON2 )					/* BUTTON A on a nes */
-	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON1 )					/* BUTTON B on a nes */
-	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_START1 )					/* SELECT on a nes */
-	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON3 )					/* START on a nes */
-	PORT_BIT ( 0x10, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP )
-	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN )
-	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT )
-	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT )
-
-	PORT_START	/* IN1 */
-	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON2 | IPF_PLAYER2 )	/* BUTTON A on a nes */
-	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON1 | IPF_PLAYER2 )	/* BUTTON B on a nes */
-	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_START2 )					/* SELECT on a nes */
-	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON3 | IPF_PLAYER2 ) 	/* START on a nes */
-	PORT_BIT ( 0x10, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP | IPF_PLAYER2 )
-	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN | IPF_PLAYER2 )
-	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT | IPF_PLAYER2 )
-	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT | IPF_PLAYER2 )
-
-	PORT_START	/* IN2 */
-	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_UNUSED ) /* serial pin from controller */
-	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_UNKNOWN )
-	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_SERVICE1 ) /* service credit? */
-	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_UNUSED )	/* bit 0 of dsw goes here */
-	PORT_BIT ( 0x10, IP_ACTIVE_HIGH, IPT_UNUSED )	/* bit 1 of dsw goes here */
-	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_COIN1 )
-	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_COIN2 )
-	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_UNKNOWN )
+	VS_CONTROLS
 
 	PORT_START /* DSW0 - bit 0 and 1 read from bit 3 and 4 on $4016, rest of the bits read on $4017 */
 	PORT_DIPNAME( 0x07, 0x00, DEF_STR( Coinage ) )
@@ -433,41 +651,24 @@ INPUT_PORTS_START( suprmrio )
 	PORT_DIPSETTING(	0x30, "250" )
 	PORT_DIPNAME(0x40, 0x00, "Timer")
 	PORT_DIPSETTING(	0x00, "Slow")
-	PORT_DIPSETTING(	0x40, "Fast")
+	PORT_DIPSETTING(	0x40, "FAST")
 	PORT_DIPNAME(0x80, 0x00, "Continue Lives" )
 	PORT_DIPSETTING(	0x00, "4" )
 	PORT_DIPSETTING(	0x80, "3" )
 INPUT_PORTS_END
 
-INPUT_PORTS_START( vsnesgun )
-	PORT_START	/* IN0 */
-	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT ( 0x10, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_UNUSED )	/* sprite hit */
-	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_BUTTON1 )	/* gun trigger */
 
-	PORT_START	/* IN1 */
-	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT ( 0x08, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT ( 0x10, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_UNUSED )
+INPUT_PORTS_START( duckhunt )
+	VS_ZAPPER
 
 	PORT_START	/* IN2 */
 	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_UNUSED ) /* serial pin from controller */
 	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_SERVICE1 ) /* service credit? */
-	PORT_DIPNAME( 0x08, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPNAME( 0x08, 0x00, "uh" )
 	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
 	PORT_DIPSETTING(	0x08, DEF_STR( On ) )
-	PORT_DIPNAME( 0x10, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPNAME( 0x10, 0x00, "uh2" )
 	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
 	PORT_DIPSETTING(	0x10, DEF_STR( On ) )
 	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_COIN1 )
@@ -501,6 +702,53 @@ INPUT_PORTS_START( vsnesgun )
 
 	PORT_START	/* IN5 - FAKE - Gun Y pos */
 	PORT_ANALOG( 0xff, 0x80, IPT_AD_STICK_Y, 50, 30, 0, 255 )
+
+INPUT_PORTS_END
+
+
+INPUT_PORTS_START( hogalley )
+	VS_ZAPPER
+
+	PORT_START	/* IN2 */
+	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_UNUSED ) /* serial pin from controller */
+	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_UNKNOWN )
+	PORT_BIT ( 0x04, IP_ACTIVE_HIGH, IPT_SERVICE1 ) /* service credit? */
+	PORT_DIPNAME( 0x08, 0x00, "uh" )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x08, DEF_STR( On ) )
+	PORT_DIPNAME( 0x10, 0x00, "uh2" )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x10, DEF_STR( On ) )
+	PORT_BIT ( 0x20, IP_ACTIVE_HIGH, IPT_COIN1 )
+	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_COIN2 )
+	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_UNKNOWN )
+
+	PORT_START /* IN3 */
+	PORT_BIT ( 0x01, IP_ACTIVE_HIGH, IPT_UNUSED ) /* serial pin from controller */
+	PORT_BIT ( 0x02, IP_ACTIVE_HIGH, IPT_UNKNOWN )
+	PORT_DIPNAME( 0x04, 0x00, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(	0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(	0x04, DEF_STR( On ) )
+	PORT_DIPNAME( 0x08, 0x00, DEF_STR( Difficulty ) )
+	PORT_DIPSETTING(	0x00, "easiest" )
+	PORT_DIPSETTING(	0x08, "easy" )
+	PORT_DIPSETTING(	0x00, "hard" )
+	PORT_DIPSETTING(	0x10, "hardest")
+	PORT_DIPNAME( 0x20, 0x00, "Misses per game" )
+	PORT_DIPSETTING(	0x00, "3" )
+	PORT_DIPSETTING(	0x20, "5" )
+	PORT_DIPNAME( 0xc0, 0x00, DEF_STR( Bonus_Life ) )
+	PORT_DIPSETTING(	0x00, "30000 " )
+	PORT_DIPSETTING(	0x40, "50000 " )
+	PORT_DIPSETTING(	0x80, "80000 " )
+	PORT_DIPSETTING(	0xc0, "10000 " )
+
+	PORT_START	/* IN4 - FAKE - Gun X pos */
+	PORT_ANALOG( 0xff, 0x80, IPT_AD_STICK_X, 70, 30, 0, 255 )
+
+	PORT_START	/* IN5 - FAKE - Gun Y pos */
+	PORT_ANALOG( 0xff, 0x80, IPT_AD_STICK_Y, 50, 30, 0, 255 )
+
 INPUT_PORTS_END
 
 
@@ -513,19 +761,27 @@ static struct GfxDecodeInfo nes_gfxdecodeinfo[] =
 static struct NESinterface nes_interface =
 {
 	1,
-    N2A03_DEFAULTCLOCK,
+	{ REGION_CPU1 },
 	{ 50 },
-	{ 0  },
-	{ sprite_dma_w }
+};
+
+static struct DACinterface nes_dac_interface =
+{
+	1,
+	{ 50 },
 };
 
 static struct NESinterface nes_dual_interface =
 {
 	2,
-    N2A03_DEFAULTCLOCK,
-	{ 50, 50 },
-	{ 0,  1  },
-    { sprite_dma_w, sprite_dma_1_w }
+	{ REGION_CPU1, REGION_CPU2 },
+	{ 25, 25 },
+};
+
+static struct DACinterface nes_dual_dac_interface =
+{
+	2,
+	{ 25, 25 },
 };
 
 static struct MachineDriver machine_driver_vsnes =
@@ -562,6 +818,10 @@ static struct MachineDriver machine_driver_vsnes =
 		{
 			SOUND_NES,
 			&nes_interface
+		},
+		{
+			SOUND_DAC,
+			&nes_dac_interface
 		}
 	}
 };
@@ -607,6 +867,10 @@ static struct MachineDriver machine_driver_vsdual =
 		{
 			SOUND_NES,
 			&nes_dual_interface
+		},
+		{
+			SOUND_DAC,
+			&nes_dual_dac_interface
 		}
 	}
 };
@@ -764,6 +1028,7 @@ ROM_START( vspinbal )
 	ROM_LOAD( "pb-8a",  0x2000, 0x2000, 0xcbe98a28 )
 ROM_END
 
+
 ROM_START( vsslalom )
 	ROM_REGION( 0x10000,REGION_CPU1 ) /* 6502 memory */
 	ROM_LOAD( "slalom.1d",  0x8000, 0x2000, 0x6240a07d )
@@ -787,6 +1052,8 @@ ROM_START( vssoccer )
 	ROM_LOAD( "soccer2b",  0x0000, 0x2000, 0x307b19ab )
 	ROM_LOAD( "soccer2a",  0x2000, 0x2000, 0x7263613a )
 ROM_END
+
+
 
 
 ROM_START( drmario )
@@ -838,6 +1105,15 @@ ROM_START( vsskykid )
 	ROM_LOAD( "sk-cha",  0x0000, 0x8000, 0x1 )
 ROM_END
 
+ROM_START( platoon )
+	ROM_REGION( 0x30000,REGION_CPU1 ) /* 6502 memory */
+	ROM_LOAD( "prgver0.ic4",  0x10000, 0x20000, 0x1e438d52 )
+
+	ROM_REGION( 0x20000,REGION_GFX1 ) /* PPU memory */
+	ROM_LOAD( "chrver0.ic6",  0x0000, 0x20000, 0x4c4b61b0 )
+ROM_END
+
+
 /* Dual System */
 
 ROM_START( vstennis )
@@ -862,31 +1138,109 @@ ROM_START( vstennis )
 	ROM_LOAD( "vst-8a",  0x0000, 0x2000, 0x1 )
 ROM_END
 
+
+ROM_START( wrecking )
+	ROM_REGION( 0x10000,REGION_CPU1 ) /* 6502 memory */
+	ROM_LOAD( "wr.1d",  0x08000, 0x02000, 0x1 )
+	ROM_LOAD( "wr.1c",  0x0a000, 0x02000, 0x1 )
+	ROM_LOAD( "wr.1b",  0x0c000, 0x02000, 0x1 )
+	ROM_LOAD( "wr.1a",  0x0e000, 0x02000, 0x1 )
+
+	ROM_REGION( 0x4000,REGION_GFX1 ) /* PPU memory */
+	ROM_LOAD( "wr.2b",  0x0000, 0x2000, 0x1 )
+	ROM_LOAD( "wr.2a",  0x0000, 0x2000, 0x1 )
+
+	ROM_REGION( 0x10000,REGION_CPU2 ) /* 6502 memory */
+	ROM_LOAD( "wr.6d",  0x08000, 0x02000, 0x1 )
+	ROM_LOAD( "wr.6c",  0x0a000, 0x02000, 0x1 )
+	ROM_LOAD( "wr.6b",  0x0c000, 0x02000, 0x1 )
+	ROM_LOAD( "wr.6a",  0x0e000, 0x02000, 0x1 )
+
+	ROM_REGION( 0x4000,REGION_GFX2 ) /* PPU memory */
+	ROM_LOAD( "wr.8b",  0x0000, 0x2000, 0x1 )
+	ROM_LOAD( "wr.8a",  0x0000, 0x2000, 0x1 )
+ROM_END
+
+
+ROM_START( balonfgt )
+	ROM_REGION( 0x10000,REGION_CPU1 ) /* 6502 memory */
+	ROM_LOAD( "bf.1d",  0x08000, 0x02000, 0x1 )
+	ROM_LOAD( "bf.1c",  0x0a000, 0x02000, 0x1 )
+	ROM_LOAD( "bf.1b",  0x0c000, 0x02000, 0x1 )
+	ROM_LOAD( "bf.1a",  0x0e000, 0x02000, 0x1 )
+
+	ROM_REGION( 0x4000,REGION_GFX1 ) /* PPU memory */
+	ROM_LOAD( "bf.2b",  0x0000, 0x2000, 0x1 )
+	ROM_LOAD( "bf.2a",  0x0000, 0x2000, 0x1 )
+
+	ROM_REGION( 0x10000,REGION_CPU2 ) /* 6502 memory */
+	ROM_LOAD( "bf.6d",  0x08000, 0x02000, 0x1 )
+	ROM_LOAD( "bf.6c",  0x0a000, 0x02000, 0x1 )
+	ROM_LOAD( "bf.6b",  0x0c000, 0x02000, 0x1 )
+	ROM_LOAD( "bf.6a",  0x0e000, 0x02000, 0x1 )
+
+	ROM_REGION( 0x4000,REGION_GFX2 ) /* PPU memory */
+	ROM_LOAD( "bf.8b",  0x0000, 0x2000, 0x1 )
+	ROM_LOAD( "bf.8a",  0x0000, 0x2000, 0x1 )
+ROM_END
+
+
+ROM_START( mahjong )
+	ROM_REGION( 0x10000,REGION_CPU1 ) /* 6502 memory */
+	ROM_LOAD( "mj.1c",  0x08000, 0x02000, 0x1 )
+	ROM_LOAD( "mj.1b",  0x0a000, 0x02000, 0x1 )
+	ROM_LOAD( "mj.1a",  0x0c000, 0x02000, 0x1 )
+	//ROM_LOAD( "wr.1a",  0x0e000, 0x02000, 0x1 )
+
+	ROM_REGION( 0x4000,REGION_GFX1 ) /* PPU memory */
+	ROM_LOAD( "mj.2b",  0x0000, 0x2000, 0x1 )
+	//ROM_LOAD( "wr.2a",  0x0000, 0x2000, 0x1 )
+
+	ROM_REGION( 0x10000,REGION_CPU2 ) /* 6502 memory */
+	ROM_LOAD( "mj.6c",  0x08000, 0x02000, 0x1 )
+	ROM_LOAD( "mj.6b",  0x0a000, 0x02000, 0x1 )
+	ROM_LOAD( "mj.6a",  0x0c000, 0x02000, 0x1 )
+	//ROM_LOAD( "wr.6a",  0x0e000, 0x02000, 0x1 )
+
+	ROM_REGION( 0x4000,REGION_GFX2 ) /* PPU memory */
+	ROM_LOAD( "mj.8b",  0x0000, 0x2000, 0x1 )
+	//ROM_LOAD( "wr.8a",  0x0000, 0x2000, 0x1 )
+ROM_END
+
+
+
 /******************************************************************************/
 
 /*    YEAR  NAME      PARENT  MACHINE  INPUT     INIT  	   MONITOR  */
-GAME( 1985, btlecity, 0,	  vsnes,   vsnes,    vsnormal, ROT0, "Namco",     "Battle City" )
-GAME( 1987,	cstlevna, 0,	  vsnes,   vsnes,    cstlevna, ROT0, "Konami",    "Vs Castlevania" )
-GAME( 1984, cluclu,   0,	  vsnes,   vsnes,    suprmrio, ROT0, "Nintendo",  "Clu Clu Land" )
+GAME( 1985, btlecity, 0,	  vsnes,   btlecity, vsnormal, ROT0, "Namco",     "Battle City" )
+GAME( 1987,	cstlevna, 0,	  vsnes,   cstlevna, cstlevna, ROT0, "Konami",    "Vs Castlevania" )
+GAME( 1984, cluclu,   0,	  vsnes,   cluclu,   suprmrio, ROT0, "Nintendo",  "Clu Clu Land" )
 GAME( 1990,	drmario,  0,	  vsnes,   drmario,  drmario,  ROT0, "Nintendo",  "Dr Mario" )
-GAME( 1985, duckhunt, 0,      vsnes,   vsnesgun, duckhunt, ROT0, "Nintendo",  "Duck Hunt" )
-GAME( 1984, excitebk, 0,	  vsnes,   vsnes,    excitebk, ROT0, "Nintendo",  "Excitebike")
-GAME( ????, hogalley, 0,      vsnes,   vsnesgun, hogalley, ROT0, "Nintendo",  "Hogan's Alley" )
-GAME( 1984, iceclimb, 0,      vsnes,   vsnes,    suprmrio, ROT0, "Nintendo",  "Ice Climber" )
-GAME( ????, ladygolf, 0,      vsnes,   vsnes,    machridr, ROT0, "Nintendo",  "Lady Golf" )
-GAME( 1985, machridr, 0,      vsnes,   vsnes,    machridr, ROT0, "Nintendo",  "Mach Rider" )
+GAME( 1985, duckhunt, 0,      vsnes,   duckhunt, duckhunt, ROT0, "Nintendo",  "Duck Hunt" )
+GAME( 1984, excitebk, 0,	  vsnes,   excitebk, excitebk, ROT0, "Nintendo",  "Excitebike")
+GAME( 1985, hogalley, 0,      vsnes,   hogalley, hogalley, ROT0, "Nintendo",  "Hogan's Alley" )
+GAME( 1984, iceclimb, 0,      vsnes,   iceclimb, suprmrio, ROT0, "Nintendo",  "Ice Climber" )
+GAME( 1984, ladygolf, 0,      vsnes,   ladygolf, machridr, ROT0, "Nintendo",  "Lady Golf" )
+GAME( 1985, machridr, 0,      vsnes,   machridr, machridr, ROT0, "Nintendo",  "Mach Rider" )
 GAME( 1986, suprmrio, 0,      vsnes,   suprmrio, suprmrio, ROT0, "Nintendo",  "VS Super Mario Bros" )
-GAME( ????, vsgolf,   0,      vsnes,   vsnes,    machridr, ROT0, "Nintendo",  "VS Golf" )
-GAME( ????, vspinbal, 0,      vsnes,   vsnes,    vspinbal, ROT0, "Nintendo",  "Pinball" )
-GAME( ????, vsslalom, 0,      vsnes,   vsnes,    vsslalom, ROT0, "Nintendo",  "VS Slalom" )
+GAME( 1984, vsgolf,   0,      vsnes,   vsnes,    machridr, ROT0, "Nintendo",  "VS Golf" )
+GAME( 1984, vspinbal, 0,      vsnes,   vsnes,    vspinbal, ROT0, "Nintendo",  "Pinball" )
+GAME( 1986, vsslalom, 0,      vsnes,   vsnes,    vsslalom, ROT0, "Nintendo",  "VS Slalom" )
 GAME( 1985, vssoccer, 0,      vsnes,   vsnes,    excitebk, ROT0, "Nintendo",  "Unisystem Soccer" )
 GAME( 1986,	goonies,  0,	  vsnes,   vsnes,    goonies,  ROT0, "Konami",	  "VS The Goonies" )
 GAME( 1987, vsgradus, 0,      vsnes,   vsnes,    vsgradus, ROT0, "Nintendo",  "VS Gradius" )
-GAME( ????, tkoboxng, 0,      vsnes,   vsnes,    tkoboxng, ROT0, "Data East", "TKO Boxing" )
+GAME( 1987, tkoboxng, 0,      vsnes,   vsnes,    tkoboxng, ROT0, "Data East", "VS TKO Boxing" )
 
 /* are these using the correct mappers? */
-GAME( ????, rbibb,    0,	  vsnes,   vsnes,    rbibb,    ROT0, "Nintendo",  "RBI Baseball" )
+GAME( 1987, rbibb,    0,	  vsnes,   vsnes,    rbibb,    ROT0, "Nintendo",  "RBI Baseball" )
 GAME( ????,	topgun,   0,	  vsnes,   vsnes,    vstopgun, ROT0, "Nintendo",  "VS Topgun" )
-GAME( ????,	vsskykid, 0,	  vsnes,   vsnes,    vsskykid, ROT0, "Nintendo",  "VS SkyKid" )
+GAME( 1986,	vsskykid, 0,	  vsnes,   vsnes,    vsskykid, ROT0, "Namco",     "VS SkyKid" )
 
-GAME( ????, vstennis, 0,      vsdual,  vstennis, vstennis, ROT0, "Nintendo",  "VS Tennis" )
+GAME( 1984, vstennis, 0,      vsdual,  vstennis, vstennis, ROT0, "Nintendo",  "VS Tennis" )
+GAME( ????, wrecking, 0,      vsdual,  vstennis, vstennis, ROT0, "Nintendo",  "wrecking" )
+GAME( ????, mahjong, 0,      vsdual,  vstennis, vstennis, ROT0, "Nintendo",  "mahjong" )
+GAME( ????, balonfgt, 0,      vsdual,  vstennis, vstennis, ROT0, "Nintendo",  "balonfgt" )
+
+GAME( ????, platoon,  0,     vsnes,   vsnes, platoon,  ROT0, "??????", 	"platoon?" )
+
+

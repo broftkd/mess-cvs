@@ -296,7 +296,7 @@ static struct YM2203interface skyfox_ym2203_interface =
 	{ 0, 0 }
 };
 
-static const struct MachineDriver machine_driver_skyfox =
+static struct MachineDriver machine_driver_skyfox =
 {
 	{
 		{

@@ -59,17 +59,6 @@ static void RenderVDoubleHScanlinesBitmap16(struct osd_bitmap* pSrcBitmap, UINT 
 static void RenderVDoubleBitmapPalette16(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth);
 static void RenderVDoubleHScanlinesBitmapPalette16(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth);
 
-static void RenderHDoubleBitmap(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth);
-static void RenderHDoubleVScanlinesBitmap(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth);
-static void RenderHDoubleDirtyBitmap(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth);
-static void RenderHDoubleDirtyVScanlinesBitmap(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth);
-
-static void RenderHDoubleBitmap16(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth);
-static void RenderHDoubleVScanlinesBitmap16(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth);
-
-static void RenderHDoubleBitmapPalette16(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth);
-static void RenderHDoubleVScanlinesBitmapPalette16(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth);
-
 static __inline void    DoubleLine(BYTE* pSrc, UINT nSrcQuarterWidth, BYTE* pDst);
 static __inline void    DoubleDirtyLine(BYTE* pSrc, UINT x, UINT y, UINT nSrcXMax, BYTE* pDst);
 static __inline void    ExpandLine(BYTE* pSrc, UINT nSrcHalfWidth, BYTE* pDst, BYTE bg);
@@ -87,8 +76,6 @@ static __inline void    ExpandLinePalette16(WORD* pSrc, UINT nSrcWidth, DWORD* p
 #define RenderDirtyDoubleBitmap16               RenderDoubleBitmap16
 #define RenderDirtyDoubleHScanlinesBitmap16     RenderDoubleHScanlinesBitmap16
 #define RenderDirtyDoubleVScanlinesBitmap16     RenderDoubleVScanlinesBitmap16
-#define RenderDirtyHDoubleBitmap16              RenderHDoubleBitmap16
-#define RenderDirtyHDoubleVScanlinesBitmap16    RenderHDoubleVScanlinesBitmap16
 #define RenderDirtyVDoubleBitmap16              RenderVDoubleBitmap16
 #define RenderDirtyVDoubleHScanlinesBitmap16    RenderVDoubleHScanlinesBitmap16
 
@@ -96,8 +83,6 @@ static __inline void    ExpandLinePalette16(WORD* pSrc, UINT nSrcWidth, DWORD* p
 #define RenderDirtyDoubleBitmapPalette16               RenderDoubleBitmapPalette16
 #define RenderDirtyDoubleHScanlinesBitmapPalette16     RenderDoubleHScanlinesBitmapPalette16
 #define RenderDirtyDoubleVScanlinesBitmapPalette16     RenderDoubleVScanlinesBitmapPalette16
-#define RenderDirtyHDoubleBitmapPalette16              RenderHDoubleBitmapPalette16
-#define RenderDirtyHDoubleVScanlinesBitmapPalette16    RenderHDoubleVScanlinesBitmapPalette16
 #define RenderDirtyVDoubleBitmapPalette16              RenderVDoubleBitmapPalette16
 #define RenderDirtyVDoubleHScanlinesBitmapPalette16    RenderVDoubleHScanlinesBitmapPalette16
 
@@ -121,14 +106,14 @@ static const UINT32*  m_p16BitLookup;
     External function definitions
  ***************************************************************************/
 
-RenderMethod SelectRenderMethod(BOOL bDouble, BOOL bHDouble, BOOL bVDouble, BOOL bHScanLines, BOOL bVScanLines,
+RenderMethod SelectRenderMethod(BOOL bDouble, BOOL bVDouble, BOOL bHScanLines, BOOL bVScanLines,
                                 enum DirtyMode eDirtyMode, BOOL b16bit, BOOL bPalette16,
                                 const UINT32* p16BitLookup, BOOL bMMX)
 {
     RenderMethod Render = NULL;
 
     /* remove '&& bPalette16 == FALSE' after implementation in RenderMMX.c */
-    if (bMMX == TRUE && bHDouble == FALSE && bVDouble == FALSE && bPalette16 == FALSE)
+    if (bMMX == TRUE && bVDouble == FALSE && bPalette16 == FALSE)
     {
         Render = SelectRenderMethodMMX(bDouble, bHScanLines, bVScanLines,
                                        eDirtyMode, b16bit, bPalette16, p16BitLookup);
@@ -223,69 +208,6 @@ RenderMethod SelectRenderMethod(BOOL bDouble, BOOL bHDouble, BOOL bVDouble, BOOL
         }
         else
         {
-            if (bHDouble == TRUE)
-            {
-                if (bVScanLines == TRUE)
-                {
-                    if (b16bit == TRUE)
-                    {
-                        if (bPalette16 == TRUE)
-                        {
-                            if (eDirtyMode == USE_DIRTYRECT)
-                                Render = RenderDirtyHDoubleVScanlinesBitmapPalette16;
-                            else
-                                Render = RenderHDoubleVScanlinesBitmapPalette16;
-                        }
-                        else
-                        {
-                            if (eDirtyMode == USE_DIRTYRECT)
-                                Render = RenderDirtyHDoubleVScanlinesBitmap16;
-                            else
-                                Render = RenderHDoubleVScanlinesBitmap16;
-                        }
-                    }
-                    else
-                    {
-                        if (eDirtyMode == USE_DIRTYRECT)
-                            Render = RenderHDoubleDirtyVScanlinesBitmap;
-                        else
-                            Render = RenderHDoubleVScanlinesBitmap;
-                    }
-                }
-                else
-                if (bHScanLines == TRUE)
-                {
-                    assert(FALSE);
-                }
-                else
-                {
-                    if (b16bit == TRUE)
-                    {
-                        if (bPalette16 == TRUE)
-                        {
-                            if (eDirtyMode == USE_DIRTYRECT)
-                                Render = RenderDirtyHDoubleBitmapPalette16;
-                            else
-                                Render = RenderHDoubleBitmapPalette16;
-                        }
-                        else
-                        {
-                            if (eDirtyMode == USE_DIRTYRECT)
-                                Render = RenderDirtyHDoubleBitmap16;
-                            else
-                                Render = RenderHDoubleBitmap16;
-                        }
-                    }
-                    else
-                    {
-                        if (eDirtyMode == USE_DIRTYRECT)
-                            Render = RenderHDoubleDirtyBitmap;
-                        else
-                            Render = RenderHDoubleBitmap;
-                    }
-                }
-            }
-            else
             if (bVDouble == TRUE)
             {
                 if (bHScanLines == TRUE)
@@ -705,14 +627,14 @@ static void RenderVDoubleDirtyBitmap(struct osd_bitmap* pSrcBitmap,
 {
     UINT    y, x;
     DWORD*  pdwDst;
-    UINT    nLineOffset = nDstWidth / sizeof(DWORD);
-
+    UINT    nLineOffset = nNumColumns >> 2;
+    
     for (y = nSrcStartLine; y < nNumLines + nSrcStartLine; y++)
     {
         if (IsDirtyLine(y))
         {
             x  = nSrcStartColumn;
-            pdwDst = (DWORD*)(pDst + (y - nSrcStartLine) * nDstWidth * 2); /* skip every 2 lines */
+            pdwDst  = (DWORD*)(pDst + (y - nSrcStartLine) * nDstWidth * 2);
 
             while (x < nNumColumns + nSrcStartColumn)
             {
@@ -761,7 +683,7 @@ static void RenderVDoubleDirtyHScanlinesBitmap(struct osd_bitmap* pSrcBitmap,
         if (IsDirtyLine(y))
         {
             x  = nSrcStartColumn;
-            pdwDst = (DWORD*)(pDst + (y - nSrcStartLine) * nDstWidth * 2); /* skip every 2 lines */
+            pdwDst  = (DWORD*)(pDst + (y - nSrcStartLine) * nDstWidth * 2);
 
             while (x < nNumColumns + nSrcStartColumn)
             {
@@ -851,114 +773,6 @@ static void RenderVDoubleHScanlinesBitmapPalette16(struct osd_bitmap* pSrcBitmap
         pDst += nDstDoubleWidth;
     }
 }
-
-static void RenderHDoubleBitmap(struct osd_bitmap* pSrcBitmap,
-                                UINT nSrcStartLine, UINT nSrcStartColumn,
-                                UINT nNumLines, UINT nNumColumns,
-                                BYTE* pDst, UINT nDstWidth)
-{
-    UINT nSrcQuarterWidth = nNumColumns >> 2;
-
-    while (nNumLines--)
-    {
-        DoubleLine(pSrcBitmap->line[nSrcStartLine++] + nSrcStartColumn, nSrcQuarterWidth, pDst);
-        pDst += nDstWidth;
-    }
-}
-
-static void RenderHDoubleVScanlinesBitmap(struct osd_bitmap* pSrcBitmap,
-                                          UINT nSrcStartLine, UINT nSrcStartColumn,
-                                          UINT nNumLines, UINT nNumColumns,
-                                          BYTE* pDst, UINT nDstWidth)
-{
-    UINT    nSrcHalfWidth   = nNumColumns >> 1;
-    BYTE    nBlackPen       = MAME32App.m_pDisplay->GetBlackPen();
-
-    while (nNumLines--)
-    {
-        ExpandLine(pSrcBitmap->line[nSrcStartLine++] + nSrcStartColumn,
-                   nSrcHalfWidth, pDst, nBlackPen);
-        pDst += nDstWidth;
-    }
-}
-
-static void RenderHDoubleDirtyBitmap(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth)
-{
-    while (nNumLines--)
-    {
-        if (IsDirtyLine(nSrcStartLine))
-        {
-            DoubleDirtyLine(pSrcBitmap->line[nSrcStartLine],
-                            nSrcStartColumn, nSrcStartLine, 
-                            nSrcStartColumn + nNumColumns,
-                            pDst);
-        }
-        pDst += nDstWidth;
-        nSrcStartLine++;
-    }
-}
-
-static void RenderHDoubleDirtyVScanlinesBitmap(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth)
-{
-    BYTE    nBlackPen = MAME32App.m_pDisplay->GetBlackPen();
-
-    while (nNumLines--)
-    {
-        if (IsDirtyLine(nSrcStartLine))
-        {
-            ExpandDirtyLine(pSrcBitmap->line[nSrcStartLine],
-                            nSrcStartColumn, nSrcStartLine,
-                            nSrcStartColumn + nNumColumns,
-                            pDst, nBlackPen);
-        }
-
-        pDst += nDstWidth;
-        nSrcStartLine++;
-    }
-}
-
-static void RenderHDoubleBitmap16(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth)
-{
-    while (nNumLines--)
-    {
-        DoubleLine16((WORD*)pSrcBitmap->line[nSrcStartLine++] + nSrcStartColumn, nNumColumns, pDst);
-        pDst += nDstWidth;
-    }
-}
-
-static void RenderHDoubleVScanlinesBitmap16(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth)
-{
-    WORD    nBlackPen = MAME32App.m_pDisplay->GetBlackPen();
-
-    while (nNumLines--)
-    {
-        ExpandLine16((WORD*)pSrcBitmap->line[nSrcStartLine++] + nSrcStartColumn,
-                     nNumColumns, pDst, nBlackPen);
-        pDst += nDstWidth;
-    }
-}
-
-static void RenderHDoubleBitmapPalette16(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth)
-{
-    while (nNumLines--)
-    {
-        DoubleLinePalette16((WORD*)pSrcBitmap->line[nSrcStartLine++] + nSrcStartColumn, nNumColumns, (DWORD*)pDst);
-        pDst += nDstWidth;
-    }
-}
-
-static void RenderHDoubleVScanlinesBitmapPalette16(struct osd_bitmap* pSrcBitmap, UINT nSrcStartLine, UINT nSrcStartColumn, UINT nNumLines, UINT nNumColumns, BYTE* pDst, UINT nDstWidth)
-{
-    WORD    nBlackPen = MAME32App.m_pDisplay->GetBlackPen();
-
-    while (nNumLines--)
-    {
-        ExpandLinePalette16((WORD*)pSrcBitmap->line[nSrcStartLine++] + nSrcStartColumn,
-                            nNumColumns, (DWORD*)pDst, nBlackPen);
-        pDst += nDstWidth;
-    }
-}
-
 
 /***************************************************************************
     inlines

@@ -1097,7 +1097,7 @@ static struct CustomSound_interface custom_interface =
  *
  *************************************/
 
-static const struct MachineDriver machine_driver_exidy440 =
+static struct MachineDriver machine_driver_exidy440 =
 {
 	/* basic machine hardware */
 	{

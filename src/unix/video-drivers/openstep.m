@@ -36,8 +36,10 @@ struct rc_option display_opts[] = {
  * Variables used by command-line DPS window.
  */
 
-NSWindow *theWindow = nil;		/* needed by keyboard code */
+NSWindow *thisWin = nil;		/* needed by keyboard code */
+static NSView *thisView = nil;
 static NSBitmapImageRep *thisBitmap = nil;
+static DPSContext this_dps = NULL;
 static int bitmap_width, bitmap_height;
 
 /*
@@ -48,23 +50,23 @@ static unsigned short *screen12bit = NULL;
 
 /*
  * Autorelease pool variables. We have an outer pool which is never freed
+ * an an inner one which is freed and released every few loops. This is
  * due to lessons learnt from EOF about always having at least *one* pool
- * active ! We also have a pool that exists across display open and closes
- * to make sure that everthing we make in a display open vanishes properly.
+ * active !
  */
 
-static NSAutoreleasePool *outer_pool = nil;
-static NSAutoreleasePool *display_pool = nil;
+static NSAutoreleasePool *outer_pool=nil;
+static NSAutoreleasePool *inner_pool=nil;
 
 /*
- * Intialise the two pools. Create the application object.
+ * Intialise the two pools.
  */
 
 int
 sysdep_init(void)
 {
 	outer_pool = [NSAutoreleasePool new];
-	NSApp = [[NSApplication sharedApplication] retain];
+	inner_pool = [NSAutoreleasePool new];
 	return OSD_OK;
 }
 
@@ -75,7 +77,7 @@ sysdep_init(void)
 void
 sysdep_close(void)
 {
-	[NSApp release];
+	[inner_pool release];
 	[outer_pool release];
 }
 
@@ -86,9 +88,19 @@ sysdep_close(void)
 void
 sysdep_display_close(void)
 {
-	[theWindow close];
-	theWindow = nil;
-	[display_pool release];
+	[thisView retain];
+	[thisView lockFocus];
+
+	DPSPrintf(this_dps,"currentwindow termwindow\n");
+	DPSPrintf(this_dps,"nulldevice\n");
+	PSWait();
+
+	[thisView unlockFocus];
+	[thisView release];
+
+	this_dps = NULL;
+	thisView = nil;
+	thisWin = nil;
 }
 
 extern void openstep_keyboard_init(void);
@@ -100,13 +112,9 @@ extern void openstep_keyboard_init(void);
  */
 
 int
-sysdep_create_display(int depth)
+sysdep_create_display(void)
 {
 	NSRect content_rect = { {100,100}, {0,0} };
-
-	/* make the display pool */
-	display_pool = [NSAutoreleasePool new];
-
 	bitmap_width = visual_width * widthscale;
 	bitmap_height = visual_height * heightscale;
 
@@ -115,12 +123,9 @@ sysdep_create_display(int depth)
 	content_rect.size.height = bitmap_height + (BORDER*2) - 1;
 
 	/* allocate memory for 12 bit colour version */
-	screen12bit = [[NSMutableData dataWithLength:
-			(2*bitmap_width*bitmap_height)] mutableBytes];
+	screen12bit=malloc(2*bitmap_width*bitmap_height);
 	if(!screen12bit) {
 		fprintf(stderr,"12 bit memory allocate failed\n");
-		[display_pool release];
-		display_pool = nil;
 		return OSD_NOT_OK;
 	}
 
@@ -134,38 +139,32 @@ sysdep_create_display(int depth)
 		bytesPerRow:2*bitmap_width bitsPerPixel:16];
 	if(!thisBitmap) {
 		fprintf(stderr,"Bitmap creation failed\n");
-		[display_pool release];
-		display_pool = nil;
 		return OSD_NOT_OK;
 	}
-	[thisBitmap autorelease];
 
-	/* create a window */
-	theWindow = [[NSWindow alloc] initWithContentRect:content_rect
+	/* create an application object and a window */
+	NSApp = [[NSApplication sharedApplication] retain];
+	thisWin = [[NSWindow alloc] initWithContentRect:content_rect
 		styleMask:(NSTitledWindowMask | NSMiniaturizableWindowMask)
 		backing:NSBackingStoreRetained defer:NO];
-	[theWindow setTitle:[NSString
+	[thisWin setTitle:[NSString
 		stringWithCString:Machine->gamedrv->description]];
-	[theWindow setReleasedWhenClosed:YES];
-
 	puts(Machine->gamedrv->description);
 
-	/* make it key and bring it to the front */
-	[theWindow makeKeyAndOrderFront:nil];
+	/* bring to front and set the view variable */
+	[thisWin makeKeyAndOrderFront:nil];
+	thisView = [thisWin contentView];
 
 	/* initialise it */
-	[[theWindow contentView] lockFocus];
-/*
-	DPSPrintf(DPSGetCurrentContext(),"initgraphics 0 setgray\n");
-	DPSFlushContext(DPSGetCurrentContext());
-*/
-	PSinitgraphics();
-	PSsetgray(0);
+	[thisView lockFocus];
+	this_dps = DPSGetCurrentContext();
+	DPSPrintf(this_dps,"initgraphics 0 setgray\n");
+	DPSFlushContext(this_dps);
 	PSrectfill(INSET, INSET,
 			content_rect.size.width + 1 - (INSET*2),
 			content_rect.size.height + 1 - (INSET*2));
 	PSWait();
-	[[theWindow contentView] unlockFocus];
+	[thisView unlockFocus];
 
 	/* set up the structure for the palette code */
 	display_palette_info.writable_colors = 0;
@@ -197,13 +196,13 @@ sysdep_create_display(int depth)
  */
 
 static void
-update_display_8bpp(struct osd_bitmap *bitmap)
+update_display_8bpp(void)
 {
 #define	SRC_PIXEL	unsigned char
 #define	DEST_PIXEL	unsigned short
 #define	DEST		screen12bit
 #define	DEST_WIDTH	bitmap_width
-#define	INDIRECT	current_palette->lookup
+#define	INDIRECT	sysdep_palette->lookup
 #include "blit.h"
 #undef	SRC_PIXEL
 #undef	DEST_PIXEL
@@ -217,14 +216,14 @@ update_display_8bpp(struct osd_bitmap *bitmap)
  */
 
 static void
-update_display_16bpp(struct osd_bitmap *bitmap)
+update_display_16bpp(void)
 {
 #define	SRC_PIXEL	unsigned short
 #define	DEST_PIXEL	unsigned short
 #define	DEST		screen12bit
 #define	DEST_WIDTH	bitmap_width
-	if(current_palette->lookup) {
-#define	INDIRECT	current_palette->lookup
+	if(sysdep_palette->lookup) {
+#define	INDIRECT	sysdep_palette->lookup
 #include "blit.h"
 #undef	INDIRECT
 	} else {
@@ -243,26 +242,36 @@ update_display_16bpp(struct osd_bitmap *bitmap)
  */
 
 void
-sysdep_update_display(struct osd_bitmap *bitmap)
+sysdep_update_display(void)
 {
+	static int flush_frame = FLUSH;
 	int old_use_dirty;
 
 	/* call appropriate function with dirty*/
 	old_use_dirty = use_dirty;
-	if(current_palette->lookup_dirty)
+	if(sysdep_palette->lookup_dirty)
 		use_dirty = 0;
 	if(bitmap->depth == 16)
-		update_display_16bpp(bitmap);
+		update_display_16bpp();
 	else
-		update_display_8bpp(bitmap);
+		update_display_8bpp();
 	use_dirty = old_use_dirty;
 
 	/* lock focus and draw it */
-	[[theWindow contentView] lockFocus];
+	[thisView lockFocus];
 	[thisBitmap drawInRect:(NSRect){ {BORDER, BORDER},
 			{bitmap_width, bitmap_height}}];
+
+	/* deal with inner autorelease pool every FLUSH frames */
+	if(flush_frame-- <= 0) {
+		[inner_pool release];
+		inner_pool = [NSAutoreleasePool new];
+		flush_frame = FLUSH;
+	}
+
+	/* wait for all PS operations too finish and unlock */
 	PSWait();
-	[[theWindow contentView] unlockFocus];
+	[thisView unlockFocus];
 }
 
 /*

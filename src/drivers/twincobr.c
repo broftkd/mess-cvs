@@ -699,7 +699,7 @@ static struct YM3812interface ym3812_interface =
 };
 
 
-static const struct MachineDriver machine_driver_twincobr =
+static struct MachineDriver machine_driver_twincobr =
 {
 	/* basic machine hardware */
 	{

@@ -477,7 +477,7 @@ static struct tms34010_config cpu_config =
  *
  *************************************/
 
-static const struct MachineDriver machine_driver_tunit_adpcm =
+static struct MachineDriver machine_driver_tunit_adpcm =
 {
 	/* basic machine hardware */
 	{
@@ -515,7 +515,7 @@ static const struct MachineDriver machine_driver_tunit_adpcm =
 	nvram_handler
 };
 
-static const struct MachineDriver machine_driver_tunit_dcs =
+static struct MachineDriver machine_driver_tunit_dcs =
 {
 	/* basic machine hardware */
 	{

@@ -282,7 +282,7 @@ static struct YM2203interface ym2203_interface =
 
 
 
-static const struct MachineDriver machine_driver_blktiger =
+static struct MachineDriver machine_driver_blktiger =
 {
 	/* basic machine hardware */
 	{
@@ -299,7 +299,7 @@ static const struct MachineDriver machine_driver_blktiger =
 			ignore_interrupt,0	/* IRQs are triggered by the YM2203 */
 		}
 	},
-	60, DEFAULT_60HZ_VBLANK_DURATION,	/* frames per second, vblank duration */
+	60, DEFAULT_REAL_60HZ_VBLANK_DURATION,
 	1,	/* 1 CPU slice per frame - interleaving is forced when a sound command is written */
 	0,
 

@@ -407,7 +407,7 @@ static struct GfxDecodeInfo gfxdecodeinfo[] =
 
 #define MACHINE_DRIVER(GAMENAME)   \
 																	\
-static const struct MachineDriver machine_driver_##GAMENAME =             \
+static struct MachineDriver machine_driver_##GAMENAME =             \
 {                                                                   \
 	/* basic machine hardware */                                    \
 	{                                                               \

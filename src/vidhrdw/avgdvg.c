@@ -1090,6 +1090,12 @@ level # - green
 
 int dvg_start(void)
 {
+	if (artwork_backdrop)
+	{
+		backdrop_refresh(artwork_backdrop);
+		backdrop_refresh_tables (artwork_backdrop);
+	}
+
 	return avgdvg_init (USE_DVG);
 }
 
@@ -1115,6 +1121,12 @@ int avg_start_mhavoc(void)
 
 int avg_start_bzone(void)
 {
+	if (artwork_backdrop)
+	{
+		backdrop_refresh(artwork_backdrop);
+		backdrop_refresh_tables (artwork_backdrop);
+	}
+
 	return avgdvg_init (USE_AVG_BZONE);
 }
 

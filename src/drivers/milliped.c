@@ -106,7 +106,7 @@ static READ_HANDLER( milliped_IN1_r )
 
 static WRITE_HANDLER( milliped_led_w )
 {
-	set_led_status(offset,~data & 0x80);
+	osd_led_w (offset, ~(data >> 7));
 }
 
 
@@ -313,7 +313,7 @@ static struct POKEYinterface pokey_interface =
 
 
 
-static const struct MachineDriver machine_driver_milliped =
+static struct MachineDriver machine_driver_milliped =
 {
 	/* basic machine hardware */
 	{

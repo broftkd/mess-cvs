@@ -56,7 +56,6 @@ struct tPixelInfo
 
 struct tDisplay_private
 {
-    struct osd_bitmap*  m_pBitmap;
     tRect               m_GameRect;         /* possibly doubled and clipped */
     UINT                m_nDisplayLines;    /* # of visible lines of bitmap */
     UINT                m_nDisplayColumns;  /* # of visible columns of bitmap */
@@ -67,7 +66,6 @@ struct tDisplay_private
     BOOL                m_bPanScreen;
     BOOL                m_bUseBackBuffer;
     BOOL                m_bVDouble;         /* for 1:2 aspect ratio */
-    BOOL                m_bHDouble;         /* for 2:1 aspect ratio */
     enum DirtyMode      m_eDirtyMode;
 
     /* Options/Parameters */
@@ -101,7 +99,6 @@ struct tDisplay_private
     PALETTEENTRY*       m_pAdjustedPalette;
     UINT32*             m_p16BitLookup;
     UINT32              m_nTotalColors;
-    int                 m_nDepth;
     struct tPixelInfo   m_Red;
     struct tPixelInfo   m_Green;
     struct tPixelInfo   m_Blue;
@@ -145,15 +142,15 @@ static struct osd_bitmap* DDraw_alloc_bitmap(int width, int height, int depth);
 static void               DDraw_clearbitmap(struct osd_bitmap* bitmap);
 static void               DDraw_free_bitmap(struct osd_bitmap* bitmap);
 static int                DDraw_create_display(int width, int height, int depth, int fps, int attributes, int orientation);
+static int                DDraw_set_display(int width, int height, int depth, int attributes, int orientation);
 static void               DDraw_close_display(void);
 static void               DDraw_set_visible_area(int min_x, int max_x, int min_y, int max_y);
-static void               DDraw_set_debugger_focus(int debugger_has_focus);
-static int                DDraw_allocate_colors(unsigned int totalcolors, const UINT8 *palette, UINT16 *pens, int modifiable, const UINT8 *debug_palette, UINT16 *debug_pens);
+static int                DDraw_allocate_colors(unsigned int totalcolors, const unsigned char *palette, unsigned short *pens, int modifiable);
 static void               DDraw_modify_pen(int pen, unsigned char red, unsigned char green, unsigned char blue);
 static void               DDraw_get_pen(int pen, unsigned char* pRed, unsigned char* pGreen, unsigned char* pBlue);
 static void               DDraw_mark_dirty(int x1, int y1, int x2, int y2, int ui);
-static void               DDraw_update_display(struct osd_bitmap *game_bitmap, struct osd_bitmap *debug_bitmap);
-static void               DDraw_led_w(int leds_status);
+static void               DDraw_update_display(struct osd_bitmap *bitmap);
+static void               DDraw_led_w(int led, int on);
 static void               DDraw_set_gamma(float gamma);
 static void               DDraw_set_brightness(int brightness);
 static void               DDraw_save_snapshot(struct osd_bitmap *bitmap);
@@ -174,9 +171,9 @@ struct OSDDisplay   DDrawDisplay =
     { DDraw_clearbitmap },          /* clearbitmap       */
     { DDraw_free_bitmap },          /* free_bitmap       */
     { DDraw_create_display },       /* create_display    */
+    { DDraw_set_display },          /* set_display       */
     { DDraw_close_display },        /* close_display     */
     { DDraw_set_visible_area },     /* set_visible_area  */
-    { DDraw_set_debugger_focus },   /* set_debugger_focus*/
     { DDraw_allocate_colors },      /* allocate_colors   */
     { DDraw_modify_pen },           /* modify_pen        */
     { DDraw_get_pen },              /* get_pen           */
@@ -214,7 +211,6 @@ static int DDraw_init(options_type *options)
 {
     OSDDisplay.init(options);
 
-    This.m_pBitmap           = NULL;
     This.m_GameRect.m_Top    = 0;
     This.m_GameRect.m_Left   = 0;
     This.m_GameRect.m_Width  = 0;
@@ -228,7 +224,6 @@ static int DDraw_init(options_type *options)
     This.m_nSkipColumnsMin   = 0;
     This.m_bUseBackBuffer    = FALSE;
     This.m_bVDouble          = FALSE;
-    This.m_bHDouble          = FALSE;
     This.m_eDirtyMode        = NO_DIRTY;
 
     This.m_nDisplayIndex     = options->display_monitor;
@@ -259,7 +254,6 @@ static int DDraw_init(options_type *options)
     This.m_pAdjustedPalette   = NULL;
     This.m_p16BitLookup       = NULL;
     This.m_nTotalColors       = 0;
-    This.m_nDepth             = 0;
 
     memset(&This.m_Red,   0, sizeof(struct tPixelInfo));
     memset(&This.m_Green, 0, sizeof(struct tPixelInfo));
@@ -340,12 +334,8 @@ static void DDraw_free_bitmap(struct osd_bitmap* pBitmap)
 */
 static int DDraw_create_display(int width, int height, int depth, int fps, int attributes, int orientation)
 {
-    DDSURFACEDESC   ddSurfaceDesc;
-    HRESULT         hResult = DD_OK;
-    int             bmwidth;
-    int             bmheight;
-
-    This.m_nDepth = depth;
+    DDSURFACEDESC           ddSurfaceDesc;
+    HRESULT                 hResult = DD_OK;
 
     /*
         Set up the DirectDraw object.
@@ -379,38 +369,9 @@ static int DDraw_create_display(int width, int height, int depth, int fps, int a
 
     if ((attributes & VIDEO_PIXEL_ASPECT_RATIO_MASK) == VIDEO_PIXEL_ASPECT_RATIO_1_2)
     {
-        if (orientation & ORIENTATION_SWAP_XY)
-        {
-            This.m_bHDouble    = TRUE;
-            This.m_bVDouble    = FALSE;
-            This.m_bDouble     = FALSE;
-            This.m_bHScanLines = FALSE;
-        }
-        else
-        {
-            This.m_bHDouble    = FALSE;
-            This.m_bVDouble    = TRUE;
-            This.m_bDouble     = FALSE;
-            This.m_bVScanLines = FALSE;
-        }
-    }
-
-    if ((attributes & VIDEO_PIXEL_ASPECT_RATIO_MASK) == VIDEO_PIXEL_ASPECT_RATIO_2_1)
-    {
-        if (orientation & ORIENTATION_SWAP_XY)
-        {
-            This.m_bHDouble    = FALSE;
-            This.m_bVDouble    = TRUE;
-            This.m_bDouble     = FALSE;
-            This.m_bVScanLines = FALSE;
-        }
-        else
-        {
-            This.m_bHDouble    = TRUE;
-            This.m_bVDouble    = FALSE;
-            This.m_bDouble     = FALSE;
-            This.m_bHScanLines = FALSE;
-        }
+        This.m_bVDouble    = TRUE;
+        This.m_bDouble     = FALSE;
+        This.m_bVScanLines = FALSE;
     }
 
     if (This.m_bBestFit == TRUE)
@@ -453,30 +414,7 @@ static int DDraw_create_display(int width, int height, int depth, int fps, int a
     /* Center display. */
     AdjustDisplay(0, 0, width - 1, height - 1);
 
-    /*
-        Crap. The scrbitmap is no longer created before osd_create_display() is called.
-        The following code is to figure out how big the actual scrbitmap will be.
-    */
-    if (Machine->drv->video_attributes & VIDEO_TYPE_VECTOR)
-    {
-        bmwidth  = width;
-	    bmheight = height;
-    }
-    else
-    {
-        bmwidth  = Machine->drv->screen_width;
-	    bmheight = Machine->drv->screen_height;
-
-        if (Machine->orientation & ORIENTATION_SWAP_XY)
-	    {
-		    int temp;
-		    temp     = bmwidth;
-            bmwidth  = bmheight;
-            bmheight = temp;
-	    }
-    }
-
-    InitDirty(bmwidth, bmheight, This.m_eDirtyMode);
+    InitDirty(Machine->scrbitmap->width, Machine->scrbitmap->height, This.m_eDirtyMode);
 
     /*
         Modify the main window to suit our needs.
@@ -511,7 +449,7 @@ static int DDraw_create_display(int width, int height, int depth, int fps, int a
     }
 
     {
-        int frame_rate = (int)fps;
+        int frame_rate = (int)Machine->drv->frames_per_second;
         // most monitors can't go this low
         if (frame_rate < 50)
             frame_rate *= 2;
@@ -523,7 +461,7 @@ static int DDraw_create_display(int width, int height, int depth, int fps, int a
         hResult = IDirectDraw2_SetDisplayMode(This.m_pDDraw,
                                               This.m_nScreenWidth,
                                               This.m_nScreenHeight,
-                                              depth, frame_rate, 0);
+                                              depth,frame_rate,0);
         
         if (FAILED(hResult))
         {
@@ -688,6 +626,14 @@ error:
 }
 
 /*
+    Set the actual display screen but don't allocate the screen bitmap.
+*/
+static int DDraw_set_display(int width, int height, int depth, int attributes, int orientation)
+{
+    return 0; 
+}
+
+/*
      Shut down the display
 */
 static void DDraw_close_display(void)
@@ -726,17 +672,19 @@ static void DDraw_set_visible_area(int min_x, int max_x, int min_y, int max_y)
     AdjustDisplay(min_x, min_y, max_x, max_y);
 }
 
-static void DDraw_set_debugger_focus(int debugger_has_focus)
-{
-
-}
-
-static int DDraw_allocate_colors(unsigned int totalcolors,
-                                 const UINT8* palette,
-                                 UINT16*      pens,
-                                 int          modifiable,
-                                 const UINT8* debug_palette,
-                                 UINT16*      debug_pens)
+/*
+    osd_allocate_colors() is called after osd_create_display(),
+    to create and initialize the palette.
+    palette is an array of 'totalcolors' R,G,B triplets. The function returns
+    in *pens the pen values corresponding to the requested colors.
+    When modifiable is not 0, the palette will be modified later via calls to
+    osd_modify_pen(). Otherwise, the code can assume that the palette will not change,
+    and activate special optimizations (e.g. direct copy for a 16-bit display).
+    The function must also initialize Machine->uifont->colortable[] to get proper
+    white-on-black and black-on-white text.
+    Return 0 for success.
+*/
+static int DDraw_allocate_colors(unsigned int totalcolors, const unsigned char *palette, unsigned short *pens, int modifiable)
 {
     unsigned int    i;
     BOOL            bResult = TRUE;
@@ -746,12 +694,12 @@ static int DDraw_allocate_colors(unsigned int totalcolors,
     This.m_bModifiablePalette = modifiable ? TRUE : FALSE;
 
     This.m_nTotalColors = totalcolors;
-    if (This.m_nDepth != 8)
+    if (Machine->scrbitmap->depth != 8)
         This.m_nTotalColors += 2;
     else
         This.m_nTotalColors = OSD_NUMPENS;
 
-    if (This.m_nDepth             == 16
+    if (Machine->scrbitmap->depth == 16
     &&  This.m_bModifiablePalette == TRUE)
         bPalette16 = TRUE;
     else
@@ -763,7 +711,7 @@ static int DDraw_allocate_colors(unsigned int totalcolors,
     if (This.m_p16BitLookup == NULL || This.m_pPalEntries == NULL || This.m_pAdjustedPalette == NULL)
         return 1;
 
-    if (This.m_nDepth != 8)
+    if (Machine->scrbitmap->depth != 8)
     {
         DDPIXELFORMAT   ddPixelFormat;
 
@@ -782,7 +730,7 @@ static int DDraw_allocate_colors(unsigned int totalcolors,
         GetPixelInfo(ddPixelFormat.dwBBitMask, &This.m_Blue);
     }
 
-    if (This.m_nDepth != 8 && This.m_bModifiablePalette == FALSE)
+    if (Machine->scrbitmap->depth != 8 && This.m_bModifiablePalette == FALSE)
     {
         int r, g, b;
         /* 16 bit static palette. */
@@ -806,7 +754,7 @@ static int DDraw_allocate_colors(unsigned int totalcolors,
             Set the palette Entries.
         */
 
-		if (This.m_nDepth == 8 && 255 <= totalcolors)
+		if (Machine->scrbitmap->depth == 8 && 255 <= totalcolors)
         {
             int bestblack;
             int bestwhite;
@@ -887,7 +835,7 @@ static int DDraw_allocate_colors(unsigned int totalcolors,
             Create the DirectDrawPalette.
         */
 
-        if (This.m_nDepth == 8)
+        if (Machine->scrbitmap->depth == 8)
         {
             bResult = BuildPalette(This.m_pDDraw, This.m_pPalEntries, &This.m_pDDPal);
             if (bResult == FALSE)
@@ -915,9 +863,8 @@ static int DDraw_allocate_colors(unsigned int totalcolors,
                                          FALSE,
                                          FALSE,
                                          FALSE,
-                                         FALSE,
                                          This.m_eDirtyMode,
-                                         This.m_nDepth == 16 ? TRUE : FALSE,
+                                         Machine->scrbitmap->depth == 16 ? TRUE : FALSE,
                                          bPalette16,
                                          This.m_p16BitLookup,
                                          MAME32App.m_bMMXDetected && !This.m_bDisableMMX ? TRUE: FALSE);
@@ -925,12 +872,11 @@ static int DDraw_allocate_colors(unsigned int totalcolors,
     else
     {
         This.Render = SelectRenderMethod(This.m_bDouble,
-                                         This.m_bHDouble,
                                          This.m_bVDouble,
                                          This.m_bHScanLines,
                                          This.m_bVScanLines,
                                          This.m_eDirtyMode,
-                                         This.m_nDepth == 16 ? TRUE : FALSE,
+                                         Machine->scrbitmap->depth == 16 ? TRUE : FALSE,
                                          bPalette16,
                                          This.m_p16BitLookup,
                                          MAME32App.m_bMMXDetected && !This.m_bDisableMMX ? TRUE: FALSE);
@@ -979,7 +925,7 @@ static void DDraw_get_pen(int pen, unsigned char* pRed, unsigned char* pGreen, u
     assert(pGreen != NULL);
     assert(pBlue  != NULL);
 
-    if (This.m_nDepth != 8 && This.m_bModifiablePalette == FALSE)
+    if (Machine->scrbitmap->depth != 8 && This.m_bModifiablePalette == FALSE)
     {
         *pRed   = GETC(pen, &This.m_Red);
         *pGreen = GETC(pen, &This.m_Green);
@@ -1004,17 +950,15 @@ static void DDraw_mark_dirty(int x1, int y1, int x2, int y2, int ui)
 }
 
 /*
-    Update the display.
+    Update the display using Machine->scrbitmap.
 */
-static void DDraw_update_display(struct osd_bitmap *game_bitmap, struct osd_bitmap *debug_bitmap)
+static void DDraw_update_display(struct osd_bitmap *bitmap)
 {
     HRESULT     hResult;
 
     if (This.m_pDDSBack    == NULL
     ||  This.m_pDDSPrimary == NULL)
         return;
-
-    This.m_pBitmap = game_bitmap;
 
     if (This.m_triple_buffer)
         ClearSurface(This.m_pDDSBack);
@@ -1023,7 +967,9 @@ static void DDraw_update_display(struct osd_bitmap *game_bitmap, struct osd_bitm
     {
         This.m_nBlackPen = FindBlackPen();
         ClearSurface(This.m_pDDSPrimary);
-        MarkAllDirty();
+        osd_mark_dirty(0, 0,
+                       Machine->scrbitmap->width  - 1,
+                       Machine->scrbitmap->height - 1, 1);
 
         This.m_bUpdateBackground = FALSE;
     }
@@ -1041,7 +987,7 @@ static void DDraw_update_display(struct osd_bitmap *game_bitmap, struct osd_bitm
     {
         while (1)
         {
-            hResult = IDirectDrawSurface_Flip(This.m_pDDSPrimary, NULL, DDFLIP_WAIT);
+            hResult = IDirectDrawSurface_Flip(This.m_pDDSPrimary,NULL,DDFLIP_WAIT);
                 
             if (hResult == DD_OK)
                 break;
@@ -1132,9 +1078,9 @@ static void DDraw_update_display(struct osd_bitmap *game_bitmap, struct osd_bitm
 }
 
 /* control keyboard leds or other indicators */
-static void DDraw_led_w(int leds_status)
+static void DDraw_led_w(int led, int on)
 {
-    LED_StatusWrite(leds_status);
+    LED_write(led, on & 1);
 }
 
 static void DDraw_set_gamma(float gamma)
@@ -1186,8 +1132,6 @@ static void DrawSurface(IDirectDrawSurface* pddSurface)
     if (pddSurface == NULL)
         return;
 
-    assert(This.m_pBitmap != NULL);
-
     ddSurfaceDesc.dwSize = sizeof(ddSurfaceDesc);
 
     while (1)
@@ -1213,7 +1157,7 @@ static void DrawSurface(IDirectDrawSurface* pddSurface)
 
     if (This.m_bBltDouble == TRUE)
     {
-        if (This.m_nDepth == 8)
+        if (Machine->scrbitmap->depth == 8)
         {
             pbScreen = &((BYTE*)(ddSurfaceDesc.lpSurface))
                         [This.m_nSkipLines * ddSurfaceDesc.lPitch +
@@ -1228,7 +1172,7 @@ static void DrawSurface(IDirectDrawSurface* pddSurface)
     }
     else
     {
-        if (This.m_nDepth == 8)
+        if (Machine->scrbitmap->depth == 8)
         {
             pbScreen = &((BYTE*)(ddSurfaceDesc.lpSurface))
                         [This.m_GameRect.m_Top * ddSurfaceDesc.lPitch +
@@ -1243,7 +1187,7 @@ static void DrawSurface(IDirectDrawSurface* pddSurface)
     }
 
     if (This.m_bAviRun) /* add avi frame */
-        AviAddBitmap(This.m_pBitmap, This.m_pPalEntries);
+        AviAddBitmap(Machine->scrbitmap, This.m_pPalEntries);
     
     if (This.m_nAviShowMessage > 0)
     {
@@ -1252,12 +1196,12 @@ static void DrawSurface(IDirectDrawSurface* pddSurface)
         This.m_nAviShowMessage--;
                
         sprintf(buf, "AVI Capture %s", (This.m_bAviRun) ? "ON" : "OFF");
-        ui_text(This.m_pBitmap, buf, Machine->uiwidth - strlen(buf) * Machine->uifontwidth, 0);        
+        ui_text(Machine->scrbitmap, buf, Machine->uiwidth - strlen(buf) * Machine->uifontwidth, 0);        
     }
 
     assert(This.Render != NULL);
 
-    This.Render(This.m_pBitmap,
+    This.Render(Machine->scrbitmap,
                 This.m_nSkipLines,
                 This.m_nSkipColumns,
                 This.m_nDisplayLines,
@@ -1320,7 +1264,7 @@ static BOOL BuildPalette(IDirectDraw2* pDDraw, PALETTEENTRY* pPalEntries, IDirec
 {
     HRESULT hResult;
 
-    assert(This.m_nDepth == 8);
+    assert(Machine->scrbitmap->depth == 8);
 
     hResult = IDirectDraw_CreatePalette(pDDraw,
                                         DDPCAPS_8BIT | DDPCAPS_ALLOW256,
@@ -1385,7 +1329,7 @@ static void SetPaletteColors()
     assert(This.m_pPalEntries      != NULL);
     assert(This.m_pAdjustedPalette != NULL);
 
-    if (This.m_nDepth == 8)
+    if (Machine->scrbitmap->depth == 8)
     {
         HRESULT hResult;
 
@@ -1402,7 +1346,7 @@ static void SetPaletteColors()
         }
     }
 
-    if (This.m_nDepth == 16 && This.m_bModifiablePalette == TRUE)
+    if (Machine->scrbitmap->depth == 16 && This.m_bModifiablePalette == TRUE)
     {
         UINT i;
 
@@ -1417,7 +1361,7 @@ static void SetPaletteColors()
 
 static int FindBlackPen(void)
 {    
-    if (This.m_nDepth == 8 || This.m_bModifiablePalette == TRUE)
+    if (Machine->scrbitmap->depth == 8 || This.m_bModifiablePalette == TRUE)
     {
         int i;
 
@@ -1615,15 +1559,10 @@ static void SelectDisplayMode(int width, int height, int depth)
         {
             BOOL    bResult;
 
-            if (This.m_bHDouble == TRUE)
-            {
-                width *= 2;
-            }
             if (This.m_bVDouble == TRUE)
             {
                 height *= 2;
             }
-
             if (This.m_bDouble == TRUE)
             {
                 width  *= 2;
@@ -1700,14 +1639,7 @@ static void AdjustDisplay(int xmin, int ymin, int xmax, int ymax)
 
     This.m_nDisplayLines   = visheight;
     This.m_nDisplayColumns = viswidth;
-    if (This.m_bDouble == TRUE && This.m_bHDouble == TRUE)
-    {
-        gfx_xoffset = (int)(This.m_nScreenWidth - viswidth * 4) / 2;
-        if (This.m_nDisplayColumns > This.m_nScreenWidth / 4)
-            This.m_nDisplayColumns = This.m_nScreenWidth / 4;
-    }
-    else
-    if (This.m_bDouble == TRUE || This.m_bHDouble == TRUE)
+    if (This.m_bDouble == TRUE)
     {
         gfx_xoffset = (int)(This.m_nScreenWidth - viswidth * 2) / 2;
         if (This.m_nDisplayColumns > This.m_nScreenWidth / 2)
@@ -1778,15 +1710,10 @@ static void AdjustDisplay(int xmin, int ymin, int xmax, int ymax)
     This.m_GameRect.m_Width  = This.m_nDisplayColumns;
     This.m_GameRect.m_Height = This.m_nDisplayLines;
 
-    if (This.m_bHDouble == TRUE)
-    {
-        This.m_GameRect.m_Width *= 2;
-    }
     if (This.m_bVDouble == TRUE)
     {
         This.m_GameRect.m_Height *= 2;
     }
-
     if (This.m_bDouble == TRUE)
     {
         This.m_GameRect.m_Width  *= 2;
@@ -1868,7 +1795,9 @@ static void PanDisplay(void)
 
     if (bMarkDirty == TRUE)
     {
-        MarkAllDirty();
+        osd_mark_dirty(0, 0,
+                       Machine->scrbitmap->width  - 1,
+                       Machine->scrbitmap->height - 1, 1);
 
         set_ui_visarea(This.m_nSkipColumns, This.m_nSkipLines,
                        This.m_nDisplayColumns + This.m_nSkipColumns - 1,
@@ -1887,8 +1816,9 @@ static BOOL DDraw_OnMessage(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam, L
 
 static BOOL OnSetCursor(HWND hWnd, HWND hWndCursor, UINT codeHitTest, UINT msg)
 {
-    SetCursor(NULL);
- 
+    /* Remove the cursor only after display is setup. */
+    if (Machine->scrbitmap != NULL)
+        SetCursor(NULL);
     return TRUE;
 }
 
@@ -1896,7 +1826,7 @@ static void DDraw_Refresh()
 {
     This.m_bUpdateBackground = TRUE;
 
-    DDraw_update_display(This.m_pBitmap, Machine->debug_bitmap);
+    DDraw_update_display(Machine->scrbitmap);
 }
 
 static int DDraw_GetBlackPen(void)
@@ -1911,12 +1841,12 @@ static void DDraw_UpdateFPS(BOOL bShow, int nSpeed, int nFPS, int nMachineFPS, i
     if (bShow)
     {
         sprintf(buf, "fskp%2d%4d%%%4d/%d fps", nFrameskip, nSpeed, nFPS, nMachineFPS);
-        ui_text(This.m_pBitmap, buf, Machine->uiwidth - strlen(buf) * Machine->uifontwidth, 0);
+        ui_text(Machine->scrbitmap, buf, Machine->uiwidth - strlen(buf) * Machine->uifontwidth, 0);
 
         if (Machine->drv->video_attributes & VIDEO_TYPE_VECTOR)
         {
             sprintf(buf, " %d vector updates", nVecUPS);
-            ui_text(This.m_pBitmap, buf,
+            ui_text(Machine->scrbitmap, buf,
                     Machine->uiwidth - strlen(buf) * Machine->uifontwidth,
                     Machine->uifontheight);
         }
@@ -1925,7 +1855,7 @@ static void DDraw_UpdateFPS(BOOL bShow, int nSpeed, int nFPS, int nMachineFPS, i
 
 static void AdjustPalette(void)
 {
-    if (This.m_nDepth == 8 || This.m_bModifiablePalette == TRUE)
+    if (Machine->scrbitmap->depth == 8 || This.m_bModifiablePalette == TRUE)
     {
         UINT i;
         

@@ -61,7 +61,7 @@ struct MachineSound
 #include "sound/tiaintf.h"
 #endif
 #if (HAS_NES)
-#include "sound/nesintf.h"
+#include "sound/nes_apu.h"
 #endif
 #if (HAS_ASTROCADE)
 #include "sound/astrocde.h"
@@ -120,12 +120,6 @@ struct MachineSound
 #if (HAS_QSOUND)
 #include "sound/qsound.h"
 #endif
-#if (HAS_SAA1099)
-#include "sound/saa1099.h"
-#endif
-#if (HAS_IREMGA20)
-#include "sound/iremga20.h"
-#endif
 #if (HAS_SPEAKER)
 #include "sound/speaker.h"
 #endif
@@ -155,11 +149,8 @@ enum
 #if (HAS_YM2203)
 	SOUND_YM2203,
 #endif
-#if (HAS_YM2151)
+#if (HAS_YM2151 || HAS_YM2151_ALT)
 	SOUND_YM2151,
-#endif
-#if (HAS_YM2151_ALT)
-	SOUND_YM2151_ALT,
 #endif
 #if (HAS_YM2608)
 	SOUND_YM2608,
@@ -201,7 +192,7 @@ enum
 	SOUND_POKEY,
 #endif
 #if (HAS_TIA)
-	SOUND_TIA,	/* stripped down Pokey */
+	SOUND_TIA,		/* stripped down Pokey */
 #endif
 #if (HAS_NES)
 	SOUND_NES,
@@ -213,7 +204,7 @@ enum
 	SOUND_NAMCO,
 #endif
 #if (HAS_TMS36XX)
-	SOUND_TMS36XX,	/* currently TMS3615 and TMS3617 */
+	SOUND_TMS36XX,		/* currently TMS3615 and TMS3617 */
 #endif
 #if (HAS_TMS5110)
 	SOUND_TMS5110,
@@ -266,12 +257,6 @@ enum
 #if (HAS_QSOUND)
 	SOUND_QSOUND,
 #endif
-#if (HAS_SAA1099)
-	SOUND_SAA1099,
-#endif
-#if (HAS_IREMGA20)
-	SOUND_IREMGA20,
-#endif
 #if (HAS_SPEAKER)
 	SOUND_SPEAKER,
 #endif
@@ -284,10 +269,6 @@ enum
     SOUND_COUNT
 };
 
-
-#if (HAS_YM2151_ALT)
-#define SOUND_YM2151 SOUND_YM2151_ALT
-#endif
 
 /* structure for SOUND_CUSTOM sound drivers */
 struct CustomSound_interface

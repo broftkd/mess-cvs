@@ -288,8 +288,8 @@ WRITE_HANDLER( bwidow_misc_w )
 	static int lastdata;
 
 	if (data == lastdata) return;
-	set_led_status (0,~data & 0x10);
-	set_led_status (1,~data & 0x20);
+	osd_led_w (0, ~((data & 0x10) >> 4));
+	osd_led_w (1, ~((data & 0x20) >> 5));
 	coin_counter_w (0, data & 0x01);
 	coin_counter_w (1, data & 0x02);
 	lastdata = data;
@@ -618,7 +618,7 @@ static struct POKEYinterface pokey_interface =
 
 
 
-static const struct MachineDriver machine_driver_bwidow =
+static struct MachineDriver machine_driver_bwidow =
 {
 	/* basic machine hardware */
 	{
@@ -639,7 +639,7 @@ static const struct MachineDriver machine_driver_bwidow =
 	256, 0,
 	avg_init_palette_multi,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	avg_start,
 	avg_stop,
@@ -655,7 +655,7 @@ static const struct MachineDriver machine_driver_bwidow =
 	}
 };
 
-static const struct MachineDriver machine_driver_gravitar =
+static struct MachineDriver machine_driver_gravitar =
 {
 	/* basic machine hardware */
 	{
@@ -676,7 +676,7 @@ static const struct MachineDriver machine_driver_gravitar =
 	256, 0,
 	avg_init_palette_multi,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	avg_start,
 	avg_stop,
@@ -694,7 +694,7 @@ static const struct MachineDriver machine_driver_gravitar =
 	atari_vg_earom_handler
 };
 
-static const struct MachineDriver machine_driver_spacduel =
+static struct MachineDriver machine_driver_spacduel =
 {
 	/* basic machine hardware */
 	{
@@ -715,7 +715,7 @@ static const struct MachineDriver machine_driver_spacduel =
 	256, 0,
 	avg_init_palette_multi,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	avg_start,
 	avg_stop,

@@ -9,15 +9,16 @@
 #include "driver.h"
 #include "machine/z80fmly.h"
 #include "vidhrdw/generic.h"
-#include "includes/wd179x.h"
+#include "machine/wd179x.h"
 #include "machine/mbee.h"
 
+static int flop_specified[4] = {0,0,0,0};
+static void *fdc_file[4] = {NULL,NULL};
 static UINT8 fdc_drv = 0;
 static UINT8 fdc_head = 0;
 static UINT8 fdc_den = 0;
 static UINT8 fdc_status = 0;
 static void pio_interrupt(int state);
-static void mbee_fdc_callback(int);
 
 static z80pio_interface pio_intf =
 {
@@ -35,12 +36,18 @@ static void pio_interrupt(int state)
 void mbee_init_machine(void)
 {
 	z80pio_init(&pio_intf);
-    floppy_drives_init();
-    wd179x_init(mbee_fdc_callback);
+	wd179x_init(1);
 }
 
 void mbee_shutdown_machine(void)
 {
+	int i;
+	for( i = 0; i < 4; i++ )
+	{
+		if( fdc_file[i] )
+			osd_fclose(fdc_file[i]);
+		fdc_file[i] = NULL;
+	}
 }
 
 /* PIO B data bits
@@ -115,17 +122,7 @@ WRITE_HANDLER ( mbee_fdc_motor_w )
 	fdc_drv = data & 3;
 	fdc_head = (data >> 2) & 1;
 	fdc_den = (data >> 3) & 1;
-	wd179x_set_drive(fdc_drv);
-        wd179x_set_side(fdc_head);
-        if (data & (1<<3))
-        {
-           wd179x_set_density(DEN_FM_HI);
-        }
-        else
-        {
-           wd179x_set_density(DEN_MFM_LO);
-        }
-
+	fdc_file[fdc_drv] = wd179x_select_drive(fdc_drv, fdc_head, mbee_fdc_callback, device_filename(IO_FLOPPY,fdc_drv));
 }
 
 int mbee_interrupt(void)
@@ -178,13 +175,12 @@ void mbee_cassette_exit(int id)
 {
 	device_close(IO_CASSETTE,id);
 }
-#if 0
+
 int mbee_floppy_init(int id)
 {
 	flop_specified[id] = device_filename(IO_FLOPPY,id) != NULL;
 	return 0;
 }
-#endif
 
 int mbee_rom_load(int id)
 {

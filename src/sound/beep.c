@@ -13,32 +13,35 @@
 
 struct beep_sound
 {
-	int 	stream; 	/* stream number */
-	int 	enable; 	/* enable beep */
-	int 	frequency;	/* set frequency - this can be changed using the appropiate function */
-	int 	incr;		/* initial wave state */
-	INT16	signal; 	/* current signal */
+        int beep_stream;
+        /* enable beep */
+        int beep_enable;
+        /* set frequency - this can be changed using the appropiate function */
+        int beep_frequency;
+        /* initial wave state */
+        int beep_old_incr;
+        INT16 beep_signal;
 };
 
 static struct beep_interface *intf;
-static struct beep_sound beeps[MAX_BEEP];
+static struct beep_sound beeps[4];
+
+#define BEEP_SAMPLE_RATE 22050
 
 /************************************/
 /* Stream updater                   */
 /************************************/
 static void beep_sound_update( int num, INT16 *sample, int length )
 {
-	INT16 signal = beeps[num].signal;
-	int clock = 0, rate = Machine->sample_rate / 2;
-
+        INT16 signal = beeps[num].beep_signal;
+	int baseclock, rate = Machine->sample_rate/2;
     /* get progress through wave */
-	int incr = beeps[num].incr;
+        int incr = beeps[num].beep_old_incr;
 
-	if (beeps[num].frequency > 0)
-		clock = beeps[num].frequency;
+        baseclock = BEEP_SAMPLE_RATE/ (beeps[num].beep_frequency*2);
 
 	/* if we're not enabled, just fill with 0 */
-	if ( !beeps[num].enable || Machine->sample_rate == 0 || clock == 0 )
+        if ( !beeps[num].beep_enable || Machine->sample_rate == 0)
 	{
 		memset( sample, 0, length * sizeof( INT16 ) );
 		return;
@@ -48,7 +51,7 @@ static void beep_sound_update( int num, INT16 *sample, int length )
 	while( length-- > 0 )
 	{
 		*sample++ = signal;
-		incr -= clock;
+		incr -= baseclock;
 		while( incr < 0 )
 		{
 			incr += rate;
@@ -57,8 +60,8 @@ static void beep_sound_update( int num, INT16 *sample, int length )
 	}
 
 	/* store progress through wave */
-	beeps[num].incr = incr;
-	beeps[num].signal = signal;
+        beeps[num].beep_old_incr = incr;
+        beeps[num].beep_signal = signal;
 }
 
 /************************************/
@@ -70,21 +73,21 @@ int beep_sh_start( const struct MachineSound *msound )
 
 	intf = msound->sound_interface;
 
-	for (i=0; i < intf->num; i++)
+	for (i=0; i<intf->num; i++)
 	{
 		struct beep_sound *pBeep = &beeps[i];
 		char buf[32];
 
-		if( intf->num > 1 )
+	      if( intf->num > 1 )
 			sprintf(buf, "Beep #%d", i+1);
 		else
 			strcpy(buf, "Beep");
 
-		pBeep->stream = stream_init( "Generic Beep", intf->mixing_level[i], Machine->sample_rate, i, beep_sound_update );
-		pBeep->enable = 0;
-		pBeep->frequency = 3250;
-		pBeep->incr = 0;
-		pBeep->signal = 0x07fff;
+                pBeep->beep_stream = stream_init( "Generic Beep", 100, BEEP_SAMPLE_RATE, i, beep_sound_update );
+        	pBeep->beep_enable = 0;
+        	pBeep->beep_frequency = 3250;
+        	pBeep->beep_old_incr = 0;
+        	pBeep->beep_signal = 0x07fff;
 	}
 	return 0;
 }
@@ -92,7 +95,7 @@ int beep_sh_start( const struct MachineSound *msound )
 /************************************/
 /* Sound handler stop               */
 /************************************/
-void beep_sh_stop( void )
+void beep_sh_stop(void )
 {
 }
 
@@ -103,92 +106,44 @@ void beep_sh_update(void )
 {
      int i;
 
-#if MAME_DEBUG
-	if (intf == NULL)
-	{
-		logerror("beep_sh_update: sound driver not initialized\n");
-		return;
-    }
-#endif
-	for (i=0; i < intf->num; i++)
-		stream_update( beeps[i].stream, 0 );
+     for (i=0; i<intf->num; i++)
+     {
+        stream_update( beeps[i].beep_stream, i );
+     }
 }
 
-/***************************************************/
 /* changing state to on from off will restart tone */
-/***************************************************/
 void beep_set_state( int num, int on )
 {
-#if MAME_DEBUG
-	if (intf == NULL)
+	/* only update if new state is not the same as old state */
+        if (beeps[num].beep_enable!=on)
 	{
-		logerror("beep_set_state: sound driver not initialized\n");
-		return;
+                stream_update( beeps[num].beep_stream, num );
+
+                beeps[num].beep_enable = on;
+		/* restart wave from beginning */
+                beeps[num].beep_old_incr = 0;
+                beeps[num].beep_signal = 0x07fff;
 	}
-	if (num >= intf->num)
-	{
-		logerror("beep_set_state: num (%d) out of range (%d)\n", num, intf->num);
-        return;
-    }
-#endif
-    /* only update if new state is not the same as old state */
-	if (beeps[num].enable == on)
-		return;
-
-	stream_update( beeps[num].stream, 0 );
-
-	beeps[num].enable = on;
-	/* restart wave from beginning */
-	beeps[num].incr = 0;
-	beeps[num].signal = 0x07fff;
 }
 
-/***************************************************/
-/* setting new frequency starts from beginning	   */
-/***************************************************/
+/* setting new frequency starts from beginning */
 void beep_set_frequency(int num,int frequency)
 {
-#if MAME_DEBUG
-	if (intf == NULL)
-	{
-		logerror("beep_set_frequency: sound driver not initialized\n");
-		return;
-	}
-	if (num >= intf->num)
-	{
-		logerror("beep_set_frequency: num (%d) out of range (%d)\n", num, intf->num);
-        return;
-    }
-#endif
-	if (beeps[num].frequency == frequency)
-		return;
-
-	stream_update(beeps[num].stream,num);
-	beeps[num].frequency = frequency;
-	beeps[num].signal = 0x07fff;
-	beeps[num].incr = 0;
+        if (beeps[num].beep_frequency!=frequency)
+        {
+             stream_update(beeps[num].beep_stream,num);
+             beeps[num].beep_frequency = frequency;
+             beeps[num].beep_signal = 0x07fff;
+             beeps[num].beep_old_incr = 0;
+        }
 }
 
-/***************************************************/
-/* change a channel volume						   */
-/***************************************************/
-void beep_set_volume(int num, int volume)
+void    beep_set_volume(int num,int volume)
 {
-#if MAME_DEBUG
-	if (intf == NULL)
-	{
-		logerror("beep_set_volume: sound driver not initialized\n");
-		return;
-	}
-	if (num >= intf->num)
-	{
-		logerror("beep_set_volume: num (%d) out of range (%d)\n", num, intf->num);
-        return;
-    }
-#endif
-	stream_update( beeps[num].stream, 0 );
+        stream_update( beeps[num].beep_stream, num );
 
-	volume = 100 * volume / 7;
+        volume = ( 100 / 7 ) * volume;
 
-	mixer_set_volume( beeps[num].stream, volume );
+        mixer_set_volume( beeps[num].beep_stream, volume );
 }

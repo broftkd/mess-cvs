@@ -82,6 +82,7 @@ struct ADPCMinterface adpcm_interface =
 	2,			/* total number of ADPCM decoders in the machine */
 	8000,		/* playback frequency */
 	REGION_SOUND1, /* memory region where the samples come from */
+	0,			/* initialization function */
 	{40,40}
 };
 
@@ -385,7 +386,7 @@ static struct GfxDecodeInfo cabal_gfxdecodeinfo[] = {
 	{ -1 }
 };
 
-static const struct MachineDriver machine_driver_cabal =
+static struct MachineDriver machine_driver_cabal =
 {
 	{
 		{
@@ -422,7 +423,7 @@ static const struct MachineDriver machine_driver_cabal =
 	0,0,0,0,
 };
 
-static const struct MachineDriver machine_driver_cabalbl =
+static struct MachineDriver machine_driver_cabalbl =
 {
 	{
 		{

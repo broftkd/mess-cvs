@@ -278,7 +278,7 @@ int pbaction_interrupt(void)
 }
 
 
-static const struct MachineDriver machine_driver_pbaction =
+static struct MachineDriver machine_driver_pbaction =
 {
 	/* basic machine hardware */
 	{

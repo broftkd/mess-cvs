@@ -211,7 +211,7 @@ static struct DACinterface dac_interface =
 	{ 55 }
 };
 
-static const struct MachineDriver machine_driver_grobda =
+static struct MachineDriver machine_driver_grobda =
 {
 	/* basic machine hardware  */
 	{

@@ -395,7 +395,7 @@ struct VLM5030interface trackfld_vlm5030_interface =
 
 
 
-static const struct MachineDriver machine_driver_tracklfd =
+static struct MachineDriver machine_driver_tracklfd =
 {
 	/* basic machine hardware */
 	{
@@ -450,7 +450,7 @@ static const struct MachineDriver machine_driver_tracklfd =
 
 /* same as the original, but uses ADPCM instead of VLM5030 */
 /* also different memory handlers do handle that */
-static const struct MachineDriver machine_driver_hyprolyb =
+static struct MachineDriver machine_driver_hyprolyb =
 {
 	/* basic machine hardware */
 	{

@@ -220,7 +220,7 @@ static struct DACinterface dac_interface =
 
 
 
-static const struct MachineDriver machine_driver_champbas =
+static struct MachineDriver machine_driver_champbas =
 {
 	/* basic machine hardware */
 	{
@@ -247,7 +247,7 @@ static const struct MachineDriver machine_driver_champbas =
 	32,64*4,
 	champbas_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER|VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_vh_start,
 	generic_vh_stop,

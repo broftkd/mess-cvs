@@ -502,7 +502,7 @@ static WRITE_HANDLER( misc_output_w )
 	}
 	else
 	{
-//		set_led_status(offset, data);
+//		osd_led_w(offset, data);
 	}
 }
 
@@ -2417,7 +2417,7 @@ static struct cem3394_interface cem_interface =
  *
  *************************************/
 
-static const struct MachineDriver machine_driver_balsente =
+static struct MachineDriver machine_driver_balsente =
 {
 	/* basic machine hardware */
 	{

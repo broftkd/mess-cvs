@@ -2302,29 +2302,27 @@ void amstrad_common_init(void)
 
 void amstrad_shutdown_machine(void)
 {
-	nec765_stop();
+		if (Amstrad_Memory!=NULL)
+		{
+				free(Amstrad_Memory);
+				Amstrad_Memory = NULL;
+		}
 
-	if (Amstrad_Memory!=NULL)
-	{
-			free(Amstrad_Memory);
-			Amstrad_Memory = NULL;
-	}
+		if (amstrad_interrupt_timer!=NULL)
+		{
+				timer_remove(amstrad_interrupt_timer);
+				amstrad_interrupt_timer = NULL;
+		}
 
-	if (amstrad_interrupt_timer!=NULL)
-	{
-			timer_remove(amstrad_interrupt_timer);
-			amstrad_interrupt_timer = NULL;
-	}
+		/* restore previous tables */
+		cpu_set_cycle_tbl(Z80_TABLE_op, previous_op_table);
+		cpu_set_cycle_tbl(Z80_TABLE_cb, previous_cb_table);
+		cpu_set_cycle_tbl(Z80_TABLE_ed, previous_ed_table);
+		cpu_set_cycle_tbl(Z80_TABLE_xy, previous_xy_table);
+		cpu_set_cycle_tbl(Z80_TABLE_xycb, previous_xycb_table);
+		cpu_set_cycle_tbl(Z80_TABLE_ex, previous_ex_table);
 
-	/* restore previous tables */
-	cpu_set_cycle_tbl(Z80_TABLE_op, previous_op_table);
-	cpu_set_cycle_tbl(Z80_TABLE_cb, previous_cb_table);
-	cpu_set_cycle_tbl(Z80_TABLE_ed, previous_ed_table);
-	cpu_set_cycle_tbl(Z80_TABLE_xy, previous_xy_table);
-	cpu_set_cycle_tbl(Z80_TABLE_xycb, previous_xycb_table);
-	cpu_set_cycle_tbl(Z80_TABLE_ex, previous_ex_table);
-
-	cpu_set_irq_callback(0, NULL);
+		cpu_set_irq_callback(0, NULL);
 
 }
 
@@ -2884,8 +2882,8 @@ static const struct IODevice io_cpc6128[] =
 		NULL,						/* info */
 		NULL,						/* open */
 		NULL,						/* close */
-                floppy_status,                                           /* status */
-                NULL,                                           /* seek */
+		NULL,						/* status */
+		NULL,						/* seek */
 		NULL,						/* tell */
 		NULL,						/* input */
 		NULL,						/* output */

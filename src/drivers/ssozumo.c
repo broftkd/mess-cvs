@@ -253,7 +253,7 @@ static struct DACinterface dac_interface =
 };
 
 
-static const struct MachineDriver machine_driver_ssozumo =
+static struct MachineDriver machine_driver_ssozumo =
 {
 	/* basic machine hardware */
 	{

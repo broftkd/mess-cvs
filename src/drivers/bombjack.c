@@ -317,7 +317,7 @@ static struct AY8910interface ay8910_interface =
 
 
 
-static const struct MachineDriver machine_driver_bombjack =
+static struct MachineDriver machine_driver_bombjack =
 {
 	/* basic machine hardware */
 	{

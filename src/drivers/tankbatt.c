@@ -70,7 +70,7 @@ void tankbatt_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh);
 
 WRITE_HANDLER( tankbatt_led_w )
 {
-	set_led_status(offset,data & 1);
+	osd_led_w(offset, data);
 }
 
 READ_HANDLER( tankbatt_in0_r )
@@ -272,7 +272,7 @@ static struct Samplesinterface samples_interface =
 
 
 
-static const struct MachineDriver machine_driver_tankbatt =
+static struct MachineDriver machine_driver_tankbatt =
 {
 	/* basic machine hardware */
 	{
