@@ -1,7 +1,0 @@
-
-WRITE_HANDLER ( pc_LPT1_w );
-WRITE_HANDLER ( pc_LPT2_w );
-WRITE_HANDLER ( pc_LPT3_w );
-READ_HANDLER ( pc_LPT1_r );
-READ_HANDLER ( pc_LPT2_r );
-READ_HANDLER ( pc_LPT3_r );
