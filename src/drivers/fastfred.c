@@ -425,7 +425,7 @@ static struct GfxDecodeInfo jumpcoas_gfxdecodeinfo[] =
 };
 
 
-#define CLOCK 18432000  /* The crystal is 18.432MHz */
+#define CLOCK 18432000  /* The crystal is 18.432Mhz */
 
 static struct AY8910interface fastfred_ay8910_interface =
 {
@@ -450,19 +450,19 @@ static struct AY8910interface jumpcoas_ay8910_interface =
 };
 
 
-static const struct MachineDriver machine_driver_fastfred =
+static struct MachineDriver machine_driver_fastfred =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			CLOCK/6,     /* 3.072 MHz */
+			CLOCK/6,     /* 3.072 Mhz */
 			fastfred_readmem,fastfred_writemem,0,0,
 			nmi_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			CLOCK/12,    /* 1.536 MHz */
+			CLOCK/12,    /* 1.536 Mhz */
 			sound_readmem,sound_writemem,0,0,
 			nmi_interrupt,4
 		}
@@ -493,13 +493,13 @@ static const struct MachineDriver machine_driver_fastfred =
 	}
 };
 
-static const struct MachineDriver machine_driver_jumpcoas =
+static struct MachineDriver machine_driver_jumpcoas =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			CLOCK/6,     /* 3.072 MHz */
+			CLOCK/6,     /* 3.072 Mhz */
 			jumpcoas_readmem,jumpcoas_writemem,0,0,
 			nmi_interrupt,1
 		}

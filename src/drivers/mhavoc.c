@@ -451,19 +451,19 @@ static struct POKEYinterface pokey_interface =
 
 
 
-static const struct MachineDriver machine_driver_mhavoc =
+static struct MachineDriver machine_driver_mhavoc =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			2500000,	/* 2.5 MHz */
+			2500000,	/* 2.5 Mhz */
 			readmem,writemem,0,0,
 			interrupt,8 /* 2.4576 milliseconds period */
 		},
 		{
 			CPU_M6502,
-			1250000,	/* 1.25 MHz */
+			1250000,	/* 1.25 Mhz */
 			gamma_readmem,gamma_writemem,0,0,
 			0, 0, /* no vblank interrupt */
 #if 0		/* HJB has it's own timer in machine/mhavoc now */
@@ -482,7 +482,7 @@ static const struct MachineDriver machine_driver_mhavoc =
 	256,0,
 	avg_init_palette_multi,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	avg_start_mhavoc,
 	avg_stop,

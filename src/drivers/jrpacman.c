@@ -296,13 +296,13 @@ static struct namco_interface namco_interface =
 
 
 
-static const struct MachineDriver machine_driver_jrpacman =
+static struct MachineDriver machine_driver_jrpacman =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			readmem,writemem,0,writeport,
 			jrpacman_interrupt,1
 		}

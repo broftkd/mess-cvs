@@ -32,6 +32,10 @@
 
 #define MAX_GAMEDESC 256
 
+#ifdef MESS
+#define MESS_PICKER
+#endif
+
 enum {
     COLUMN_GAMES = 0,
     COLUMN_ROMS,
@@ -46,7 +50,7 @@ enum {
     COLUMN_MAX
 };
 
-#ifdef MESS
+#ifdef MESS_PICKER
 enum {
 	MESS_COLUMN_IMAGES,
 	MESS_COLUMN_MANUFACTURER,
@@ -67,7 +71,7 @@ enum {
 enum {
     SPLITTER_LEFT = 0,
     SPLITTER_RIGHT,
-#ifdef MESS
+#ifdef MESS_PICKER
 	SPLITTER_FARRIGHT,
 #endif
     SPLITTER_MAX
@@ -95,7 +99,6 @@ enum {
 	PICT_SCREENSHOT = 0,
 	PICT_FLYER,
 	PICT_CABINET,
-	PICT_MARQUEE,
 	MAX_PICT_TYPES
 };
 
@@ -193,13 +196,10 @@ typedef struct
     BOOL     version_check;     /* Version mismatch warings */
     BOOL     mmx_check;         /* Detect MMX processors */
     char     default_game[MAX_GAMEDESC];
-#ifdef MESS
-	char     *default_software;
-#endif
     int      column_width[COLUMN_MAX];
     int      column_order[COLUMN_MAX];
     int      column_shown[COLUMN_MAX];
-#ifdef MESS
+#ifdef MESS_PICKER
     int      mess_column_width[MESS_COLUMN_MAX];
     int      mess_column_order[MESS_COLUMN_MAX];
     int      mess_column_shown[MESS_COLUMN_MAX];
@@ -213,7 +213,7 @@ typedef struct
     char*    language;
     char*    romdirs;
     char*    sampledirs;
-#ifdef MESS
+#ifdef MESS_PICKER
 	char*    softwaredirs;
 #endif
     char*    cfgdir;
@@ -225,7 +225,6 @@ typedef struct
 	char*    memcarddir;
 	char*	 flyerdir;
 	char*    cabinetdir;
-	char*    marqueedir;
 	char*    nvramdir;
 } settings_type; /* global settings for the UI only */
 
@@ -288,11 +287,6 @@ int  GetShowPictType(void);
 void SetDefaultGame(const char *name);
 const char *GetDefaultGame(void);
 
-#ifdef MESS
-void SetDefaultSoftware(const char *name);
-const char *GetDefaultSoftware(void);
-#endif
-
 void SetWindowArea(AREA *area);
 void GetWindowArea(AREA *area);
 
@@ -305,7 +299,7 @@ void GetColumnOrder(int order[]);
 void SetColumnShown(int shown[]);
 void GetColumnShown(int shown[]);
 
-#ifdef MESS
+#ifdef MESS_PICKER
 void SetMessColumnWidths(int widths[]);
 void GetMessColumnWidths(int widths[]);
 
@@ -340,7 +334,7 @@ void SetRomDirs(const char* paths);
 const char* GetSampleDirs(void);
 void  SetSampleDirs(const char* paths);
 
-#ifdef MESS
+#ifdef MESS_PICKER
 const char* GetSoftwareDirs(void);
 void  SetSoftwareDirs(const char* paths);
 #endif
@@ -374,9 +368,6 @@ void SetFlyerDir(const char* path);
 
 const char* GetCabinetDir(void);
 void SetCabinetDir(const char* path);
-
-const char* GetMarqueeDir(void);
-void SetMarqueeDir(const char* path);
 
 void ResetGameOptions(int num_game);
 

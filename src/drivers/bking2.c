@@ -327,20 +327,20 @@ static struct DACinterface dac_interface =
 
 
 
-static const struct MachineDriver machine_driver_bking2 =
+static struct MachineDriver machine_driver_bking2 =
 {
     /* basic machine hardware */
     {
         {
             CPU_Z80,
-			4000000,	/* 4 MHz */
+			4000000,	/* 4 Mhz */
             readmem,writemem,
             readport,writeport,
             interrupt,1
         },
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			3000000,	/* 3 MHz */
+			3000000,	/* 3 Mhz */
 			sound_readmem,sound_writemem,0,0,
 			/* interrupts (from Jungle King hardware, might be wrong): */
 			/* - no interrupts synced with vblank */
@@ -361,7 +361,7 @@ static const struct MachineDriver machine_driver_bking2 =
     512, 4*8+4*4+4*2+4*2,
     bking2_vh_convert_color_prom,
 
-    VIDEO_TYPE_RASTER,
+    VIDEO_TYPE_RASTER|VIDEO_SUPPORTS_DIRTY,
     0,  /* video hardware init */
     generic_vh_start,
     generic_vh_stop,

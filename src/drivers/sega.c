@@ -783,13 +783,13 @@ static struct CustomSound_interface sega_custom_interface =
 	sega_sh_update
 };
 
-static const struct MachineDriver machine_driver_spacfury =
+static struct MachineDriver machine_driver_spacfury =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3867120,	/* 3.86712 MHz */
+			3867120,	/* 3.86712 Mhz */
 			readmem, writemem, spacfury_readport, spacfury_writeport,
 			0, 0, /* no vblank interrupt */
 			sega_interrupt, 40 /* 40 Hz */
@@ -805,7 +805,7 @@ static const struct MachineDriver machine_driver_spacfury =
 	256,256,
 	sega_init_colors,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	sega_vh_start,
 	sega_vh_stop,
@@ -884,13 +884,13 @@ static struct Samplesinterface zektor_samples_interface =
 
 
 
-static const struct MachineDriver machine_driver_zektor =
+static struct MachineDriver machine_driver_zektor =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3867120,	/* 3.86712 MHz */
+			3867120,	/* 3.86712 Mhz */
 			readmem,writemem,zektor_readport,zektor_writeport,
 
 			0, 0, /* no vblank interrupt */
@@ -907,7 +907,7 @@ static const struct MachineDriver machine_driver_zektor =
 	256,256,
 	sega_init_colors,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	sega_vh_start,
 	sega_vh_stop,
@@ -981,13 +981,13 @@ static struct CustomSound_interface tacscan_custom_interface =
 
 
 
-static const struct MachineDriver machine_driver_tacscan =
+static struct MachineDriver machine_driver_tacscan =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3867120,	/* 3.86712 MHz */
+			3867120,	/* 3.86712 Mhz */
 			readmem,writemem,zektor_readport,tacscan_writeport,
 
 			0, 0, /* no vblank interrupt */
@@ -1004,7 +1004,7 @@ static const struct MachineDriver machine_driver_tacscan =
 	256,256,
 	sega_init_colors,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	sega_vh_start,
 	sega_vh_stop,
@@ -1057,13 +1057,13 @@ static struct Samplesinterface elim2_samples_interface =
 };
 
 
-static const struct MachineDriver machine_driver_elim2 =
+static struct MachineDriver machine_driver_elim2 =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3867120,	/* 3.86712 MHz */
+			3867120,	/* 3.86712 Mhz */
 			readmem,writemem,elim2_readport,elim_writeport,
 
 			0, 0, /* no vblank interrupt */
@@ -1080,7 +1080,7 @@ static const struct MachineDriver machine_driver_elim2 =
 	256,256,
 	sega_init_colors,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	sega_vh_start,
 	sega_vh_stop,
@@ -1102,13 +1102,13 @@ static const struct MachineDriver machine_driver_elim2 =
 
 
 
-static const struct MachineDriver machine_driver_elim4 =
+static struct MachineDriver machine_driver_elim4 =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3867120,	/* 3.86712 MHz */
+			3867120,	/* 3.86712 Mhz */
 			readmem,writemem,elim4_readport,elim_writeport,
 
 			0, 0, /* no vblank interrupt */
@@ -1125,7 +1125,7 @@ static const struct MachineDriver machine_driver_elim4 =
 	256,256,
 	sega_init_colors,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	sega_vh_start,
 	sega_vh_stop,
@@ -1217,13 +1217,13 @@ static struct Samplesinterface startrek_samples_interface =
 	startrek_sample_names
 };
 
-static const struct MachineDriver machine_driver_startrek =
+static struct MachineDriver machine_driver_startrek =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3867120,	/* 3.86712 MHz */
+			3867120,	/* 3.86712 Mhz */
 			readmem,writemem,zektor_readport,startrek_writeport,
 
 			0, 0, /* no vblank interrupt */
@@ -1240,7 +1240,7 @@ static const struct MachineDriver machine_driver_startrek =
 	256,256,
 	sega_init_colors,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	sega_vh_start,
 	sega_vh_stop,

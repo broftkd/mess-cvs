@@ -243,9 +243,6 @@ int VLM5030_clock(const struct MachineSound *msound) { return ((struct VLM5030in
 #if (HAS_TMS36XX)
 int TMS36XX_num(const struct MachineSound *msound) { return ((struct TMS36XXinterface*)msound->sound_interface)->num; }
 #endif
-#if (HAS_TMS5110)
-int TMS5110_clock(const struct MachineSound *msound) { return ((struct TMS5110interface*)msound->sound_interface)->baseclock; }
-#endif
 #if (HAS_TMS5220)
 int TMS5220_clock(const struct MachineSound *msound) { return ((struct TMS5220interface*)msound->sound_interface)->baseclock; }
 #endif
@@ -285,20 +282,14 @@ int cem3394_num(const struct MachineSound *msound) { return ((struct cem3394_int
 #if (HAS_QSOUND)
 int qsound_clock(const struct MachineSound *msound) { return ((struct QSound_interface*)msound->sound_interface)->clock; }
 #endif
-#if (HAS_SAA1099)
-int saa1099_num(const struct MachineSound *msound) { return ((struct SAA1099_interface*)msound->sound_interface)->numchips; }
-#endif
-#if (HAS_IREMGA20)
-int IremGA20_clock(const struct MachineSound *msound) { return ((struct IremGA20_interface*)msound->sound_interface)->clock; }
-#endif
 #if (HAS_SPEAKER)
 int speaker_num(const struct MachineSound *msound) { return ((struct Speaker_interface*)msound->sound_interface)->num; }
 #endif
 #if (HAS_WAVE)
 int wave_num(const struct MachineSound *msound) { return ((struct Wave_interface*)msound->sound_interface)->num; }
 #endif
-#if (HAS_BEEP)
-int beep_num(const struct MachineSound *msound) { return ((struct beep_interface*)msound->sound_interface)->num; }
+#if (HAS_SAA1099)
+int saa1099_num(const struct MachineSound *msound) { return ((struct saa1099_interface*)msound->sound_interface)->numchips; }
 #endif
 
 struct snd_interface sndintf[] =
@@ -373,8 +364,8 @@ struct snd_interface sndintf[] =
 		YM2203_sh_reset
 	},
 #endif
-#if (HAS_YM2151)
-	{
+#if (HAS_YM2151 || HAS_YM2151_ALT)
+    {
 		SOUND_YM2151,
 		"YM-2151",
 		YM2151_num,
@@ -383,19 +374,7 @@ struct snd_interface sndintf[] =
 		YM2151_sh_stop,
 		0,
 		YM2151_sh_reset
-    },
-#endif
-#if (HAS_YM2151_ALT)
-	{
-		SOUND_YM2151,
-		"YM-2151",
-		YM2151_num,
-		YM2151_clock,
-		YM2151_sh_start,
-		YM2151_sh_stop,
-		0,
-		YM2151_sh_reset
-    },
+	},
 #endif
 #if (HAS_YM2608)
     {
@@ -612,22 +591,10 @@ struct snd_interface sndintf[] =
 		0
 	},
 #endif
-#if (HAS_TMS5110)
-    {
-		SOUND_TMS5110,
-		"TMS5110",
-		0,
-		TMS5110_clock,
-		tms5110_sh_start,
-		tms5110_sh_stop,
-		tms5110_sh_update,
-		0
-	},
-#endif
 #if (HAS_TMS5220)
     {
 		SOUND_TMS5220,
-		"TMS5220",
+		"TMS5520",
 		0,
 		TMS5220_clock,
 		tms5220_sh_start,
@@ -816,30 +783,6 @@ struct snd_interface sndintf[] =
 		0
 	},
 #endif
-#if (HAS_SAA1099)
-	{
-		SOUND_SAA1099,
-		"SAA1099",
-		saa1099_num,
-		0,
-		saa1099_sh_start,
-		saa1099_sh_stop,
-		0,
-		0
-	},
-#endif
-#if (HAS_IREMGA20)
-	{
-		SOUND_IREMGA20,
-		"Irem GA20",
-		0,
-		IremGA20_clock,
-		IremGA20_sh_start,
-		IremGA20_sh_stop,
-		0,
-		0
-	},
-#endif
 #if (HAS_SPEAKER)
 	{
 		SOUND_SPEAKER,
@@ -864,15 +807,15 @@ struct snd_interface sndintf[] =
 		0
 	},
 #endif
-#if (HAS_BEEP)
+#if (HAS_SAA1099)
 	{
-		SOUND_BEEP,
-		"Beep",
-		beep_num,
+		SOUND_SAA1099,
+		"SAA1099",
+		saa1099_num,
 		0,
-		beep_sh_start,
-		beep_sh_stop,
-		beep_sh_update,
+		saa1099_sh_start,
+		saa1099_sh_stop,
+		0,
 		0
 	},
 #endif
@@ -890,11 +833,8 @@ int sound_start(void)
 	{
 		if (sndintf[i].sound_num != i)
 		{
-            int j;
 logerror("Sound #%d wrong ID %d: check enum SOUND_... in src/sndintrf.h!\n",i,sndintf[i].sound_num);
-			for (j = 0; j < i; j++)
-				logerror("ID %2d: %s\n", j, sndintf[j].name);
-            return 1;
+			return 1;
 		}
 	}
 

@@ -601,13 +601,13 @@ void cbmb_frame_interrupt (int param)
 
 	vic2_frame_interrupt ();
 
-	set_led_status (1 /*KB_CAPSLOCK_FLAG */ , KEY_SHIFTLOCK ? 1 : 0);
+	osd_led_w (1 /*KB_CAPSLOCK_FLAG */ , KEY_SHIFTLOCK ? 1 : 0);
 #if 0
-	set_led_status (0 /*KB_NUMLOCK_FLAG */ , JOYSTICK_SWAP ? 1 : 0);
+	osd_led_w (0 /*KB_NUMLOCK_FLAG */ , JOYSTICK_SWAP ? 1 : 0);
 #endif
 }
 
-void cbmb_state(PRASTER *This)
+void cbmb_state(PRASTER *this)
 {
 #if VERBOSE_DBG
 	int y;
@@ -618,14 +618,14 @@ void cbmb_state(PRASTER *This)
 	snprintf(text, sizeof(text),
 			 "%.2x %.2x",
 			 MODELL_700, VIDEO_NTSC);
-	praster_draw_text (This, text, &y);
+	praster_draw_text (this, text, &y);
 
 	crtc6845_status(text, sizeof(text));
-	praster_draw_text (This, text, &y);
+	praster_draw_text (this, text, &y);
 
 #if 0
 	cia6526_status (text, sizeof (text));
-	praster_draw_text (This, text, &y);
+	praster_draw_text (this, text, &y);
 #endif
 #endif
 }

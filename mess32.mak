@@ -5,7 +5,7 @@
 VERSION = -DVERSION=37
 
 # uncomment out the BETA_VERSION = line to build a beta version of MAME
-BETA_VERSION = -DBETA_VERSION=7
+BETA_VERSION = -DBETA_VERSION=5
 
 # uncomment this to build an release canidate version
 # RELEASE_CANDIDATE = -DRELEASE_CANDIDATE=1
@@ -26,7 +26,7 @@ USE_FASTCALL = 1
 # NOMIDAS =
 
 # uncomment to build Helpfiles
-HELPFILE = Mess32.hlp
+# HELPFILE = Mame32.hlp
 
 # uncomment to build romcmp.exe utility
 TOOLS = mkhdimg.exe imgtool.exe dat2html.exe
@@ -108,8 +108,8 @@ CFLAGSGLOBAL = -Gr -I. -Isrc -I$(OBJ)/cpu/m68000 -Isrc/cpu/m68000 -Isrc/Win32 -I
                -IZLIB $(AUDIOFLAGS) -W3 -nologo -MT \
                $(MAME_DEBUG) $(RELEASE_CANDIDATE) $(BETA_VERSION) $(VERSION) \
                $(MAME_NET) $(MAME_MMX) $(HAS_CPUS) $(HAS_SOUND) $(M68KDEF) \
-               -DMESS -DNEOFREE -DMAME32NAME="\"MESS32\"" -DMAMENAME="\"MESS\"" \
-               -DM_PI=3.14159265
+			   -DMESS -DNEOFREE -DMAME32NAME="\"MESS32\"" -DMAMENAME="\"MESS\"" \
+			   -DM_PI=3.14159265
 
 CFLAGSDEBUG = -Zi -Od
 
@@ -168,7 +168,7 @@ WIN32_OBJS = \
          $(AUDIOOBJS) $(OBJ)/Win32/DirectSound.o $(OBJ)/Win32/NullSound.o \
          $(OBJ)/Win32/Keyboard.o $(OBJ)/Win32/Joystick.o $(OBJ)/Win32/Trak.o \
          $(OBJ)/Win32/file.o $(OBJ)/Win32/Directories.o $(OBJ)/Win32/mzip.o \
-         $(OBJ)/Win32/debug.o $(OBJ)/Win32/DebugKeyboard.o \
+         $(OBJ)/Win32/debug.o \
          $(OBJ)/Win32/fmsynth.o $(OBJ)/Win32/NTFMSynth.o \
          $(OBJ)/Win32/audit32.o \
          $(OBJ)/mess/Win32/mess32ui.o $(OBJ)/Win32/Properties.o $(OBJ)/Win32/ColumnEdit.o \
@@ -180,7 +180,6 @@ WIN32_OBJS = \
 
 CPUOBJS = \
           $(Z80OBJS) \
-	  $(OBJ)/cpu/cdp1802/cdp1802.o \
           $(OBJ)/cpu/i8085/i8085.o \
           $(OBJ)/cpu/m6502/m6502.o \
           $(OBJ)/cpu/h6280/h6280.o \
@@ -190,11 +189,9 @@ CPUOBJS = \
           $(OBJ)/cpu/m6800/m6800.o \
           $(OBJ)/cpu/m6805/m6805.o \
           $(OBJ)/cpu/m6809/m6809.o \
-          $(OBJ)/cpu/hd6309/hd6309.o \
           $(M68KOBJS) \
           $(OBJ)/cpu/t11/t11.o \
           $(OBJ)/cpu/s2650/s2650.o \
-	  $(OBJ)/cpu/f8/f8.o \
           $(OBJ)/cpu/tms34010/tms34010.o $(OBJ)/cpu/tms34010/34010fld.o \
           $(OBJ)/cpu/tms9900/tms9980a.o \
           $(OBJ)/cpu/z8000/z8000.o \
@@ -210,18 +207,10 @@ CPUOBJS = \
           $(OBJ)/cpu/m6502/m4510.o \
           $(OBJ)/cpu/i86/i286.o \
           $(OBJ)/cpu/tms9900/tms9995.o \
-          $(OBJ)/cpu/arm/arm.o \
-          $(OBJ)/cpu/g65816/g65816.o \
-          $(OBJ)/cpu/g65816/g65816o0.o \
-          $(OBJ)/cpu/g65816/g65816o1.o \
-          $(OBJ)/cpu/g65816/g65816o2.o \
-          $(OBJ)/cpu/g65816/g65816o3.o \
-          $(OBJ)/cpu/g65816/g65816o4.o \
-	  $(OBJ)/cpu/cp1600/cp1600.o
+          $(OBJ)/cpu/arm/arm.o
 
 DBGOBJS = \
           $(OBJ)/cpu/z80/z80dasm.o \
-	  $(OBJ)/cpu/cdp1802/disasm.o \
           $(OBJ)/cpu/i8085/8085dasm.o \
           $(OBJ)/cpu/m6502/6502dasm.o \
           $(OBJ)/cpu/h6280/6280dasm.o \
@@ -231,12 +220,10 @@ DBGOBJS = \
           $(OBJ)/cpu/m6800/6800dasm.o \
           $(OBJ)/cpu/m6805/6805dasm.o \
           $(OBJ)/cpu/m6809/6809dasm.o \
-          $(OBJ)/cpu/hd6309/6309dasm.o \
           $(OBJ)/cpu/konami/knmidasm.o \
           $(OBJ)/cpu/m68000/m68kdasm.o \
           $(OBJ)/cpu/t11/t11dasm.o \
           $(OBJ)/cpu/s2650/2650dasm.o \
-	  $(OBJ)/cpu/f8/f8dasm.o \
           $(OBJ)/cpu/tms34010/34010dsm.o \
           $(OBJ)/cpu/tms9900/9900dasm.o \
           $(OBJ)/cpu/z8000/8000dasm.o \
@@ -245,9 +232,7 @@ DBGOBJS = \
           $(OBJ)/cpu/adsp2100/2100dasm.o \
           $(OBJ)/cpu/pdp1/pdp1dasm.o \
           $(OBJ)/cpu/sc61860/disasm.o \
-          $(OBJ)/cpu/arm/dasm.o \
-          $(OBJ)/cpu/g65816/g65816ds.o \
-	  $(OBJ)/cpu/cp1600/1600dasm.o
+          $(OBJ)/cpu/arm/dasm.o
 
 SNDOBJS = \
          $(OBJ)/sound/samples.o \
@@ -276,21 +261,18 @@ SNDOBJS = \
          $(OBJ)/sound/qsound.o \
          $(OBJ)/sound/tiasound.o \
          $(OBJ)/sound/tiaintf.o \
-		 $(OBJ)/sound/saa1099.o \
          $(OBJ)/sound/wave.o \
-         $(OBJ)/sound/speaker.o \
-		 $(OBJ)/sound/beep.o \
-		 $(OBJ)/sound/nesintf.o
+         $(OBJ)/sound/speaker.o
 
 COREOBJS = \
          $(OBJ)/version.o $(OBJ)/mame.o \
          $(OBJ)/drawgfx.o $(OBJ)/common.o $(OBJ)/usrintrf.o $(OBJ)/ui_text.o \
          $(OBJ)/cpuintrf.o $(OBJ)/memory.o $(OBJ)/timer.o $(OBJ)/palette.o \
-	 $(OBJ)/input.o $(OBJ)/inptport.o $(OBJ)/cheat.o $(OBJ)/unzip.o \
+		 $(OBJ)/input.o $(OBJ)/inptport.o $(OBJ)/cheat.o $(OBJ)/unzip.o \
          $(OBJ)/audit.o $(OBJ)/info.o $(OBJ)/png.o $(OBJ)/artwork.o \
          $(OBJ)/tilemap.o $(OBJ)/sprite.o  $(OBJ)/gfxobj.o \
          $(OBJ)/state.o $(OBJ)/datafile.o $(OBJ)/hiscore.o \
-	 $(CPUOBJS) \
+		 $(CPUOBJS) \
          $(OBJ)/sndintrf.o \
          $(OBJ)/sound/streams.o $(OBJ)/sound/mixer.o \
          $(SNDOBJS) \
@@ -301,27 +283,21 @@ COREOBJS = \
          $(OBJ)/machine/ticket.o $(OBJ)/machine/eeprom.o \
 	 $(OBJ)/mamedbg.o $(OBJ)/window.o \
          $(OBJ)/profiler.o \
+         $(DBGOBJS) \
          $(NET_OBJS) \
           $(OBJ)/mess/mess.o             \
           $(OBJ)/mess/system.o           \
           $(OBJ)/mess/config.o           \
           $(OBJ)/mess/filemngr.o         \
           $(OBJ)/mess/tapectrl.o         \
-          $(OBJ)/mess/machine/wd179x.o   \
-          $(OBJ)/mess/machine/basicdsk.o \
-          $(OBJ)/mess/diskctrl.o         \
-		  $(OBJ)/mess/utils.o			\
-	 $(OBJ)/mess/machine/6522via.o	\
-	 $(OBJ)/mess/machine/nec765.o	\
-	 $(OBJ)/mess/machine/dsk.o	\
-	 $(OBJ)/mess/Win32/fileio.o    \
-	 $(OBJ)/mess/Win32/dirio.o	       \
-	 $(OBJ)/mess/Win32/fdc.o
-
-!ifdef MAME_DEBUG
-COREOBJS = \
-	 $(COREOBJS) $(DBGOBJS)
-!endif
+          $(OBJ)/mess/machine/6522via.o  \
+          $(OBJ)/mess/machine/nec765.o   \
+          $(OBJ)/mess/machine/dsk.o      \
+          $(OBJ)/mess/machine/wd179x.o	\
+          $(OBJ)/mess/sndhrdw/beep.o	\
+		  $(OBJ)/mess/Win32/fileio.o	\
+		  $(OBJ)/mess/Win32/dirio.o		\
+		  $(OBJ)/mess/Win32/fdc.o
 
 DRV_OBJS = \
           $(OBJ)/mess/vidhrdw/tms9928a.o \
@@ -355,11 +331,7 @@ DRV_OBJS = \
           $(OBJ)/mess/systems/nes.o      \
           $(OBJ)/mess/vidhrdw/gb.o       \
           $(OBJ)/mess/machine/gb.o       \
-          $(OBJ)/mess/systems/gb.o       \
-          $(OBJ)/mess/sndhrdw/snes.o     \
-          $(OBJ)/mess/vidhrdw/snes.o     \
-          $(OBJ)/mess/machine/snes.o     \
-          $(OBJ)/mess/systems/snes.o	\
+          $(OBJ)/mess/systems/gb.o	\
           $(OBJ)/mess/vidhrdw/amiga.o    \
           $(OBJ)/mess/machine/amiga.o    \
           $(OBJ)/mess/systems/amiga.o    \
@@ -403,7 +375,6 @@ DRV_OBJS = \
           $(OBJ)/mess/machine/mc10.o     \
           $(OBJ)/mess/systems/mc10.o     \
           $(OBJ)/mess/formats/cocopak.o  \
-		  $(OBJ)/mess/formats/cococas.o \
           $(OBJ)/mess/vidhrdw/dragon.o   \
           $(OBJ)/mess/machine/dragon.o   \
           $(OBJ)/mess/systems/dragon.o	\
@@ -443,14 +414,6 @@ DRV_OBJS = \
           $(OBJ)/mess/vidhrdw/mac.o      \
           $(OBJ)/mess/machine/mac.o      \
           $(OBJ)/mess/systems/mac.o	\
-          $(OBJ)/mess/systems/avigo.o    \
-          $(OBJ)/mess/vidhrdw/avigo.o    \
-          $(OBJ)/mess/machine/28f008sa.o \
-		  $(OBJ)/mess/systems/studio2.o  \
-		  $(OBJ)/mess/vidhrdw/studio2.o  \
-	  $(OBJ)/mess/systems/channelf.o \
-	  $(OBJ)/mess/vidhrdw/channelf.o \
-	  $(OBJ)/mess/sndhrdw/channelf.o \
           $(OBJ)/mess/machine/tms9901.o  \
           $(OBJ)/mess/machine/ti99_4x.o  \
           $(OBJ)/mess/systems/ti99_4x.o  \
@@ -497,13 +460,8 @@ DRV_OBJS = \
           $(OBJ)/mess/systems/amstrad.o  \
           $(OBJ)/mess/vidhrdw/pcw.o      \
           $(OBJ)/mess/systems/pcw.o      \
-          $(OBJ)/mess/vidhrdw/nc.o       \
-          $(OBJ)/mess/systems/nc.o       \
-          $(OBJ)/mess/machine/nc.o       \
-          $(OBJ)/mess/machine/tc8521.o   \
-		  $(OBJ)/mess/systems/pcw16.o		\
-		  $(OBJ)/mess/machine/msm8251.o     \
-		  $(OBJ)/mess/vidhrdw/pcw16.o	\
+          $(OBJ)/mess/systems/pcw16.o    \
+          $(OBJ)/mess/vidhrdw/pcw16.o	\
           $(OBJ)/mess/vidhrdw/vdc.o      \
           $(OBJ)/mess/machine/pce.o      \
           $(OBJ)/mess/systems/pce.o	\
@@ -512,10 +470,9 @@ DRV_OBJS = \
           $(OBJ)/mess/vidhrdw/enterp.o   \
           $(OBJ)/mess/machine/enterp.o   \
           $(OBJ)/mess/systems/enterp.o	\
-	  $(OBJ)/mess/sndhrdw/scc.o	 	 \
-	  $(OBJ)/mess/machine/msx.o	 	 \
-	  $(OBJ)/mess/formats/fmsx_cas.o \
-	  $(OBJ)/mess/systems/msx.o	\
+          $(OBJ)/mess/sndhrdw/scc.o      \
+          $(OBJ)/mess/machine/msx.o      \
+          $(OBJ)/mess/systems/msx.o	\
           $(OBJ)/mess/vidhrdw/kim1.o     \
           $(OBJ)/mess/machine/kim1.o     \
           $(OBJ)/mess/systems/kim1.o	\
@@ -557,12 +514,11 @@ DRV_OBJS = \
           $(OBJ)/mess/machine/atom.o     \
           $(OBJ)/mess/vidhrdw/atom.o     \
 	  $(OBJ)/mess/systems/atom.o	 \
-          $(OBJ)/mess/systems/a310.o     \
-          $(OBJ)/mess/systems/z88.o      \
-          $(OBJ)/mess/vidhrdw/z88.o      \
+	  $(OBJ)/mess/systems/a310.o	\
           $(OBJ)/mess/machine/coupe.o    \
           $(OBJ)/mess/vidhrdw/coupe.o    \
           $(OBJ)/mess/systems/coupe.o	\
+          $(OBJ)/mess/sndhrdw/mz700.o    \
           $(OBJ)/mess/machine/mz700.o    \
           $(OBJ)/mess/vidhrdw/mz700.o    \
           $(OBJ)/mess/systems/mz700.o    \
@@ -571,24 +527,17 @@ DRV_OBJS = \
           $(OBJ)/mess/systems/pocketc.o  \
           $(OBJ)/mess/machine/aquarius.o \
           $(OBJ)/mess/vidhrdw/aquarius.o \
-          $(OBJ)/mess/systems/aquarius.o \
-          $(OBJ)/mess/machine/odyssey2.o \
-          $(OBJ)/mess/vidhrdw/odyssey2.o \
-          $(OBJ)/mess/systems/odyssey2.o
+          $(OBJ)/mess/systems/aquarius.o
 
 
 IMGTOOL_OBJS= \
           $(OBJ)/mess/tools/stubs.o   \
           $(OBJ)/mess/config.o        \
           $(OBJ)/unzip.o              \
-		  $(OBJ)/mess/utils.o		\
           $(OBJ)/mess/tools/main.o    \
           $(OBJ)/mess/tools/imgtool.o \
-		  $(OBJ)/mess/tools/imgwave.o \
-          $(OBJ)/mess/tools/stream.o  \
           $(OBJ)/mess/tools/rsdos.o   \
-          $(OBJ)/mess/tools/cococas.o \
-		  $(OBJ)/mess/formats/cococas.o \
+          $(OBJ)/mess/tools/stream.o  \
           $(OBJ)/mess/tools/t64.o     \
           $(OBJ)/mess/tools/lynx.o    \
           $(OBJ)/mess/tools/crt.o     \
@@ -625,13 +574,8 @@ all: $(EXENAME) $(TOOLS)
 
 # workaround for a compiler optimization bug:
 !ifndef DEBUG
-
 $(OBJ)/input.o: src/input.c
-	$(CC) $(DEFS) $(CFLAGSGLOBAL) -Oi -Ot -Oy -Ob1 -Gs -G5 -Gr -DCLIB_DECL=__cdecl -DDECL_SPEC=__cdecl -Fo$@ -c src/$(*B).c
-
-$(OBJ)/cpu/g65816/g65816o0.o: src/cpu/g65816/g65816o0.c
-	$(CC) $(DEFS) $(CFLAGSGLOBAL) -Oi -Ot -Oy -Gs -G5 -Gr -DCLIB_DECL=__cdecl -DDECL_SPEC=__cdecl -Fo$@ -c src/cpu/g65816/$(*B).c
-
+	$(CC) $(DEFS) $(CFLAGSGLOBAL) -Oi -Ot -Oy -Ob1 -Gs -G5 -Gr -DCLIB_DECL=__cdecl -DDECL_SPEC=__cdecl -Fo$@ -c src/input.c
 !endif
 
 $(EXENAME): $(COREOBJS) $(WIN32_OBJS) $(OBJS) $(RES)
@@ -640,17 +584,16 @@ $(EXENAME): $(COREOBJS) $(WIN32_OBJS) $(OBJS) $(RES)
 <<
 
 !ifdef HELPFILE
-$(HELPFILE): mess\Win32\Hlp\Mess32.cnt mess\Win32\Hlp\Mess32.hlp
-	copy mess\Win32\Hlp\Mess32.cnt
-	copy mess\Win32\Hlp\Mess32.hlp
+$(HELPFILE): src\Win32\Hlp\Mame32.cnt src\Win32\Hlp\Mame32.hlp
+	@Makehelp.bat
 !endif
 
 romcmp: $(OBJ)/romcmp.o $(OBJ)/unzip.o $(OBJ)/Win32/dirent.o
 	$(LD) $(LDFLAGS) -out:romcmp.exe $(CONSOLE_PROGRAM) $(OBJ)/romcmp.o $(OBJ)/unzip.o $(OBJ)/Win32/dirent.o $(LIBS)
 
 
-dat2html.exe:	$(OBJ)/mess/tools/dat2html.o $(OBJ)/mess/utils.o
-	$(LD) $(LDFLAGS) -out:dat2html.exe $(CONSOLE_PROGRAM) $(OBJ)/mess/tools/dat2html.o $(OBJ)/mess/utils.o
+dat2html.exe:	$(OBJ)/mess/tools/dat2html.o
+	$(LD) $(LDFLAGS) -out:dat2html.exe $(CONSOLE_PROGRAM) $(OBJ)/mess/tools/mkhdimg.o
 
 
 mkhdimg.exe:	$(OBJ)/mess/tools/mkhdimg.o
@@ -692,16 +635,10 @@ imgtool.exe:	$(IMGTOOL_OBJS)
 {src/cpu/i8039}.c{$(OBJ)/cpu/i8039}.o:
 	$(CC) $(DEFS) $(CFLAGS) -Fo$@ -c $<
 
-{src/cpu/cdp1802}.c{$(OBJ)/cpu/cdp1802}.o:
-	$(CC) $(DEFS) $(CFLAGS) -Fo$@ -c $<
-
 {src/cpu/i8085}.c{$(OBJ)/cpu/i8085}.o:
 	$(CC) $(DEFS) $(CFLAGS) -Fo$@ -c $<
 
 {src/cpu/m6809}.c{$(OBJ)/cpu/m6809}.o:
-	$(CC) $(DEFS) $(CFLAGS) -Fo$@ -c $<
-
-{src/cpu/hd6309}.c{$(OBJ)/cpu/hd6309}.o:
 	$(CC) $(DEFS) $(CFLAGS) -Fo$@ -c $<
 
 {src/cpu/konami}.c{$(OBJ)/cpu/konami}.o:
@@ -711,9 +648,6 @@ imgtool.exe:	$(IMGTOOL_OBJS)
 	$(CC) $(DEFS) $(CFLAGS) -Fo$@ -c $<
 
 {src/cpu/s2650}.c{$(OBJ)/cpu/s2650}.o:
-	$(CC) $(DEFS) $(CFLAGS) -Fo$@ -c $<
-
-{src/cpu/f8}.c{$(OBJ)/cpu/f8}.o:
 	$(CC) $(DEFS) $(CFLAGS) -Fo$@ -c $<
 
 {src/cpu/T11}.c{$(OBJ)/cpu/T11}.o:
@@ -750,12 +684,6 @@ imgtool.exe:	$(IMGTOOL_OBJS)
 	$(CC) $(DEFS) $(CFLAGS) -Fo$@ -c $<
 
 {src/cpu/arm}.c{$(OBJ)/cpu/arm}.o:
-	$(CC) $(DEFS) $(CFLAGS) -Fo$@ -c $<
-
-{src/cpu/g65816}.c{$(OBJ)/cpu/g65816}.o:
-	$(CC) $(DEFS) $(CFLAGS) -Fo$@ -c $<
-
-{src/cpu/cp1600}.c{$(OBJ)/cpu/cp1600}.o:
 	$(CC) $(DEFS) $(CFLAGS) -Fo$@ -c $<
 
 {src/vidhrdw}.c{$(OBJ)/vidhrdw}.o:
@@ -838,7 +766,6 @@ $(OBJ)/cpu/z8000/z8000.o:       src/cpu/z8000/z8000.c src/cpu/z8000/z8000.h src/
 $(OBJ)/cpu/s2650/s2650.o:       src/cpu/s2650/s2650.c src/cpu/s2650/s2650.h src/cpu/s2650/s2650cpu.h
 $(OBJ)/cpu/h6280/h6280.o:       src/cpu/h6280/h6280.c src/cpu/h6280/h6280.h src/cpu/h6280/h6280ops.h src/cpu/h6280/tblh6280.c
 $(OBJ)/cpu/i8039/i8039.o:       src/cpu/i8039/i8039.c src/cpu/i8039/i8039.h
-$(OBJ)/cpu/cdp1802/cdp1802.o:	src/cpu/cdp1802/cdp1802.c src/cpu/cdp1802/cdp1802.h src/cpu/cdp1802/table.c
 $(OBJ)/cpu/i8085/i8085.o:       src/cpu/i8085/i8085.c src/cpu/i8085/i8085.h src/cpu/i8085/i8085cpu.h src/cpu/i8085/i8085daa.h
 $(OBJ)/cpu/i86/i86.o:           src/cpu/i86/i86.c src/cpu/i86/instr86.c src/cpu/i86/i86.h src/cpu/i86/i86intf.h src/cpu/i86/ea.h src/cpu/i86/host.h src/cpu/i86/modrm.h
 $(OBJ)/cpu/nec/nec.o:           src/cpu/nec/nec.c src/cpu/nec/nec.h src/cpu/nec/necintrf.h src/cpu/nec/necea.h src/cpu/nec/nechost.h src/cpu/nec/necinstr.h src/cpu/nec/necmodrm.h
@@ -847,7 +774,6 @@ $(OBJ)/cpu/m6502/m6509.o:       src/cpu/m6502/m6509.c src/cpu/m6502/m6509.h src/
 $(OBJ)/cpu/m6800/m6800.o:	     src/cpu/m6800/m6800.c src/cpu/m6800/m6800.h src/cpu/m6800/6800ops.c src/cpu/m6800/6800tbl.c
 $(OBJ)/cpu/m6805/m6805.o:	     src/cpu/m6805/m6805.c src/cpu/m6805/m6805.h src/cpu/m6805/6805ops.c
 $(OBJ)/cpu/m6809/m6809.o:	     src/cpu/m6809/m6809.c src/cpu/m6809/m6809.h src/cpu/m6809/6809ops.c src/cpu/m6809/6809tbl.c
-$(OBJ)/cpu/hd6309/hd6309.o:	     src/cpu/hd6309/hd6309.c src/cpu/hd6309/hd6309.h src/cpu/hd6309/6309ops.c src/cpu/hd6309/6309tbl.c
 $(OBJ)/cpu/tms32010/tms32010.o: src/cpu/tms32010/tms32010.c src/cpu/tms32010/tms32010.h
 $(OBJ)/cpu/tms34010/tms34010.o: src/cpu/tms34010/tms34010.c src/cpu/tms34010/tms34010.h src/cpu/tms34010/34010ops.c src/cpu/tms34010/34010tbl.c
 $(OBJ)/cpu/tms9900/tms9900.o:   src/cpu/tms9900/tms9900.c src/cpu/tms9900/tms9900.h src/cpu/tms9900/9900stat.h
@@ -869,12 +795,10 @@ maketree:
 	md $(OBJ)\cpu\i86
 	md $(OBJ)\cpu\nec
 	md $(OBJ)\cpu\i8039
-	md $(OBJ)\cpu\cdp1802
-        md $(OBJ)\cpu\i8085
+	md $(OBJ)\cpu\i8085
 	md $(OBJ)\cpu\m6800
 	md $(OBJ)\cpu\m6805
 	md $(OBJ)\cpu\m6809
-	md $(OBJ)\cpu\hd6309
 	md $(OBJ)\cpu\konami
 	md $(OBJ)\cpu\m68000
 	md $(OBJ)\cpu\s2650
@@ -889,9 +813,6 @@ maketree:
 	md $(OBJ)\cpu\mips
 	md $(OBJ)\cpu\sc61860
 	md $(OBJ)\cpu\arm
-	md $(OBJ)\cpu\g65816
-	md $(OBJ)\cpu\f8
-	md $(OBJ)\cpu\cp1600
 	md $(OBJ)\sound
 	md $(OBJ)\drivers
 	md $(OBJ)\machine
@@ -920,14 +841,12 @@ clean:
 	del $(OBJ)\cpu\i86\*.o
 	del $(OBJ)\cpu\nec\*.o
 	del $(OBJ)\cpu\i8039\*.o
-	del $(OBJ)\cpu\cdp1802\*.o
-        del $(OBJ)\cpu\i8085\*.o
+	del $(OBJ)\cpu\i8085\*.o
 	del $(OBJ)\cpu\m6800\*.o
 	del $(OBJ)\cpu\m6800\*.oa
 	del $(OBJ)\cpu\m6800\*.exe
 	del $(OBJ)\cpu\m6805\*.o
 	del $(OBJ)\cpu\m6809\*.o
-	del $(OBJ)\cpu\hd6309\*.o
 	del $(OBJ)\cpu\konami\*.o
 	del $(OBJ)\cpu\m68000\*.o
 	del $(OBJ)\cpu\m68000\*.c
@@ -948,9 +867,6 @@ clean:
 	del $(OBJ)\cpu\mips\*.o
 	del $(OBJ)\cpu\sc61860\*.o
 	del $(OBJ)\cpu\arm\*.o
-	del $(OBJ)\cpu\g65816\*.o
-	del $(OBJ)\cpu\f8\*.o
-	del $(OBJ)\cpu\cp1600\*.o
 	del $(OBJ)\sound\*.o
 	del $(OBJ)\drivers\*.o
 	del $(OBJ)\machine\*.o
@@ -982,16 +898,14 @@ cleandebug:
 	del $(OBJ)\cpu\m6502\*.o
 	del $(OBJ)\cpu\h6280\*.o
 	del $(OBJ)\cpu\i86\*.o
-	del $(OBJ)\cpu\nec\*.0
+	del	$(OBJ)\cpu\nec\*.0
 	del $(OBJ)\cpu\i8039\*.o
-	del $(OBJ)\cpu\cdp1802\*.o
-        del $(OBJ)\cpu\i8085\*.o
+	del $(OBJ)\cpu\i8085\*.o
 	del $(OBJ)\cpu\m6800\*.o
 	del $(OBJ)\cpu\m6800\*.oa
 	del $(OBJ)\cpu\m6800\*.exe
 	del $(OBJ)\cpu\m6805\*.o
 	del $(OBJ)\cpu\m6809\*.o
-	del $(OBJ)\cpu\hd6309\*.o
 	del $(OBJ)\cpu\konami\*.o
 	del $(OBJ)\cpu\m68000\*.o
 	del $(OBJ)\cpu\m68000\*.c
@@ -1011,9 +925,6 @@ cleandebug:
 	del $(OBJ)\cpu\pdp1\*.o
 	del $(OBJ)\cpu\sc61860\*.o
 	del $(OBJ)\cpu\arm\*.o
-	del $(OBJ)\cpu\g65816\*.o
-	del $(OBJ)\cpu\f8\*.o
-	del $(OBJ)\cpu\cp1600\*.o
 	del $(EXENAME)
 
 cleantiny:

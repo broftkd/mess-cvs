@@ -13,7 +13,7 @@
      0C00        R             D               Self test sw
      0C00        R          D                  Diagnostic step sw
      0C00        R       D                     Halt
-     0C00        R    D                        3kHz ??
+     0C00        R    D                        3khz ??
      0D00        R    D  D  D  D  D  D  D  D   option switches
      0E00        R    D  D  D  D  D  D  D  D   option switches
 
@@ -179,7 +179,7 @@ static READ_HANDLER( tempest_IN0_r )
 	if (avgdvg_done())
 		res|=0x40;
 
-	/* Emulate the 3Khz source on bit 7 (divide 1.5MHz by 512) */
+	/* Emulate the 3Khz source on bit 7 (divide 1.5Mhz by 512) */
 	if (cpu_gettotalcycles() & 0x100)
 		res |=0x80;
 
@@ -188,8 +188,8 @@ static READ_HANDLER( tempest_IN0_r )
 
 static WRITE_HANDLER( tempest_led_w )
 {
-	set_led_status(0, ~data & 0x02);
-	set_led_status(1, ~data & 0x01);
+	osd_led_w (0, ~(data >> 1));
+	osd_led_w (1, ~data);
 	/* FLIP is bit 0x04 */
 }
 
@@ -255,7 +255,7 @@ INPUT_PORTS_START( tempest )
 	/* per default (busy vector processor). */
  	/* handled by tempest_IN0_r() */
 	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_UNKNOWN )
-	/* bit 7 is tied to a 3kHz (?) clock */
+	/* bit 7 is tied to a 3khz (?) clock */
  	/* handled by tempest_IN0_r() */
 	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 
@@ -361,7 +361,7 @@ static struct POKEYinterface pokey_interface =
 
 
 
-static const struct MachineDriver machine_driver_tempest =
+static struct MachineDriver machine_driver_tempest =
 {
 	/* basic machine hardware */
 	{
@@ -382,7 +382,7 @@ static const struct MachineDriver machine_driver_tempest =
 	256,0,
 	avg_init_palette_multi,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	avg_start_tempest,
 	avg_stop,
@@ -503,7 +503,7 @@ ROM_END
 
 
 
-GAMEX( 1980, tempest,  0,       tempest, tempest, 0, ROT0, "Atari", "Tempest (rev 3)", GAME_NO_COCKTAIL )
-GAMEX( 1980, tempest1, tempest, tempest, tempest, 0, ROT0, "Atari", "Tempest (rev 1)", GAME_NO_COCKTAIL )
-GAMEX( 1980, tempest2, tempest, tempest, tempest, 0, ROT0, "Atari", "Tempest (rev 2)", GAME_NO_COCKTAIL )
-GAMEX( 1980, temptube, tempest, tempest, tempest, 0, ROT0, "hack", "Tempest Tubes", GAME_NO_COCKTAIL )
+GAME( 1980, tempest,  0,       tempest, tempest, 0, ROT0, "Atari", "Tempest (rev 3)" )
+GAME( 1980, tempest1, tempest, tempest, tempest, 0, ROT0, "Atari", "Tempest (rev 1)" )
+GAME( 1980, tempest2, tempest, tempest, tempest, 0, ROT0, "Atari", "Tempest (rev 2)" )
+GAME( 1980, temptube, tempest, tempest, tempest, 0, ROT0, "hack", "Tempest Tubes" )

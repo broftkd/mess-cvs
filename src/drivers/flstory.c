@@ -2,9 +2,8 @@
 
 The FairyLand Story
 
-TODO:
-- sound communication not understood, however it's probably the same as
-  buggy challenge, so check that
+notes:
+- sound communication not understood
 - sound section also has a MSM5232
 
 ***************************************************************************/
@@ -313,7 +312,7 @@ static struct AY8910interface ay8910_interface =
 
 
 
-static const struct MachineDriver machine_driver_flstory =
+static struct MachineDriver machine_driver_flstory =
 {
     /* basic machine hardware */
     {

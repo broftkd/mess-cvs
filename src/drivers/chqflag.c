@@ -343,7 +343,7 @@ static struct K007232_interface k007232_interface =
 	{ volume_callback0,  volume_callback1 }						/* external port callback */
 };
 
-static const struct MachineDriver machine_driver_chqflag =
+static struct MachineDriver machine_driver_chqflag =
 {
 	{
 		{

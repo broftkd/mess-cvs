@@ -227,13 +227,13 @@ static struct GfxDecodeInfo gfxdecodeinfo[] =
 
 
 
-static const struct MachineDriver machine_driver_rocnrope =
+static struct MachineDriver machine_driver_rocnrope =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6809,
-			2048000,        /* 2 MHz */
+			2048000,        /* 2 Mhz */
 			readmem,writemem,0,0,
 			interrupt,1
 		},

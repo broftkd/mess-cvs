@@ -60,21 +60,21 @@ static void update_samples(void)
 	3 = IC6 - CPU Board, Sheet 5, D7
 */
 
-READ_HANDLER( portA_r )
+static READ_HANDLER ( portA_r )
 {
 	if (offset == 3)
 		return readinputport(4);	 /* Wheel */
 	return 0;
 }
 
-READ_HANDLER( portB_r )
+static READ_HANDLER ( portB_r )
 {
 	if (offset == 3)
 		return readinputport(2);	/* DSW 2 */
 	return 0;
 }
 
-WRITE_HANDLER( portA_w )
+static WRITE_HANDLER( portA_w )
 {
 	switch (offset)
 	{
@@ -110,7 +110,7 @@ WRITE_HANDLER( portA_w )
 	}
 }
 
-WRITE_HANDLER( portB_w )
+static WRITE_HANDLER ( portB_w )
 {
 	switch (offset)
 	{
@@ -149,7 +149,7 @@ WRITE_HANDLER( portB_w )
 	}
 }
 
-WRITE_HANDLER( portC_w )
+static WRITE_HANDLER ( portC_w )
 {
 	switch (offset)
 	{
@@ -289,7 +289,7 @@ WRITE_HANDLER( turbo_coin_and_lamp_w )
 			break;
 
 		case 3:		/* Start Lamp */
-			set_led_status(0, data & 1);
+			osd_led_w(0, data);
 			break;
 
 		case 4:		/* n/c */

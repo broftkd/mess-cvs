@@ -486,19 +486,19 @@ struct VLM5030interface hyperspt_vlm5030_interface =
 };
 
 
-static const struct MachineDriver machine_driver_hyperspt =
+static struct MachineDriver machine_driver_hyperspt =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6809,
-			2048000,        /* 1.400 MHz ??? */
+			2048000,        /* 1.400 Mhz ??? */
 			hyperspt_readmem,writemem,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			14318180/4,	/* Z80 Clock is derived from a 14.31818 MHz crystal */
+			14318180/4,	/* Z80 Clock is derived from a 14.31818 Mhz crystal */
 			sound_readmem,sound_writemem,0,0,
 			ignore_interrupt,1	/* interrupts are triggered by the main CPU */
 		}
@@ -539,19 +539,19 @@ static const struct MachineDriver machine_driver_hyperspt =
 	nvram_handler
 };
 
-static const struct MachineDriver machine_driver_roadf =
+static struct MachineDriver machine_driver_roadf =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6809,
-			2048000,        /* 1.400 MHz ??? */
+			2048000,        /* 1.400 Mhz ??? */
 			roadf_readmem,writemem,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			14318180/4,	/* Z80 Clock is derived from a 14.31818 MHz crystal */
+			14318180/4,	/* Z80 Clock is derived from a 14.31818 Mhz crystal */
 			sound_readmem,sound_writemem,0,0,
 			ignore_interrupt,1	/* interrupts are triggered by the main CPU */
 		}

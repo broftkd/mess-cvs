@@ -305,7 +305,7 @@ INPUT_PORTS_START( bzone )
 	/* per default (busy vector processor). */
  	/* handled by bzone_IN0_r() */
 	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_UNKNOWN )
-	/* bit 7 is tied to a 3kHz clock */
+	/* bit 7 is tied to a 3khz clock */
  	/* handled by bzone_IN0_r() */
 	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 
@@ -422,7 +422,7 @@ INPUT_PORTS_START( redbaron )
 	/* per default (busy vector processor). */
  	/* handled by bzone_IN0_r() */
 	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_UNKNOWN )
-	/* bit 7 is tied to a 3kHz clock */
+	/* bit 7 is tied to a 3khz clock */
  	/* handled by bzone_IN0_r() */
 	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 
@@ -505,13 +505,13 @@ static struct CustomSound_interface bzone_custom_interface =
 };
 
 
-static const struct MachineDriver machine_driver_bzone =
+static struct MachineDriver machine_driver_bzone =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			1500000,	/* 1.5 MHz */
+			1500000,	/* 1.5 Mhz */
 			bzone_readmem,bzone_writemem,0,0,
 			bzone_interrupt,6 /* 4.1ms */
 		}
@@ -526,7 +526,7 @@ static const struct MachineDriver machine_driver_bzone =
 	256+32768, 0,
 	avg_init_palette_bzone,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	avg_start_bzone,
 	avg_stop,
@@ -574,13 +574,13 @@ static struct CustomSound_interface redbaron_custom_interface =
 	redbaron_sh_update
 };
 
-static const struct MachineDriver machine_driver_redbaron =
+static struct MachineDriver machine_driver_redbaron =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			1500000,	/* 1.5 MHz */
+			1500000,	/* 1.5 Mhz */
 			redbaron_readmem,redbaron_writemem,0,0,
 			bzone_interrupt,4 /* 5.4ms */
 		}
@@ -595,7 +595,7 @@ static const struct MachineDriver machine_driver_redbaron =
 	256, 0,
 	avg_init_palette_aqua,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	avg_start_redbaron,
 	avg_stop,

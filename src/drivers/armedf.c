@@ -756,18 +756,18 @@ static struct DACinterface cclimbr2_dac_interface =
 	{ 40, 40 },
 };
 
-static const struct MachineDriver machine_driver_terraf =
+static struct MachineDriver machine_driver_terraf =
 {
 	{
 		{
 			CPU_M68000,
-			8000000, /* 8 MHz?? */
+			8000000, /* 8 Mhz?? */
 			terraf_readmem,terraf_writemem,0,0,
 			armedf_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			3072000,	/* 3.072 MHz???? */
+			3072000,	/* 3.072 Mhz???? */
 			soundreadmem,soundwritemem,readport,writeport,
 			interrupt,128
 		},
@@ -802,18 +802,18 @@ static const struct MachineDriver machine_driver_terraf =
 	}
 };
 
-static const struct MachineDriver machine_driver_kodure =
+static struct MachineDriver machine_driver_kodure =
 {
 	{
 		{
 			CPU_M68000,
-			8000000, /* 8 MHz?? */
+			8000000, /* 8 Mhz?? */
 			kodure_readmem, kodure_writemem, 0, 0,
 			armedf_interrupt, 1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			3072000,	/* 3.072 MHz???? */
+			3072000,	/* 3.072 Mhz???? */
 			soundreadmem, soundwritemem, readport, writeport,
 			interrupt, 128
 		},
@@ -848,18 +848,18 @@ static const struct MachineDriver machine_driver_kodure =
 	}
 };
 
-static const struct MachineDriver machine_driver_armedf =
+static struct MachineDriver machine_driver_armedf =
 {
 	{
 		{
 			CPU_M68000,
-			8000000, /* 8 MHz?? */
+			8000000, /* 8 Mhz?? */
 			armedf_readmem,armedf_writemem,0,0,
 			armedf_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			3072000,	/* 3.072 MHz???? */
+			3072000,	/* 3.072 Mhz???? */
 			soundreadmem,soundwritemem,readport,writeport,
 			interrupt,128
 		},
@@ -894,18 +894,18 @@ static const struct MachineDriver machine_driver_armedf =
 	}
 };
 
-static const struct MachineDriver machine_driver_cclimbr2 =
+static struct MachineDriver machine_driver_cclimbr2 =
 {
 	{
 		{
 			CPU_M68000,
-			8000000, /* 8 MHz?? */
+			8000000, /* 8 Mhz?? */
 			cclimbr2_readmem,cclimbr2_writemem,0,0,
 			cclimbr2_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			3072000,	/* 3.072 MHz???? */
+			3072000,	/* 3.072 Mhz???? */
 			cclimbr2_soundreadmem,cclimbr2_soundwritemem,readport,writeport,
 			interrupt,128
 		},

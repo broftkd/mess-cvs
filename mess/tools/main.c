@@ -104,8 +104,6 @@ static void reporterror(int err, struct command *c, const char *format, const ch
 		src = "imgtool";
 		break;
 	}
-	fflush(stdout);
-	fflush(stderr);
 	fprintf(stderr, "%s: %s\n", src, err_name);
 }
 
@@ -198,7 +196,7 @@ static int cmd_put(struct command *c, int argc, char *argv[])
 {
 	int err;
 	IMAGE *img;
-	char *newfname;
+	char *destfile;
 	file_options opts;
 	int *optionvals[4];
 	static const char *options[] = { "ftype", "ascii", "addr", "bank" };
@@ -210,9 +208,9 @@ static int cmd_put(struct command *c, int argc, char *argv[])
 	optionvals[2] = &opts.faddr;
 	optionvals[3] = &opts.fbank;
 
-	newfname = (argc >= 3) && (argv[2][0] != '-') ? argv[2] : NULL;
+	destfile = (argc >= 3) && (argv[2][0] != '-') ? argv[2] : NULL;
 
-	if (parse_options(argc - (newfname ? 3 : 2), argv + (newfname ? 3 : 2), options, optionvals))
+	if (parse_options(argc - (destfile ? 3 : 2), argv + (destfile ? 3 : 2), options, optionvals))
 		return -1;
 
 	err = img_open_byname(argv[0], argv[1], OSD_FOPEN_RW, &img);
@@ -220,7 +218,7 @@ static int cmd_put(struct command *c, int argc, char *argv[])
 		goto error;
 
 
-	err = img_putfile(img, newfname, argv[2], &opts);
+	err = img_putfile(img, argv[2], destfile, &opts);
 	img_close(img);
 	if (err)
 		goto error;

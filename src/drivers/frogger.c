@@ -305,7 +305,7 @@ static struct GfxDecodeInfo gfxdecodeinfo[] =
 static struct AY8910interface ay8910_interface =
 {
 	1,	/* 1 chip */
-	14318000/8,	/* 1.78975 MHz */
+	14318000/8,	/* 1.78975 Mhz */
 	{ MIXERG(80,MIXER_GAIN_2x,MIXER_PAN_CENTER) },
 	{ soundlatch_r },
 	{ frogger_portB_r },
@@ -315,19 +315,19 @@ static struct AY8910interface ay8910_interface =
 
 
 
-static const struct MachineDriver machine_driver_frogger =
+static struct MachineDriver machine_driver_frogger =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			readmem,writemem,0,0,
 			nmi_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			14318000/8,	/* 1.78975 MHz */
+			14318000/8,	/* 1.78975 Mhz */
 			sound_readmem,sound_writemem,sound_readport,sound_writeport,
 			ignore_interrupt,1	/* interrupts are triggered by the main CPU */
 		}
@@ -358,19 +358,19 @@ static const struct MachineDriver machine_driver_frogger =
 	}
 };
 
-static const struct MachineDriver machine_driver_froggrmc =
+static struct MachineDriver machine_driver_froggrmc =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			froggrmc_readmem,froggrmc_writemem,0,0,
 			nmi_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			14318000/8,	/* 1.78975 MHz */
+			14318000/8,	/* 1.78975 Mhz */
 			sound_readmem,sound_writemem,sound_readport,sound_writeport,
 			ignore_interrupt,1	/* interrupts are triggered by the main CPU */
 		}

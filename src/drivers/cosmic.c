@@ -1098,13 +1098,13 @@ static struct Samplesinterface cosmicg_samples_interface =
 };
 
 
-static const struct MachineDriver machine_driver_panic =
+static struct MachineDriver machine_driver_panic =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			2000000,	/* 2 MHz? */
+			2000000,	/* 2 Mhz? */
 			panic_readmem,panic_writemem,0,0,
 			panic_interrupt,2
 		}
@@ -1119,7 +1119,7 @@ static const struct MachineDriver machine_driver_panic =
 	16, 8*4,
 	panic_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER|VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_bitmapped_vh_start,
 	generic_bitmapped_vh_stop,
@@ -1139,7 +1139,7 @@ static const struct MachineDriver machine_driver_panic =
     }
 };
 
-static const struct MachineDriver machine_driver_cosmica =
+static struct MachineDriver machine_driver_cosmica =
 {
 	/* basic machine hardware */
 	{
@@ -1160,7 +1160,7 @@ static const struct MachineDriver machine_driver_cosmica =
 	8, 16*4,
 	cosmica_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER|VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_bitmapped_vh_start,
 	generic_bitmapped_vh_stop,
@@ -1170,7 +1170,7 @@ static const struct MachineDriver machine_driver_cosmica =
 	0,0,0,0
 };
 
-static const struct MachineDriver machine_driver_cosmicg =
+static struct MachineDriver machine_driver_cosmicg =
 {
 	/* basic machine hardware */
 	{
@@ -1180,7 +1180,7 @@ static const struct MachineDriver machine_driver_cosmicg =
 #else
 			CPU_TMS9900,
 #endif
-			1228500,			/* 9.828 MHz Crystal */
+			1228500,			/* 9.828 Mhz Crystal */
 			/* R Nabet : huh ? This would imply the crystal frequency is somehow divided by 2 before being
 			fed to the tms9904 or tms9980.  Also, I have never heard of a tms9900/9980 operating under
 			1.5MHz.  So, if someone can check this... */
@@ -1219,13 +1219,13 @@ static const struct MachineDriver machine_driver_cosmicg =
 	}
 };
 
-static const struct MachineDriver machine_driver_magspot2 =
+static struct MachineDriver machine_driver_magspot2 =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz ???? */
+			18432000/6,	/* 3.072 Mhz ???? */
 			magspot2_readmem,magspot2_writemem,0,0,
 			magspot2_interrupt,1
 		},
@@ -1240,7 +1240,7 @@ static const struct MachineDriver machine_driver_magspot2 =
 	16, 8*4,
 	magspot2_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER|VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_bitmapped_vh_start,
 	generic_bitmapped_vh_stop,
@@ -1256,13 +1256,13 @@ static const struct MachineDriver machine_driver_magspot2 =
 	}
 };
 
-static const struct MachineDriver machine_driver_nomnlnd =
+static struct MachineDriver machine_driver_nomnlnd =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz ???? */
+			18432000/6,	/* 3.072 Mhz ???? */
 			nomnlnd_readmem,nomnlnd_writemem,0,0,
 			magspot2_interrupt,1
 		},
@@ -1276,7 +1276,7 @@ static const struct MachineDriver machine_driver_nomnlnd =
 	nomnlnd_gfxdecodeinfo,
 	16, 16*4,
 	magspot2_vh_convert_color_prom,
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER|VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_bitmapped_vh_start,
 	generic_bitmapped_vh_stop,

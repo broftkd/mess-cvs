@@ -220,19 +220,19 @@ static struct DACinterface dac_interface =
 
 
 
-static const struct MachineDriver machine_driver_champbas =
+static struct MachineDriver machine_driver_champbas =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3072000,	/* 3.072 MHz (?) */
+			3072000,	/* 3.072 Mhz (?) */
 			readmem,writemem,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			3072000,	/* 3.072 MHz ? */
+			3072000,	/* 3.072 Mhz ? */
 			readmem2,writemem2,0,0,
 			ignore_interrupt,1
 		}
@@ -247,7 +247,7 @@ static const struct MachineDriver machine_driver_champbas =
 	32,64*4,
 	champbas_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER|VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_vh_start,
 	generic_vh_stop,

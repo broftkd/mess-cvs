@@ -92,7 +92,7 @@ void warlord_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh);
 
 static WRITE_HANDLER( warlord_led_w )
 {
-	set_led_status(offset,~data & 0x80);
+	osd_led_w(offset,~data >> 7);
 }
 
 
@@ -133,8 +133,8 @@ INPUT_PORTS_START( warlord )
 	PORT_SERVICE( 0x20, IP_ACTIVE_LOW )
 	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_VBLANK )
 	PORT_DIPNAME(0x80, 0x00, DEF_STR( Cabinet ) )
-	PORT_DIPSETTING (   0x80, "Upright (no overlay)" )
-	PORT_DIPSETTING (   0x00, "Cocktail (overlay)" )
+	PORT_DIPSETTING (   0x80, DEF_STR( Upright ) )
+	PORT_DIPSETTING (   0x00, DEF_STR( Cocktail ) )
 
 	PORT_START	/* IN1 */
 	PORT_BIT ( 0x01, IP_ACTIVE_LOW, IPT_BUTTON1 | IPF_PLAYER1 )
@@ -239,7 +239,7 @@ static struct POKEYinterface pokey_interface =
 
 
 
-static const struct MachineDriver machine_driver_warlord =
+static struct MachineDriver machine_driver_warlord =
 {
 	/* basic machine hardware */
 	{
@@ -260,7 +260,7 @@ static const struct MachineDriver machine_driver_warlord =
 	128, 8*4+8*4,
 	warlord_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE,
+	VIDEO_TYPE_RASTER|VIDEO_SUPPORTS_DIRTY|VIDEO_MODIFIES_PALETTE,
 	0,
 	generic_vh_start,
 	generic_vh_stop,

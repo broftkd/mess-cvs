@@ -90,6 +90,7 @@ WRITE_HANDLER( congo_daio_w )
 static struct MemoryReadAddress readmem[] =
 {
 	{ 0x8000, 0x8fff, MRA_RAM },
+	{ 0xa000, 0x83ff, MRA_RAM },
 	{ 0xa000, 0xa7ff, MRA_RAM },
 	{ 0xc000, 0xc000, input_port_0_r },
 	{ 0xc001, 0xc001, input_port_1_r },
@@ -388,7 +389,7 @@ static struct GfxDecodeInfo gfxdecodeinfo[] =
 static struct SN76496interface sn76496_interface =
 {
 	2,	/* 2 chips */
-	{ 4000000, 4000000 },	/* 4 MHz??? */
+	{ 4000000, 4000000 },	/* 4 Mhz??? */
 	{ 100, 100 }
 };
 
@@ -417,13 +418,13 @@ static struct Samplesinterface samples_interface =
 
 
 
-static const struct MachineDriver machine_driver_congo =
+static struct MachineDriver machine_driver_congo =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3072000,	/* 3.072 MHz ?? */
+			3072000,	/* 3.072 Mhz ?? */
 			readmem,writemem,0,0,
 			congo_interrupt,1
 		},

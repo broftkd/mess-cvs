@@ -283,13 +283,13 @@ struct VLM5030interface vlm5030_interface =
 
 
 
-static const struct MachineDriver machine_driver_yiear =
+static struct MachineDriver machine_driver_yiear =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6809,
-			1250000,	/* 1.25 MHz */
+			1250000,	/* 1.25 Mhz */
 			readmem, writemem, 0, 0,
 			interrupt,1,	/* vblank */
 			yiear_nmi_interrupt,500	/* music tempo (correct frequency unknown) */
@@ -305,7 +305,7 @@ static const struct MachineDriver machine_driver_yiear =
 	32, 32,
 	yiear_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER|VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_vh_start,
 	generic_vh_stop,

@@ -506,20 +506,20 @@ static struct MSM5205interface msm5205_interface =
 	{ 50 }
 };
 
-static const struct MachineDriver machine_driver_stfight =
+static struct MachineDriver machine_driver_stfight =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3000000,	/* 3 MHz */
+			3000000,	/* 3 Mhz */
 			readmem_cpu1, writemem_cpu1, 0, 0,
 			stfight_vb_interrupt, 1,
             stfight_interrupt_1, 30
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			3000000,	/* 3 MHz */
+			3000000,	/* 3 Mhz */
 			readmem_cpu2, writemem_cpu2, 0, 0,
 			0, 0,
             stfight_interrupt_2, 120

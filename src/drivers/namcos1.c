@@ -825,7 +825,7 @@ static void namcos1_sound_interrupt( int irq )
 static struct YM2151interface ym2151_interface =
 {
 	1,			/* 1 chip */
-	3579580,	/* 3.58 MHz */
+	3579580,	/* 3.58 MHZ */
 	{ YM3012_VOL(80,MIXER_PAN_LEFT,80,MIXER_PAN_RIGHT) },
 	{ namcos1_sound_interrupt },
 	{ 0 }
@@ -851,7 +851,7 @@ static struct DACinterface dac_interface =
 	{ 100 	}	/* mixing level */
 };
 
-static const struct MachineDriver machine_driver_ns1 =
+static struct MachineDriver machine_driver_ns1 =
 {
 	/* basic machine hardware */
 	{
@@ -917,7 +917,7 @@ static const struct MachineDriver machine_driver_ns1 =
 	nvram_handler
 };
 
-static const struct MachineDriver machine_driver_quester =
+static struct MachineDriver machine_driver_quester =
 {
 	/* basic machine hardware */
 	{
@@ -983,7 +983,7 @@ static const struct MachineDriver machine_driver_quester =
 	nvram_handler
 };
 
-static const struct MachineDriver machine_driver_faceoff =
+static struct MachineDriver machine_driver_faceoff =
 {
 	/* basic machine hardware */
 	{

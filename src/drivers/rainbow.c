@@ -281,19 +281,19 @@ static struct GfxDecodeInfo rainbowe_gfxdecodeinfo[] =
 	{ -1 } 										/* end of array */
 };
 
-static const struct MachineDriver machine_driver_rainbow =
+static struct MachineDriver machine_driver_rainbow =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M68000,
-			8000000,	/* 8 MHz */
+			8000000,	/* 8 Mhz */
 			rainbow_readmem,rainbow_writemem,0,0,
 			rainbow_interrupt,1
 		},
 		{
 			CPU_Z80,
-			4000000,	/* 4 MHz */
+			4000000,	/* 4 Mhz */
 			rastan_s_readmem,rastan_s_writemem,0,0,
 			ignore_interrupt,1
 		}
@@ -531,19 +531,19 @@ static struct YM2203interface ym2203_interface =
 	{ 0 }
 };
 
-static const struct MachineDriver machine_driver_jumping =
+static struct MachineDriver machine_driver_jumping =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M68000,
-			8000000,	/* 8 MHz */
+			8000000,	/* 8 Mhz */
 			jumping_readmem,jumping_writemem,0,0,
 			rainbow_interrupt,1
 		},
 		{
 			CPU_Z80,
-			4000000,	/* 4 MHz */
+			4000000,	/* 4 Mhz */
 			jumping_sound_readmem,jumping_sound_writemem,0,0,
 			ignore_interrupt,1
 		}

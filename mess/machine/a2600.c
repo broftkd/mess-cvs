@@ -15,7 +15,8 @@
 #include "cpuintrf.h"
 #include "machine/tia.h"
 #include "drawgfx.h"
-#include "zlib.h"
+#include <zlib.h>
+
 
 UINT8 Bankswitch_Method = 0;
 static union {
@@ -370,7 +371,7 @@ READ_HANDLER  ( a2600_bs_r )
 int a2600_riot_r(int offset)
 {
 	UINT8 *ROM = memory_region(REGION_CPU1);
-	INT32 riotdiff = (global_tia_cycle + TIME_TO_CYCLES(0, timer_timeelapsed(HSYNC_timer))) - previous_tia_cycle;
+	UINT32 riotdiff = (global_tia_cycle + TIME_TO_CYCLES(0, timer_timeelapsed(HSYNC_timer))) - previous_tia_cycle;
 
 		/* resync the riot timer */
 	previous_tia_cycle = global_tia_cycle + TIME_TO_CYCLES(0, timer_timeelapsed(HSYNC_timer));
@@ -417,7 +418,7 @@ void a2600_riot_w(int offset, int data)
 	UINT8 *ROM = memory_region(REGION_CPU1);
 
 	{
-		INT32 riotdiff = (global_tia_cycle + TIME_TO_CYCLES(0, timer_timeelapsed(HSYNC_timer))) - previous_tia_cycle;
+		UINT32 riotdiff = (global_tia_cycle + TIME_TO_CYCLES(0, timer_timeelapsed(HSYNC_timer))) - previous_tia_cycle;
 
 		/* resync the riot timer */
 		previous_tia_cycle = global_tia_cycle + TIME_TO_CYCLES(0, timer_timeelapsed(HSYNC_timer));
@@ -494,7 +495,7 @@ int a2600_TIA_r(int offset)
 
 	pc = cpu_get_pc();
 	{
-		INT32 riotdiff = (global_tia_cycle + TIME_TO_CYCLES(0, timer_timeelapsed(HSYNC_timer))) - previous_tia_cycle;
+		UINT32 riotdiff = (global_tia_cycle + TIME_TO_CYCLES(0, timer_timeelapsed(HSYNC_timer))) - previous_tia_cycle;
 
 		/* resync the riot timer */
 		previous_tia_cycle = global_tia_cycle + TIME_TO_CYCLES(0, timer_timeelapsed(HSYNC_timer));
@@ -577,7 +578,7 @@ void a2600_TIA_w(int offset, int data)
 
 	pc = cpu_get_pc();
 	{
-		INT32 riotdiff = (global_tia_cycle + TIME_TO_CYCLES(0, timer_timeelapsed(HSYNC_timer))) - previous_tia_cycle;
+		UINT32 riotdiff = (global_tia_cycle + TIME_TO_CYCLES(0, timer_timeelapsed(HSYNC_timer))) - previous_tia_cycle;
 
 		/* resync the riot timer */
 		previous_tia_cycle = global_tia_cycle + TIME_TO_CYCLES(0, timer_timeelapsed(HSYNC_timer));
@@ -1210,9 +1211,7 @@ static void a2600_scanline_cb(void)
 
 	int backcolor;
 
-	profiler_mark(PROFILER_VIDEO);
 
-/*if (osd_skip_this_frame()) goto bail;*/
 
 	/* plot the playfield and background for now               */
 	/* each register value is 4 color clocks                   */
@@ -1224,7 +1223,7 @@ static void a2600_scanline_cb(void)
 	if (((currentline + yys) <= 299) && (TIA_vblank == 0))
 	{
 		/* now we have color, plot for 4 color cycles */
-		for (regpos = 0; regpos < 160; regpos++)
+		for (regpos = 0; regpos < 160; regpos = regpos++)
 		{
 			int i = PF_Data[regpos] % Machine->drv->color_table_len;
 
@@ -1243,17 +1242,14 @@ static void a2600_scanline_cb(void)
 		currentline++;
 	}
 
-/*bail:*/
 	PF0_Rendered = 0;
 	PF1_Rendered = 0;
 	PF2_Rendered = 0;
-
-	profiler_mark(PROFILER_END);
 }
 
 static void a2600_main_cb(int param)
 {
-	INT32 riotdiff = (global_tia_cycle + 76) - previous_tia_cycle;
+	UINT32 riotdiff = (global_tia_cycle + 76) - previous_tia_cycle;
 
 	/* resync the riot timer */
 	previous_tia_cycle = global_tia_cycle + 76;

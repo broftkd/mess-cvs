@@ -354,7 +354,7 @@ static struct MSM5205interface msm5205_interface =
 	{ 60 }
 };
 
-static const struct MachineDriver machine_driver_toki =
+static struct MachineDriver machine_driver_toki =
 {
 	/* basic machine hardware */
 	{
@@ -404,7 +404,7 @@ static const struct MachineDriver machine_driver_toki =
 	}
 };
 
-static const struct MachineDriver machine_driver_tokib =
+static struct MachineDriver machine_driver_tokib =
 {
 	/* basic machine hardware */
 	{

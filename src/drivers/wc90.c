@@ -365,19 +365,19 @@ static struct YM2203interface ym2203_interface =
 	{ irqhandler }
 };
 
-static const struct MachineDriver machine_driver_wc90 =
+static struct MachineDriver machine_driver_wc90 =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			6000000,	/* 6.0 MHz ??? */
+			6000000,	/* 6.0 Mhz ??? */
 			wc90_readmem1, wc90_writemem1,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80,
-			6000000,	/* 6.0 MHz ??? */
+			6000000,	/* 6.0 Mhz ??? */
 			wc90_readmem2, wc90_writemem2,0,0,
 			interrupt,1
 		},

@@ -203,7 +203,7 @@ static READ_HANDLER( centiped_IN2_r )
 
 static WRITE_HANDLER( centiped_led_w )
 {
-	set_led_status(offset,~data & 0x80);
+	osd_led_w(offset,~data >> 7);
 }
 
 static READ_HANDLER( centipdb_rand_r )
@@ -507,13 +507,13 @@ static struct AY8910interface centipb2_ay8910_interface =
 
 #define DRIVER(GAMENAME, SOUND_TYPE, SOUND_INTERFACE)							\
 																				\
-static const struct MachineDriver machine_driver_##GAMENAME =							\
+static struct MachineDriver machine_driver_##GAMENAME =							\
 {																				\
 	/* basic machine hardware */												\
 	{																			\
 		{																		\
 			CPU_M6502,															\
-			12096000/8,	/* 1.512 MHz (slows down to 0.75MHz while accessing playfield RAM) */	\
+			12096000/8,	/* 1.512 Mhz (slows down to 0.75MHz while accessing playfield RAM) */	\
 			GAMENAME##_readmem,GAMENAME##_writemem,0,0,							\
 			centiped_interrupt,4												\
 		}																		\

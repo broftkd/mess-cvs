@@ -23,7 +23,9 @@ static void line(void)
 	if (!P_FLAG)
 	{
 		if (state.window_checking != 0 && state.window_checking != 3)
+		{
 			logerror("LINE XY  %08X - Window Checking Mode %d not supported\n", PC, state.window_checking);
+		}
 
 		P_FLAG = 1;
 		TEMP = (state.op & 0x80) ? 1 : 0;  /* boundary value depends on the algorithm */
@@ -38,7 +40,7 @@ static void line(void)
 		if (state.window_checking != 3 ||
 			(DADDR_X >= WSTART_X && DADDR_X <= WEND_X &&
 			 DADDR_Y >= WSTART_Y && DADDR_Y <= WEND_Y))
-			WPIXEL(DXYTOL(DADDR_XY),COLOR1);
+			WPIXEL(XYTOL(DADDR_XY),COLOR1);
 
 		if (SADDR >= TEMP)
 		{
@@ -72,17 +74,17 @@ cases:
 * directions (left->right/right->left, top->bottom/bottom->top)
 */
 
-static int apply_window(int srcbpp, UINT32 *srcaddr, XY *dst, int *dx, int *dy)
+static int apply_window(int srcbpp, int src_is_linear)
 {
 	/* apply the window */
 	if (state.window_checking == 0)
 		return 0;
 	else
 	{
-		int sx = dst->x;
-		int sy = dst->y;
-		int ex = sx + *dx - 1;
-		int ey = sy + *dy - 1;
+		int sx = DADDR_X;
+		int sy = DADDR_Y;
+		int ex = sx + DYDX_X - 1;
+		int ey = sy + DYDX_Y - 1;
 		int diff, cycles = 3;
 
 		if (state.window_checking == 1 || state.window_checking == 2)
@@ -95,8 +97,10 @@ static int apply_window(int srcbpp, UINT32 *srcaddr, XY *dst, int *dx, int *dy)
 		diff = WSTART_X - sx;
 		if (diff > 0)
 		{
-			if (srcaddr)
-				*srcaddr += diff * srcbpp;
+			if (src_is_linear)
+				SADDR += diff * srcbpp;
+			else
+				SADDR_X += diff;
 			sx += diff;
 			V_FLAG = 1;
 		}
@@ -111,8 +115,10 @@ static int apply_window(int srcbpp, UINT32 *srcaddr, XY *dst, int *dx, int *dy)
 		diff = WSTART_Y - sy;
 		if (diff > 0)
 		{
-			if (srcaddr)
-				*srcaddr += diff * SPTCH;
+			if (src_is_linear)
+				SADDR += diff * SPTCH;
+			else
+				SADDR_Y += diff;
 			sy += diff;
 			V_FLAG = 1;
 		}
@@ -124,21 +130,21 @@ static int apply_window(int srcbpp, UINT32 *srcaddr, XY *dst, int *dx, int *dy)
 		}
 
 		/* compute cycles */
-		if (*dx != ex - sx + 1 || *dy != ey - sy + 1)
+		if (DYDX_X != ex - sx + 1 || DYDX_Y != ey - sy + 1)
 		{
-			if (dst->x != sx || dst->y != sy)
+			if (DADDR_X != sx || DADDR_Y != sy)
 				cycles += 11;
 			else
 				cycles += 3;
 		}
-		else if (dst->x != sx || dst->y != sy)
+		else if (DADDR_X != sx || DADDR_Y != sy)
 			cycles += 7;
 
 		/* update the values */
-		dst->x = sx;
-		dst->y = sy;
-		*dx = ex - sx + 1;
-		*dy = ey - sy + 1;
+		DADDR_X = sx;
+		DADDR_Y = sy;
+		DYDX_X = ex - sx + 1;
+		DYDX_Y = ey - sy + 1;
 		return cycles;
 	}
 }
@@ -916,7 +922,7 @@ static void pixblt_b_xy(void)
 	int trans = (IOREG(REG_CONTROL) & 0x20) >> 5;
 	int rop = (IOREG(REG_CONTROL) >> 10) & 0x1f;
 	int ix = trans | (rop << 1) | (psize << 6);
-	if (!P_FLAG) LOGGFX(("%08X:PIXBLT B,XY (%d,%d) (%dx%d)\n", PC, DADDR_X, DADDR_Y, DYDX_X, DYDX_Y));
+	if (!P_FLAG) LOGGFX(("%08X:PIXBLT B,XY (%dx%d)\n", PC, DYDX_X, DYDX_Y));
 	pixel_op = pixel_op_table[rop];
 	pixel_op_timing = pixel_op_timing_table[rop];
 	(*pixblt_b_op_table[ix])(0);
@@ -945,7 +951,7 @@ static void pixblt_l_xy(void)
 	int rop = (IOREG(REG_CONTROL) >> 10) & 0x1f;
 	int pbh = (IOREG(REG_CONTROL) >> 8) & 1;
 	int ix = trans | (rop << 1) | (psize << 6);
-	if (!P_FLAG) LOGGFX(("%08X:PIXBLT L,XY (%d,%d) (%dx%d)\n", PC, DADDR_X, DADDR_Y, DYDX_X, DYDX_Y));
+	if (!P_FLAG) LOGGFX(("%08X:PIXBLT L,XY (%dx%d)\n", PC, DYDX_X, DYDX_Y));
 	pixel_op = pixel_op_table[rop];
 	pixel_op_timing = pixel_op_timing_table[rop];
 	if (!pbh)
@@ -1004,7 +1010,7 @@ static void fill_xy(void)
 	int trans = (IOREG(REG_CONTROL) & 0x20) >> 5;
 	int rop = (IOREG(REG_CONTROL) >> 10) & 0x1f;
 	int ix = trans | (rop << 1) | (psize << 6);
-	if (!P_FLAG) LOGGFX(("%08X:FILL XY (%d,%d) (%dx%d)\n", PC, DADDR_X, DADDR_Y, DYDX_X, DYDX_Y));
+	if (!P_FLAG) LOGGFX(("%08X:FILL XY (%dx%d)\n", PC, DYDX_X, DYDX_Y));
 	pixel_op = pixel_op_table[rop];
 	pixel_op_timing = pixel_op_timing_table[rop];
 	(*fill_op_table[ix])(0);
@@ -1046,24 +1052,19 @@ static void FUNCTION_NAME(pixblt)(int src_is_linear, int dst_is_linear)
 			word_read = cpu_readmem29_word;
 		}
 
-		/* compute the starting addresses */
-		saddr = src_is_linear ? SADDR : SXYTOL(SADDR_XY);
-		saddr &= ~(BITS_PER_PIXEL - 1);
+		/* apply the window for non-linear destinations */
+		BREG(BINDEX(13)) = 7 + (src_is_linear ? 0 : 2);
+		if (!dst_is_linear)
+			BREG(BINDEX(13)) += 2 + (!src_is_linear) + apply_window(BITS_PER_PIXEL, src_is_linear);
 
 		/* compute the bounds of the operation */
 		dx = (INT16)DYDX_X;
 		dy = (INT16)DYDX_Y;
 
-		/* apply the window for non-linear destinations */
-		state.gfxcycles = 7 + (src_is_linear ? 0 : 2);
-		if (!dst_is_linear)
-		{
-			XY temp = DADDR_XY;
-			state.gfxcycles += 2 + (!src_is_linear) + apply_window(BITS_PER_PIXEL, &saddr, &temp, &dx, &dy);
-			daddr = DXYTOL(temp);
-		}
-		else
-			daddr = DADDR;
+		/* compute the starting addresses */
+		saddr = src_is_linear ? SADDR : XYTOL(SADDR_XY);
+		daddr = dst_is_linear ? DADDR : XYTOL(DADDR_XY);
+		saddr &= ~(BITS_PER_PIXEL - 1);
 		daddr &= ~(BITS_PER_PIXEL - 1);
 
 		/* bail if we're clipped */
@@ -1093,7 +1094,7 @@ static void FUNCTION_NAME(pixblt)(int src_is_linear, int dst_is_linear)
 			full_words /= PIXELS_PER_WORD;
 
 		/* compute cycles */
-		state.gfxcycles += compute_pixblt_cycles(left_partials, right_partials, full_words, dy, PIXEL_OP_TIMING);
+		BREG(BINDEX(13)) += compute_pixblt_cycles(left_partials, right_partials, full_words, dy, PIXEL_OP_TIMING);
 		P_FLAG = 1;
 
 		/* loop over rows */
@@ -1236,15 +1237,15 @@ static void FUNCTION_NAME(pixblt)(int src_is_linear, int dst_is_linear)
 	}
 
 	/* eat cycles */
-	if (state.gfxcycles > tms34010_ICount)
+	if (BREG(BINDEX(13)) > tms34010_ICount)
 	{
-		state.gfxcycles -= tms34010_ICount;
+		BREG(BINDEX(13)) -= tms34010_ICount;
 		tms34010_ICount = 0;
 		PC -= 0x10;
 	}
 	else
 	{
-		tms34010_ICount -= state.gfxcycles;
+		tms34010_ICount -= BREG(BINDEX(13));
 		P_FLAG = 0;
 		if (src_is_linear)
 			SADDR += DYDX_Y * SPTCH + DYDX_X * BITS_PER_PIXEL;
@@ -1279,24 +1280,19 @@ static void FUNCTION_NAME(pixblt_r)(int src_is_linear, int dst_is_linear)
 			word_read = cpu_readmem29_word;
 		}
 
-		/* compute the starting addresses */
-		saddr = src_is_linear ? SADDR : SXYTOL(SADDR_XY);
-		saddr &= ~(BITS_PER_PIXEL - 1);
+		/* apply the window for non-linear destinations */
+		BREG(BINDEX(13)) = 7 + (src_is_linear ? 0 : 2);
+		if (!dst_is_linear)
+			BREG(BINDEX(13)) += 2 + (!src_is_linear) + apply_window(BITS_PER_PIXEL, src_is_linear);
 
 		/* compute the bounds of the operation */
 		dx = (INT16)DYDX_X;
 		dy = (INT16)DYDX_Y;
 
-		/* apply the window for non-linear destinations */
-		state.gfxcycles = 7 + (src_is_linear ? 0 : 2);
-		if (!dst_is_linear)
-		{
-			XY temp = DADDR_XY;
-			state.gfxcycles += 2 + (!src_is_linear) + apply_window(BITS_PER_PIXEL, &saddr, &temp, &dx, &dy);
-			daddr = DXYTOL(temp);
-		}
-		else
-			daddr = DADDR;
+		/* compute the starting addresses */
+		saddr = src_is_linear ? SADDR : XYTOL(SADDR_XY);
+		daddr = dst_is_linear ? DADDR : XYTOL(DADDR_XY);
+		saddr &= ~(BITS_PER_PIXEL - 1);
 		daddr &= ~(BITS_PER_PIXEL - 1);
 
 		/* bail if we're clipped */
@@ -1330,7 +1326,7 @@ static void FUNCTION_NAME(pixblt_r)(int src_is_linear, int dst_is_linear)
 			full_words /= PIXELS_PER_WORD;
 
 		/* compute cycles */
-		state.gfxcycles += compute_pixblt_cycles(left_partials, right_partials, full_words, dy, PIXEL_OP_TIMING);
+		BREG(BINDEX(13)) += compute_pixblt_cycles(left_partials, right_partials, full_words, dy, PIXEL_OP_TIMING);
 		P_FLAG = 1;
 
 		/* loop over rows */
@@ -1474,15 +1470,15 @@ static void FUNCTION_NAME(pixblt_r)(int src_is_linear, int dst_is_linear)
 	}
 
 	/* eat cycles */
-	if (state.gfxcycles > tms34010_ICount)
+	if (BREG(BINDEX(13)) > tms34010_ICount)
 	{
-		state.gfxcycles -= tms34010_ICount;
+		BREG(BINDEX(13)) -= tms34010_ICount;
 		tms34010_ICount = 0;
 		PC -= 0x10;
 	}
 	else
 	{
-		tms34010_ICount -= state.gfxcycles;
+		tms34010_ICount -= BREG(BINDEX(13));
 		P_FLAG = 0;
 		if (src_is_linear)
 			SADDR += DYDX_Y * SPTCH + DYDX_X * BITS_PER_PIXEL;
@@ -1521,23 +1517,18 @@ static void FUNCTION_NAME(pixblt_b)(int dst_is_linear)
 			word_read = cpu_readmem29_word;
 		}
 
-		/* compute the starting addresses */
-		saddr = SADDR;
+		/* apply the window for non-linear destinations */
+		BREG(BINDEX(13)) = 4;
+		if (!dst_is_linear)
+			BREG(BINDEX(13)) += 2 + apply_window(1, 1);
 
 		/* compute the bounds of the operation */
 		dx = (INT16)DYDX_X;
 		dy = (INT16)DYDX_Y;
 
-		/* apply the window for non-linear destinations */
-		state.gfxcycles = 4;
-		if (!dst_is_linear)
-		{
-			XY temp = DADDR_XY;
-			state.gfxcycles += 2 + apply_window(1, &saddr, &temp, &dx, &dy);
-			daddr = DXYTOL(temp);
-		}
-		else
-			daddr = DADDR;
+		/* compute the starting addresses */
+		saddr = SADDR;
+		daddr = dst_is_linear ? DADDR : XYTOL(DADDR_XY);
 		daddr &= ~(BITS_PER_PIXEL - 1);
 
 		/* bail if we're clipped */
@@ -1554,7 +1545,7 @@ static void FUNCTION_NAME(pixblt_b)(int dst_is_linear)
 			full_words /= PIXELS_PER_WORD;
 
 		/* compute cycles */
-		state.gfxcycles += compute_pixblt_b_cycles(left_partials, right_partials, full_words, dy, PIXEL_OP_TIMING, BITS_PER_PIXEL);
+		BREG(BINDEX(13)) += compute_pixblt_b_cycles(left_partials, right_partials, full_words, dy, PIXEL_OP_TIMING, BITS_PER_PIXEL);
 		P_FLAG = 1;
 
 		/* loop over rows */
@@ -1680,15 +1671,15 @@ static void FUNCTION_NAME(pixblt_b)(int dst_is_linear)
 	}
 
 	/* eat cycles */
-	if (state.gfxcycles > tms34010_ICount)
+	if (BREG(BINDEX(13)) > tms34010_ICount)
 	{
-		state.gfxcycles -= tms34010_ICount;
+		BREG(BINDEX(13)) -= tms34010_ICount;
 		tms34010_ICount = 0;
 		PC -= 0x10;
 	}
 	else
 	{
-		tms34010_ICount -= state.gfxcycles;
+		tms34010_ICount -= BREG(BINDEX(13));
 		P_FLAG = 0;
 		SADDR += DYDX_Y * SPTCH + DYDX_X;
 		if (dst_is_linear)
@@ -1720,20 +1711,17 @@ static void FUNCTION_NAME(fill)(int dst_is_linear)
 			word_read = cpu_readmem29_word;
 		}
 
+		/* apply the window for non-linear destinations */
+		BREG(BINDEX(13)) = 4;
+		if (!dst_is_linear)
+			BREG(BINDEX(13)) += 2 + apply_window(0, 1);
+
 		/* compute the bounds of the operation */
 		dx = (INT16)DYDX_X;
 		dy = (INT16)DYDX_Y;
 
-		/* apply the window for non-linear destinations */
-		state.gfxcycles = 4;
-		if (!dst_is_linear)
-		{
-			XY temp = DADDR_XY;
-			state.gfxcycles += 2 + apply_window(0, NULL, &temp, &dx, &dy);
-			daddr = DXYTOL(temp);
-		}
-		else
-			daddr = DADDR;
+		/* compute the starting addresses */
+		daddr = dst_is_linear ? DADDR : XYTOL(DADDR_XY);
 		daddr &= ~(BITS_PER_PIXEL - 1);
 
 		/* bail if we're clipped */
@@ -1750,7 +1738,7 @@ static void FUNCTION_NAME(fill)(int dst_is_linear)
 			full_words /= PIXELS_PER_WORD;
 
 		/* compute cycles */
-		state.gfxcycles += compute_fill_cycles(left_partials, right_partials, full_words, dy, PIXEL_OP_TIMING);
+		BREG(BINDEX(13)) += compute_fill_cycles(left_partials, right_partials, full_words, dy, PIXEL_OP_TIMING);
 		P_FLAG = 1;
 
 		/* loop over rows */
@@ -1843,15 +1831,15 @@ static void FUNCTION_NAME(fill)(int dst_is_linear)
 	}
 
 	/* eat cycles */
-	if (state.gfxcycles > tms34010_ICount)
+	if (BREG(BINDEX(13)) > tms34010_ICount)
 	{
-		state.gfxcycles -= tms34010_ICount;
+		BREG(BINDEX(13)) -= tms34010_ICount;
 		tms34010_ICount = 0;
 		PC -= 0x10;
 	}
 	else
 	{
-		tms34010_ICount -= state.gfxcycles;
+		tms34010_ICount -= BREG(BINDEX(13));
 		P_FLAG = 0;
 		if (dst_is_linear)
 			DADDR += DYDX_Y * DPTCH + DYDX_X * BITS_PER_PIXEL;

@@ -220,19 +220,19 @@ static struct AY8910interface ay8910_interface =
 	{ 0, 0 }
 };
 
-static const struct MachineDriver machine_driver_formatz =
+static struct MachineDriver machine_driver_formatz =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6809,
-			1250000,        /* 1.25 MHz ? */
+			1250000,        /* 1.25 Mhz ? */
 			readmem,writemem,0,0,
 			interrupt,1
 		},
 		{
 			CPU_M6809 | CPU_AUDIO_CPU,
-			1250000,        /* 1.25 MHz ? */
+			1250000,        /* 1.25 Mhz ? */
 			readmem_sound,writemem_sound,0,0,
 			interrupt,1
 		}

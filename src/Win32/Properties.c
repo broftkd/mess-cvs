@@ -196,16 +196,13 @@ static DWORD dwHelpIDs [] = {
     IDC_HISTORY,            HIDC_HISTORY,
 /*    IDC_FILTER_AVAILABLE,   HIDC_FILTER_AVAILABLE,*/
     IDC_FILTER_CLONES,      HIDC_FILTER_CLONES,
-#ifndef NEOFREE
     IDC_FILTER_NEOGEO,      HIDC_FILTER_NEOGEO,
-#endif
     IDC_FILTER_NONWORKING,  HIDC_FILTER_NONWORKING,
     IDC_FILTER_ORIGINALS,   HIDC_FILTER_ORIGINALS,
     IDC_FILTER_RASTER,      HIDC_FILTER_RASTER,
     IDC_FILTER_UNAVAILABLE, HIDC_FILTER_UNAVAILABLE,
     IDC_FILTER_VECTOR,      HIDC_FILTER_VECTOR,
     IDC_FILTER_WORKING,     HIDC_FILTER_WORKING,
-    IDC_FILTER_EDIT,        HIDC_FILTER_EDIT,
     IDC_RESET_DEFAULT,      HIDC_RESET_DEFAULT,
     IDC_RESET_FILTERS,      HIDC_RESET_FILTERS,
     IDC_RESET_GAMES,        HIDC_RESET_GAMES,
@@ -639,7 +636,7 @@ char *GameInfoStatus(UINT nIndex)
         return "ROMs missing";
 
     case 1:
-        if (drivers[nIndex]->flags & GAME_BROKEN)
+        if (drivers[nIndex]->flags & GAME_NOT_WORKING)
             return "Not working";
         if (drivers[nIndex]->flags & GAME_WRONG_COLORS)
             return "Colors are wrong";
@@ -1511,16 +1508,12 @@ static void InitializeMisc(HWND hDlg)
                         (LPARAM)MAKELONG(9999, 0));
     SendDlgItemMessage(hDlg, IDC_SKIP_LINES_SPIN, UDM_SETPOS, 0,
                         (LPARAM)MAKELONG(0, 0));
-    SendDlgItemMessage(hDlg, IDC_SKIP_LINES_SPIN, UDM_SETBUDDY,
-                        (WPARAM)GetDlgItem(hDlg, IDC_SKIP_LINES), 0);
 
     Edit_LimitText(GetDlgItem(hDlg, IDC_SKIP_COLUMNS), 4);
     SendDlgItemMessage(hDlg, IDC_SKIP_COLUMNS_SPIN, UDM_SETRANGE, 0,
                         (LPARAM)MAKELONG(9999, 0));
     SendDlgItemMessage(hDlg, IDC_SKIP_COLUMNS_SPIN, UDM_SETPOS, 0,
                         (LPARAM)MAKELONG(0, 0));
-    SendDlgItemMessage(hDlg, IDC_SKIP_COLUMNS_SPIN, UDM_SETBUDDY,
-                        (WPARAM)GetDlgItem(hDlg, IDC_SKIP_COLUMNS), 0);
 
     SendMessage(GetDlgItem(hDlg, IDC_GAMMA), TBM_SETRANGE,
                 (WPARAM)FALSE,

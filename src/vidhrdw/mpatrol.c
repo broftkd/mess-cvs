@@ -16,6 +16,7 @@
 static unsigned char scrollreg[16];
 static unsigned char bg1xpos,bg1ypos,bg2xpos,bg2ypos,bgcontrol;
 static struct osd_bitmap *bgbitmap[3];
+static int flipscreen;
 
 
 
@@ -296,7 +297,12 @@ WRITE_HANDLER( mpatrol_flipscreen_w )
 {
 	/* screen flip is handled both by software and hardware */
 	data ^= ~readinputport(4) & 1;
-	flip_screen_w(0,data & 1);
+
+	if (flipscreen != (data & 1))
+	{
+		flipscreen = data & 1;
+		memset(dirtybuffer,1,videoram_size);
+	}
 
 	coin_counter_w(0,data & 0x02);
 	coin_counter_w(1,data & 0x20);
@@ -329,7 +335,7 @@ static void get_clip(struct rectangle *clip, int min_y, int max_y)
 	clip->min_x = Machine->visible_area.min_x;
 	clip->max_x = Machine->visible_area.max_x;
 
-	if (flip_screen)
+	if (flipscreen)
 	{
 		clip->min_y = Machine->drv->screen_height - 1 - max_y;
 		clip->max_y = Machine->drv->screen_height - 1 - min_y;
@@ -350,13 +356,13 @@ static void draw_background(struct osd_bitmap *bitmap,
 	get_clip(&clip1, ypos,            ypos + BGHEIGHT - 1);
 	get_clip(&clip2, ypos + BGHEIGHT, ypos_end);
 
-	if (flip_screen)
+	if (flipscreen)
 	{
 		xpos = 256 - xpos;
 		ypos = Machine->drv->screen_height - BGHEIGHT - ypos;
 	}
-	copybitmap(bitmap,bgbitmap[image],flip_screen,flip_screen,xpos,      ypos,&clip1,transparency,128);
-	copybitmap(bitmap,bgbitmap[image],flip_screen,flip_screen,xpos - 256,ypos,&clip1,transparency,128);
+	copybitmap(bitmap,bgbitmap[image],flipscreen,flipscreen,xpos,      ypos,&clip1,transparency,128);
+	copybitmap(bitmap,bgbitmap[image],flipscreen,flipscreen,xpos - 256,ypos,&clip1,transparency,128);
 	fillbitmap(bitmap,Machine->gfx[image*2+2]->colortable[3],&clip2);
 }
 
@@ -370,10 +376,6 @@ static void draw_background(struct osd_bitmap *bitmap,
 void mpatrol_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 {
 	int offs,i;
-
-
-	if (full_refresh)
-		memset(dirtybuffer,1,videoram_size);
 
 
 	/* for every character in the Video RAM, check if it has been modified */
@@ -393,7 +395,7 @@ void mpatrol_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 			color = colorram[offs] & 0x1f;
 			if (sy >= 7) color += 32;	/* lines 7-31 are transparent */
 
-			if (flip_screen)
+			if (flipscreen)
 			{
 				sx = 31 - sx;
 				sy = 31 - sy;
@@ -402,7 +404,7 @@ void mpatrol_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 			drawgfx(tmpbitmap,Machine->gfx[0],
 					videoram[offs] + 2 * (colorram[offs] & 0x80),
 					color,
-					flip_screen,flip_screen,
+					flipscreen,flipscreen,
 					8*sx,8*sy,
 					0,TRANSPARENCY_NONE,0);
 		}
@@ -433,7 +435,7 @@ void mpatrol_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 		clip.min_x = Machine->visible_area.min_x;
 		clip.max_x = Machine->visible_area.max_x;
 
-		if (flip_screen)
+		if (flipscreen)
 		{
 			clip.min_y = 25 * 8;
 			clip.max_y = 32 * 8 - 1;
@@ -474,7 +476,7 @@ void mpatrol_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 		sy = 241 - spriteram_2[offs];
 		flipx = spriteram_2[offs + 1] & 0x40;
 		flipy = spriteram_2[offs + 1] & 0x80;
-		if (flip_screen)
+		if (flipscreen)
 		{
 			flipx = !flipx;
 			flipy = !flipy;
@@ -497,7 +499,7 @@ void mpatrol_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 		sy = 241 - spriteram[offs];
 		flipx = spriteram[offs + 1] & 0x40;
 		flipy = spriteram[offs + 1] & 0x80;
-		if (flip_screen)
+		if (flipscreen)
 		{
 			flipx = !flipx;
 			flipy = !flipy;

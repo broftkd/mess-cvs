@@ -319,19 +319,19 @@ static int exprraid_interrupt(void)
 	return ignore_interrupt();
 }
 
-static const struct MachineDriver machine_driver_exprraid =
+static struct MachineDriver machine_driver_exprraid =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			4000000,        /* 4 MHz ??? */
+			4000000,        /* 4 Mhz ??? */
 			readmem,writemem,0,0,
 			exprraid_interrupt, 1
 		},
 		{
 			CPU_M6809,
-			2000000,        /* 2 MHz ??? */
+			2000000,        /* 2 Mhz ??? */
 			sub_readmem,sub_writemem,0,0,
 			ignore_interrupt,0	/* NMIs are caused by the main CPU */
 								/* IRQs are caused by the YM3526 */
@@ -347,7 +347,7 @@ static const struct MachineDriver machine_driver_exprraid =
 	256, 256,
 	exprraid_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER | VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_vh_start,
 	generic_vh_stop,

@@ -647,25 +647,25 @@ struct Samplesinterface samples_interface =
 
 
 
-static const struct MachineDriver machine_driver_xevious =
+static struct MachineDriver machine_driver_xevious =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3125000,	/* 3.125 MHz (?) */
+			3125000,	/* 3.125 Mhz (?) */
 			readmem_cpu1,writemem_cpu1,0,0,
 			xevious_interrupt_1,1
 		},
 		{
 			CPU_Z80,
-			3125000,	/* 3.125 MHz */
+			3125000,	/* 3.125 Mhz */
 			readmem_cpu2,writemem_cpu2,0,0,
 			xevious_interrupt_2,1
 		},
 		{
 			CPU_Z80,
-			3125000,	/* 3.125 MHz */
+			3125000,	/* 3.125 Mhz */
 			readmem_cpu3,writemem_cpu3,0,0,
 			xevious_interrupt_3,2
 		}

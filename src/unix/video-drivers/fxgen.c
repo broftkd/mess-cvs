@@ -42,10 +42,11 @@ static GrHwConfiguration hwconfig;
 static char version[80];
 static GrTexInfo texinfo;
 static int palette_changed=0;
+static int frame=0;
 static int bilinear=1; /* Do binlinear filtering? */
+static int dopersist=0;
 static int screendirty=1;  /* Has the bitmap been modified since the last frame? */
 static int use_aspect_ratio=1;
-static const int texsize=256;
 
 /* The squares that are tiled to make up the game screen polygon */
 
@@ -60,6 +61,7 @@ struct TexSquare
 };
 
 static struct TexSquare *texgrid=NULL;
+static int texsize=256;
 static int texnumx;
 static int texnumy;
 static float texpercx;
@@ -411,7 +413,6 @@ void CloseVScreen(void)
 	}
 	
 	free(texgrid);
-	texgrid = NULL;
   }
 
   grGlideShutdown();
@@ -673,9 +674,13 @@ void sysdep_update_display(struct osd_bitmap *bitmap)
 						GR_TEXTUREFILTER_POINT_SAMPLED);
 
 	}
+	if(keyboard_pressed_memory(KEYCODE_T))
+	  dopersist=1-dopersist;
   }
 
   UpdateFXDisplay(bitmap);
+
+  frame++;
 }
 
 #endif /* if defined xfx || defined svgafx */

@@ -114,7 +114,6 @@ void init_desertgu(void);
 void init_spcenctr(void);
 void init_helifire(void);
 void init_phantom2(void);
-void init_boothill(void);
 
 WRITE_HANDLER( invaders_videoram_w );
 WRITE_HANDLER( schaser_colorram_w );
@@ -252,13 +251,13 @@ INPUT_PORTS_START( invaders )
 INPUT_PORTS_END
 
 
-static const struct MachineDriver machine_driver_invaders =
+static struct MachineDriver machine_driver_invaders =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			invaders_readmem,invaders_writemem,invaders_readport,writeport_2_4,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -402,13 +401,13 @@ INPUT_PORTS_END
 
 /* same as regular invaders, but with a color board added */
 
-static const struct MachineDriver machine_driver_invadpt2 =
+static struct MachineDriver machine_driver_invadpt2 =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			invaders_readmem,invaders_writemem,invaders_readport,writeport_2_4,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -651,13 +650,13 @@ INPUT_PORTS_START( invad2ct )
 INPUT_PORTS_END
 
 
-static const struct MachineDriver machine_driver_invad2ct =
+static struct MachineDriver machine_driver_invad2ct =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			1996800,        /* 19.968MHz / 10 */
+			1996800,        /* 19.968Mhz / 10 */
 			invaders_readmem,invaders_writemem,invaders_readport,writeport_2_4,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -1031,13 +1030,13 @@ INPUT_PORTS_START( rollingc )
 INPUT_PORTS_END
 
 
-static const struct MachineDriver machine_driver_rollingc =
+static struct MachineDriver machine_driver_rollingc =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			rollingc_readmem,rollingc_writemem,invaders_readport,writeport_2_4,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -1245,7 +1244,7 @@ INPUT_PORTS_START( bandido )
 INPUT_PORTS_END
 
 
-static const struct MachineDriver machine_driver_sheriff =
+static struct MachineDriver machine_driver_sheriff =
 {
 	/* basic machine hardware */
 	{
@@ -1348,13 +1347,13 @@ INPUT_PORTS_START( spcenctr )
 	PORT_DIPSETTING(    0xc0, "90" )
 INPUT_PORTS_END
 
-static const struct MachineDriver machine_driver_spcenctr =
+static struct MachineDriver machine_driver_spcenctr =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			invaders_readmem,invaders_writemem,spcenctr_readport,spcenctr_writeport,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -1458,13 +1457,13 @@ INPUT_PORTS_START( gunfight )
 	PORT_ANALOGX( 0xff, 0x00, IPT_PADDLE, 50, 10, 1, 255, KEYCODE_Z, KEYCODE_A, IP_JOY_NONE, IP_JOY_NONE )
 INPUT_PORTS_END
 
-static const struct MachineDriver machine_driver_gunfight =
+static struct MachineDriver machine_driver_gunfight =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			invaders_readmem,invaders_writemem,gunfight_readport,writeport_2_4,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -1534,13 +1533,13 @@ INPUT_PORTS_START( m4 )
 	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_UNKNOWN )
 INPUT_PORTS_END
 
-static const struct MachineDriver machine_driver_m4 =
+static struct MachineDriver machine_driver_m4 =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			invaders_readmem,invaders_writemem,gunfight_readport,writeport_1_2,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -1612,13 +1611,13 @@ INPUT_PORTS_START( boothill )
 INPUT_PORTS_END
 
 
-static const struct MachineDriver machine_driver_boothill =
+static struct MachineDriver machine_driver_boothill =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			invaders_readmem,invaders_writemem,gunfight_readport,writeport_1_2,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -1726,13 +1725,13 @@ INPUT_PORTS_START( schaser )
 INPUT_PORTS_END
 
 
-static const struct MachineDriver machine_driver_schaser =
+static struct MachineDriver machine_driver_schaser =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			1996800,        /* 19.968MHz / 10 */
+			1996800,        /* 19.968Mhz / 10 */
 			schaser_readmem,schaser_writemem,invaders_readport,writeport_2_4,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -1869,13 +1868,13 @@ INPUT_PORTS_START( clowns )
 	PORT_SERVICE( 0x80, IP_ACTIVE_HIGH )
 INPUT_PORTS_END
 
-static const struct MachineDriver machine_driver_clowns =
+static struct MachineDriver machine_driver_clowns =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			invaders_readmem,invaders_writemem,invaders_readport,writeport_1_2,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -1989,13 +1988,13 @@ INPUT_PORTS_START( 280zzzap )
 	PORT_DIPSETTING(    0xc0, "Spanish" )
 INPUT_PORTS_END
 
-static const struct MachineDriver machine_driver_280zzzap =
+static struct MachineDriver machine_driver_280zzzap =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			invaders_readmem,invaders_writemem,invaders_readport,writeport_4_3,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -2071,13 +2070,13 @@ INPUT_PORTS_START( lupin3 )
 INPUT_PORTS_END
 
 
-static const struct MachineDriver machine_driver_lupin3 =
+static struct MachineDriver machine_driver_lupin3 =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			schaser_readmem,schaser_writemem,invaders_readport,writeport_2_4,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -2177,7 +2176,7 @@ INPUT_PORTS_START( helifire )
 INPUT_PORTS_END
 
 
-static const struct MachineDriver machine_driver_helifire =
+static struct MachineDriver machine_driver_helifire =
 {
 	/* basic machine hardware */
 	{
@@ -2301,13 +2300,13 @@ INPUT_PORTS_START( polaris )
 INPUT_PORTS_END
 
 
-static const struct MachineDriver machine_driver_polaris =
+static struct MachineDriver machine_driver_polaris =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			1996800,        /* 19.968MHz / 10 */
+			1996800,        /* 19.968Mhz / 10 */
 			schaser_readmem,schaser_writemem,invaders_readport,writeport_0_3,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -2515,13 +2514,13 @@ INPUT_PORTS_START( bowler )
 	PORT_ANALOG( 0xff, 0, IPT_TRACKBALL_X, 10, 10, 0, 0)
 INPUT_PORTS_END
 
-static const struct MachineDriver machine_driver_bowler =
+static struct MachineDriver machine_driver_bowler =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz */
+			2000000,        /* 2 Mhz */
 			invaders_readmem,invaders_writemem,bowler_readport,writeport_1_2,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -2602,13 +2601,13 @@ INPUT_PORTS_START( shuffle )
 	PORT_ANALOG( 0xff, 0, IPT_TRACKBALL_X | IPF_REVERSE, 10, 10, 0, 0)
 INPUT_PORTS_END
 
-static const struct MachineDriver machine_driver_shuffle =
+static struct MachineDriver machine_driver_shuffle =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz */
+			2000000,        /* 2 Mhz */
 			invaders_readmem,invaders_writemem,shuffle_readport,writeport_1_2,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -2679,13 +2678,13 @@ INPUT_PORTS_START( seawolf )
 	PORT_DIPSETTING(    0xe0, "Test Mode" )
 INPUT_PORTS_END
 
-static const struct MachineDriver machine_driver_seawolf =
+static struct MachineDriver machine_driver_seawolf =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			invaders_readmem,invaders_writemem,seawolf_readport,writeport_4_3,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -2735,7 +2734,7 @@ INPUT_PORTS_START( blueshrk )
 	PORT_SERVICE( 0x80, IP_ACTIVE_LOW )
 INPUT_PORTS_END
 
-static const struct MachineDriver machine_driver_blueshrk =
+static struct MachineDriver machine_driver_blueshrk =
 {
 	/* basic machine hardware */
 	{
@@ -2801,7 +2800,7 @@ INPUT_PORTS_START( desertgu )
 INPUT_PORTS_END
 
 
-static const struct MachineDriver machine_driver_desertgu =
+static struct MachineDriver machine_driver_desertgu =
 {
 	/* basic machine hardware */
 	{
@@ -2987,13 +2986,13 @@ INPUT_PORTS_START( tornbase )
 	PORT_SERVICE( 0x80, IP_ACTIVE_HIGH )
 INPUT_PORTS_END
 
-static const struct MachineDriver machine_driver_tornbase =
+static struct MachineDriver machine_driver_tornbase =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			invaders_readmem,invaders_writemem,invaders_readport,writeport_2_4,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -3093,13 +3092,13 @@ INPUT_PORTS_START( checkmat )
 	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_COIN1 )
 INPUT_PORTS_END
 
-static const struct MachineDriver machine_driver_checkmat =
+static struct MachineDriver machine_driver_checkmat =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			invaders_readmem,invaders_writemem,checkmat_readport,checkmat_writeport,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -3379,13 +3378,13 @@ INPUT_PORTS_START( ballbomb )
 INPUT_PORTS_END
 
 
-static const struct MachineDriver machine_driver_ballbomb =
+static struct MachineDriver machine_driver_ballbomb =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			invaders_readmem,invaders_writemem,invaders_readport,writeport_2_4,
 			invaders_interrupt,2    /* two interrupts per frame */
 		}
@@ -4206,7 +4205,7 @@ ROM_END
 /* 605 */ GAMEX(1976, tornbase, 0,        tornbase, tornbase, 8080bw,	ROT0,   	"Midway", "Tornado Baseball", GAME_NO_SOUND )
 /* 610 */ GAMEX(1976, 280zzzap, 0,        280zzzap, 280zzzap, 8080bw,	ROT0,   	"Midway", "Datsun 280 Zzzap", GAME_NO_SOUND )
 /* 611 */ GAMEX(1976, maze,     0,        tornbase, maze,     8080bw,	ROT0,   	"Midway", "Amazing Maze", GAME_NO_SOUND )
-/* 612 */ GAME( 1977, boothill, 0,        boothill, boothill, boothill, ROT0,   	"Midway", "Boot Hill" )
+/* 612 */ GAME( 1977, boothill, 0,        boothill, boothill, 8080bw,   ROT0,   	"Midway", "Boot Hill" )
 /* 615 */ GAMEX(1977, checkmat, 0,        checkmat, checkmat, 8080bw,	ROT0,   	"Midway", "Checkmate", GAME_NO_SOUND )
 /* 618 */ GAMEX(1977, desertgu, 0,        desertgu, desertgu, desertgu,	ROT0,   	"Midway", "Desert Gun", GAME_NO_SOUND )
 /* 619 */ GAMEX(1977, dplay,    einnings, m4,       einnings, 8080bw,	ROT0,   	"Midway", "Double Play", GAME_NO_SOUND )

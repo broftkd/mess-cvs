@@ -955,7 +955,7 @@ static struct OKIM6295interface okim6295_interface =
 
 /******************************************************************************/
 
-static const struct MachineDriver machine_driver_hbarrel =
+static struct MachineDriver machine_driver_hbarrel =
 {
 	/* basic machine hardware */
 	{
@@ -1007,7 +1007,7 @@ static const struct MachineDriver machine_driver_hbarrel =
 	}
 };
 
-static const struct MachineDriver machine_driver_baddudes =
+static struct MachineDriver machine_driver_baddudes =
 {
 	/* basic machine hardware */
 	{
@@ -1059,7 +1059,7 @@ static const struct MachineDriver machine_driver_baddudes =
 	}
 };
 
-static const struct MachineDriver machine_driver_birdtry =
+static struct MachineDriver machine_driver_birdtry =
 {
 	/* basic machine hardware */
 	{
@@ -1111,7 +1111,7 @@ static const struct MachineDriver machine_driver_birdtry =
 	}
 };
 
-static const struct MachineDriver machine_driver_robocop =
+static struct MachineDriver machine_driver_robocop =
 {
 	/* basic machine hardware */
 	{
@@ -1169,7 +1169,7 @@ static const struct MachineDriver machine_driver_robocop =
 	}
 };
 
-static const struct MachineDriver machine_driver_robocopb =
+static struct MachineDriver machine_driver_robocopb =
 {
 	/* basic machine hardware */
 	{
@@ -1221,7 +1221,7 @@ static const struct MachineDriver machine_driver_robocopb =
 	}
 };
 
-static const struct MachineDriver machine_driver_hippodrm =
+static struct MachineDriver machine_driver_hippodrm =
 {
 	/* basic machine hardware */
 	{
@@ -1279,7 +1279,7 @@ static const struct MachineDriver machine_driver_hippodrm =
 	}
 };
 
-static const struct MachineDriver machine_driver_slyspy =
+static struct MachineDriver machine_driver_slyspy =
 {
 	/* basic machine hardware */
 	{
@@ -1331,7 +1331,7 @@ static const struct MachineDriver machine_driver_slyspy =
 	}
 };
 
-static const struct MachineDriver machine_driver_midres =
+static struct MachineDriver machine_driver_midres =
 {
 	/* basic machine hardware */
 	{
@@ -1799,13 +1799,13 @@ ROM_START( hippodrm )
 	ROM_LOAD( "ew22",         0x18000, 0x08000, 0xe55669aa )
 
 	ROM_REGION( 0x80000, REGION_GFX4 | REGIONFLAG_DISPOSE ) /* sprites */
-	ROM_LOAD( "ew15",         0x00000, 0x10000, 0x95423914 )
+	ROM_LOAD( "ev15",         0x00000, 0x10000, 0x1d80f797 )
 	ROM_LOAD( "ew16",         0x10000, 0x10000, 0x96233177 )
-	ROM_LOAD( "ew10",         0x20000, 0x10000, 0x4c25dfe8 )
+	ROM_LOAD( "ev10",         0x20000, 0x10000, 0xc4e7116b )
 	ROM_LOAD( "ew11",         0x30000, 0x10000, 0xf2e007fc )
-	ROM_LOAD( "ew06",         0x40000, 0x10000, 0xe4bb8199 )
+	ROM_LOAD( "ev06",         0x40000, 0x10000, 0x6c794f1a )
 	ROM_LOAD( "ew07",         0x50000, 0x10000, 0x470b6989 )
-	ROM_LOAD( "ew17",         0x60000, 0x10000, 0x8c97c757 )
+	ROM_LOAD( "ev17",         0x60000, 0x10000, 0x045509d4 )
 	ROM_LOAD( "ew12",         0x70000, 0x10000, 0xa2d244bc )
 
 	ROM_REGION( 0x10000, REGION_SOUND1 )	/* ADPCM samples */
@@ -1887,9 +1887,6 @@ ROM_START( slyspy )
 
 	ROM_REGION( 0x20000, REGION_SOUND1 )	/* ADPCM samples */
 	ROM_LOAD( "fa11.11k",     0x00000, 0x20000, 0x4e547bad )
-
-	ROM_REGION( 0x0100, REGION_PROMS )
-	ROM_LOAD( "mb7114h.21k",  0x0000, 0x0100, 0xad26e8d4 )	/* timing? (not used) */
 ROM_END
 
 ROM_START( slyspy2 )
@@ -1924,9 +1921,6 @@ ROM_START( slyspy2 )
 
 	ROM_REGION( 0x20000, REGION_SOUND1 )	/* ADPCM samples */
 	ROM_LOAD( "fa11.11k",     0x00000, 0x20000, 0x4e547bad )
-
-	ROM_REGION( 0x0100, REGION_PROMS )
-	ROM_LOAD( "mb7114h.21k",  0x0000, 0x0100, 0xad26e8d4 )	/* timing? (not used) */
 ROM_END
 
 ROM_START( secretag )
@@ -1961,9 +1955,6 @@ ROM_START( secretag )
 
 	ROM_REGION( 0x20000, REGION_SOUND1 )	/* ADPCM samples */
 	ROM_LOAD( "fa11.11k",     0x00000, 0x20000, 0x4e547bad )
-
-	ROM_REGION( 0x0100, REGION_PROMS )
-	ROM_LOAD( "mb7114h.21k",  0x0000, 0x0100, 0xad26e8d4 )	/* timing? (not used) */
 ROM_END
 
 ROM_START( secretab )
@@ -2034,9 +2025,6 @@ ROM_START( midres )
 
 	ROM_REGION( 0x20000, REGION_SOUND1 )	/* ADPCM samples */
 	ROM_LOAD( "fl17",              0x00000, 0x20000, 0x9029965d )
-
-	ROM_REGION( 0x0100, REGION_PROMS )
-	ROM_LOAD( "7114.prm",          0x0000, 0x0100, 0xeb539ffb )	/* timing? (not used) */
 ROM_END
 
 ROM_START( midresu )
@@ -2073,9 +2061,6 @@ ROM_START( midresu )
 
 	ROM_REGION( 0x20000, REGION_SOUND1 )	/* ADPCM samples */
 	ROM_LOAD( "fl17",              0x00000, 0x20000, 0x9029965d )
-
-	ROM_REGION( 0x0100, REGION_PROMS )
-	ROM_LOAD( "7114.prm",          0x0000, 0x0100, 0xeb539ffb )	/* timing? (not used) */
 ROM_END
 
 ROM_START( midresj )
@@ -2112,9 +2097,6 @@ ROM_START( midresj )
 
 	ROM_REGION( 0x20000, REGION_SOUND1 )	/* ADPCM samples */
 	ROM_LOAD( "fh17",              0x00000, 0x20000, 0xc7b0a24e )
-
-	ROM_REGION( 0x0100, REGION_PROMS )
-	ROM_LOAD( "7114.prm",          0x0000, 0x0100, 0xeb539ffb )	/* timing? (not used) */
 ROM_END
 
 ROM_START( bouldash )

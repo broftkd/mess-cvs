@@ -153,6 +153,13 @@ int osd_is_key_pressed(int keycode)
 }
 
 
+int osd_wait_keypress(void)
+{
+	clear_keybuf();
+	return readkey() >> 8;
+}
+
+
 int osd_readkey_unicode(int flush)
 {
 	if (flush) clear_keybuf();
@@ -391,7 +398,7 @@ int osd_is_joy_pressed(int joycode)
 }
 
 
-void poll_joysticks(void)
+void osd_poll_joysticks(void)
 {
 	if (joystick > JOY_TYPE_NONE)
 		poll_joystick();
@@ -491,8 +498,10 @@ void osd_trak_read(int player,int *deltax,int *deltay)
 
 #ifndef MESS
 #ifndef TINY_COMPILE
+#ifndef MESS
 extern int no_of_tiles;
 extern struct GameDriver driver_neogeo;
+#endif
 #endif
 #endif
 
@@ -538,6 +547,7 @@ void osd_customize_inputport_defaults(struct ipd *defaults)
 
 #ifndef MESS
 #ifndef TINY_COMPILE
+#ifndef MESS
 			if (use_hotrod == 2 &&
 					(Machine->gamedrv->clone_of == &driver_neogeo ||
 					(Machine->gamedrv->clone_of && Machine->gamedrv->clone_of->clone_of == &driver_neogeo)))
@@ -561,11 +571,35 @@ void osd_customize_inputport_defaults(struct ipd *defaults)
 			}
 #endif
 #endif
+#endif
 
 			defaults++;
 		}
 	}
 }
+
+
+
+static int leds=0;
+static const int led_flags[3] = {
+  KB_NUMLOCK_FLAG,
+  KB_CAPSLOCK_FLAG,
+  KB_SCROLOCK_FLAG
+};
+void osd_led_w(int led,int on) {
+  int temp=leds;
+  if (led<3) {
+    if (on&1)
+	temp |=  led_flags[led];
+    else
+	temp &= ~led_flags[led];
+    if (temp!=leds) {
+	leds=temp;
+	set_leds (leds);
+    }
+  }
+}
+
 
 
 

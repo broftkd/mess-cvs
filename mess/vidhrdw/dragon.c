@@ -38,6 +38,7 @@
 #include "driver.h"
 #include "machine/6821pia.h"
 #include "vidhrdw/m6847.h"
+#include "cpu/m6809/m6809.h"
 #include "vidhrdw/generic.h"
 #include "includes/dragon.h"
 
@@ -230,11 +231,8 @@ int coco3_vh_start(void)
 	for (i = 0; i < 16; i++)
 		palette_change_color(i, 0, 0, 0);
 
-	for (i = 0; i < (sizeof(coco3_gimevhreg) / sizeof(coco3_gimevhreg[0])); i++)
-		coco3_gimevhreg[i] = 0;
-
-	coco3_hires = coco3_somethingdirty = coco3_blinkstatus = 0;
-	coco3_borderred = coco3_bordergreen = coco3_borderblue = -1;
+	coco3_hires = 0;
+	coco3_borderred = -1;
 	return 0;
 }
 
@@ -484,11 +482,9 @@ static int coco3_hires_linesperrow(void)
 
 static int coco3_hires_vidbase(void)
 {
-	return (((coco3_gimevhreg[5] * 0x800) + (coco3_gimevhreg[6] * 8)) | ((coco3_gimevhreg[7] & 0x7f) * 2));
+	return (((coco3_gimevhreg[5] * 0x800) + (coco3_gimevhreg[6] * 8)) | ((coco3_gimevhreg[7] & 0x7f)));
 
 }
-
-#define coco3_lores_vidbase	coco3_hires_vidbase
 
 #if LOG_VIDEO
 static void log_video(void)
@@ -572,7 +568,7 @@ void coco3_vh_screenrefresh(struct osd_bitmap *bitmap, int full_refresh)
 		int blink_switch=0;
 		int vidbase, bytesperrow, linesperrow, rows = 0, x, y, basex = 0, basey, wf = 0;
 		int use_attr, charsperrow = 0, underlined = 0;
-		int visualbytesperrow;
+		int visualbytesperrow, emupixelsperbyte;
 		int borderred, bordergreen, borderblue;
 		UINT8 *vram, *db;
 		UINT8 b;
@@ -723,6 +719,8 @@ void coco3_vh_screenrefresh(struct osd_bitmap *bitmap, int full_refresh)
 				break;
 			}
 
+			emupixelsperbyte = 512 / visualbytesperrow;
+
 			if (coco3_gimevhreg[1] & 0x04) {
 				visualbytesperrow |= (visualbytesperrow / 4);
 				basex = (bitmap->width - 640) / 2;
@@ -773,16 +771,14 @@ void coco3_vh_screenrefresh(struct osd_bitmap *bitmap, int full_refresh)
 	}
 	else {
 		int borderred, bordergreen, borderblue;
-
 		m6847_get_bordercolor_rgb(&borderred, &bordergreen, &borderblue);
 		full_refresh += coco3_vh_setborder(borderred, bordergreen, borderblue);
 		if (palette_recalc())
 			full_refresh = 1;
 		if (full_refresh)
 			coco3_vh_drawborder(bitmap, 512, 192);
-
 		internal_m6847_vh_screenrefresh(bitmap, full_refresh, coco3_metapalette,
-			&RAM[coco3_lores_vidbase()], m6847_get_video_offset(), 0x10000,
+			&RAM[0x70000], m6847_get_video_offset(), 0x10000,
 			TRUE, (bitmap->width - 512) / 2, (bitmap->height - 192) / 2, 2,
 			artifacts[readinputport(12) & 3]);
 	}
@@ -798,7 +794,7 @@ static void coco3_ram_w(int offset, int data, int block)
 
 	if (RAM[offset] != data) {
 		if (coco3_hires) {
-			vidbase = coco3_hires_vidbase();
+			vidbase = (coco3_gimevhreg[5] * 0x800) + (coco3_gimevhreg[6] * 8);
 			vidbasediff = (unsigned int) (offset - vidbase) & 0x7ffff;
 			if (vidbasediff < MAX_HIRES_VRAM) {
 				dirtybuffer[vidbasediff] = 1;
@@ -806,13 +802,11 @@ static void coco3_ram_w(int offset, int data, int block)
 			}
 		}
 		else {
-			/* Apparently, lores video
+			/* This code assumes that all lo-res video is always mapped from
+			 * $70000-$7FFFF.  This needs to be verified
 			 */
-
-			vidbase = coco3_lores_vidbase();
-
-			if (offset >= vidbase)
-				m6847_touch_vram(offset - vidbase);
+			if (offset >= 0x70000)
+				m6847_touch_vram(offset - 0x70000);
 		}
 
 		RAM[offset] = data;
@@ -866,7 +860,7 @@ WRITE_HANDLER(coco3_gimevh_w)
 	int xorval;
 
 #if LOG_GIME
-	logerror("CoCo3 GIME: $%04x <== $%02x pc=$%04x\n", offset + 0xff98, data, cpu_get_pc());
+	logerror("CoCo3 GIME: $%04x <== $%02x pc=$%04x\n", offset + 0xff98, data, m6809_get_pc());
 #endif
 	/* Features marked with '!' are not yet implemented */
 

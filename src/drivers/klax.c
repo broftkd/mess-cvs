@@ -275,7 +275,7 @@ static struct OKIM6295interface okim6295_interface =
  *
  *************************************/
 
-static const struct MachineDriver machine_driver_klax =
+static struct MachineDriver machine_driver_klax =
 {
 	/* basic machine hardware */
 	{
@@ -296,7 +296,7 @@ static const struct MachineDriver machine_driver_klax =
 	512, 512,
 	0,
 
-	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE | VIDEO_UPDATE_BEFORE_VBLANK,
+	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE | VIDEO_UPDATE_BEFORE_VBLANK | VIDEO_SUPPORTS_DIRTY,
 	0,
 	klax_vh_start,
 	klax_vh_stop,

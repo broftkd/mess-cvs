@@ -305,7 +305,7 @@ static struct OKIM6295interface okim6295_interface =
  *
  *************************************/
 
-static const struct MachineDriver machine_driver_shuuz =
+static struct MachineDriver machine_driver_shuuz =
 {
 	/* basic machine hardware */
 	{
@@ -326,7 +326,7 @@ static const struct MachineDriver machine_driver_shuuz =
 	1024, 1024,
 	0,
 
-	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE | VIDEO_UPDATE_BEFORE_VBLANK,
+	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE | VIDEO_UPDATE_BEFORE_VBLANK | VIDEO_SUPPORTS_DIRTY,
 	0,
 	shuuz_vh_start,
 	shuuz_vh_stop,

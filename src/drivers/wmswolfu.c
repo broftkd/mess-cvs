@@ -1,13 +1,13 @@
 /*************************************************************************
 
 	Driver for Midway Wolf-unit games
-
+  
 	TMS34010 processor @ 6.25MHz
 	Williams compressed digital sound board, with ADSP2105 @ 10.24MHz and a DAC
 
 
 	Created by Aaron Giles and Ernesto Corvi
-	Based on older drivers by Alex Pasadyn and Zsolt Vasvari with
+	Based on older drivers by Alex Pasadyn and Zsolt Vasvari with 
 	some help from Kurt Mahan
 
 
@@ -17,13 +17,13 @@
 	- Ultimate Mortal Kombat 3
 	- NBA Maximum Hangtime
 	- 2 On 2 Open Ice Challenge
-	- WWF Wrestlemania
+	- WWF Wrestlemania	
 	- Rampage World Tour
-
-
+	
+	
 	Currently unplayable:
 	--------------------
-
+		
 
 	Currently undumped:
 	-------------------
@@ -680,13 +680,13 @@ static struct tms34010_config cpu_config =
  *
  *************************************/
 
-static const struct MachineDriver machine_driver_wolfu =
+static struct MachineDriver machine_driver_wolfu =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_TMS34010,
-			50000000/TMS34010_CLOCK_DIVIDER,	/* 50 MHz */
+			50000000/TMS34010_CLOCK_DIVIDER,	/* 50 Mhz */
 			readmem,writemem,0,0,
 			ignore_interrupt,0,
 			0,0,&cpu_config

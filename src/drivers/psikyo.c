@@ -630,12 +630,14 @@ struct YM2610interface gunbird_ym2610_interface =
 	{ YM3012_VOL(50,MIXER_PAN_LEFT,50,MIXER_PAN_RIGHT) }
 };
 
-static const struct MachineDriver machine_driver_gunbird =
+static struct MachineDriver machine_driver_gunbird =
 {
 	{
 		{
 			CPU_M68EC020,
-			16000000,
+//			16000000,
+32000000,	/* 16 MHz - bumped because the game slows down
+			   (the 020 core timing has to be tuned up, I guess) */
 			sngkace_readmem,sngkace_writemem,0,0,
 			m68_level1_irq, 1
 		},
@@ -696,12 +698,14 @@ struct YM2610interface sngkace_ym2610_interface =
 	{ YM3012_VOL(50,MIXER_PAN_LEFT,50,MIXER_PAN_RIGHT) }
 };
 
-static const struct MachineDriver machine_driver_sngkace =
+static struct MachineDriver machine_driver_sngkace =
 {
 	{
 		{
 			CPU_M68EC020,
-			16000000,
+//			16000000,
+32000000,	/* 16 MHz - bumped because the game slows down
+			   (the 020 core timing has to be tuned up, I guess) */
 			sngkace_readmem,sngkace_writemem,0,0,
 			m68_level1_irq, 1
 		},
@@ -759,7 +763,7 @@ struct YM2610interface s1945_ym2610_interface =
 	{ YM3012_VOL(50,MIXER_PAN_LEFT,50,MIXER_PAN_RIGHT) }
 };
 
-static const struct MachineDriver machine_driver_s1945 =
+static struct MachineDriver machine_driver_s1945 =
 {
 	{
 		{

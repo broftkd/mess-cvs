@@ -348,7 +348,7 @@ static struct Samplesinterface samples_interface =
  * Machine driver
  *********************************************************************/
 
-static const struct MachineDriver machine_driver_turbo =
+static struct MachineDriver machine_driver_turbo =
 {
 	/* basic machine hardware */
 	{

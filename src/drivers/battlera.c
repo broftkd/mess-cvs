@@ -292,7 +292,7 @@ static struct MSM5205interface msm5205_interface =
 
 /******************************************************************************/
 
-static const struct MachineDriver machine_driver_battlera =
+static struct MachineDriver machine_driver_battlera =
 {
 	/* basic machine hardware */
 	{

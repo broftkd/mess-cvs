@@ -12,6 +12,8 @@ ernesto@imagina.com
 #include "vidhrdw/generic.h"
 #include "includes/amiga.h"
 
+extern custom_regs_def custom_regs;
+
 #define DT_COLOR_WHITE 0;
 
 struct update_regs_def {
@@ -223,7 +225,7 @@ INLINE int copper_update( int x_pos, int y_pos, int *end_x ) {
 
 ***************************************************************************/
 
-static void amiga_sprite_set_pos( int spritenum, unsigned short data ) {
+void amiga_sprite_set_pos( int spritenum, unsigned short data ) {
 
 	update_regs.sprite_v_start[spritenum] &= 0x100;
 	update_regs.sprite_v_start[spritenum] |= data >> 8;
@@ -233,7 +235,7 @@ static void amiga_sprite_set_pos( int spritenum, unsigned short data ) {
 
 }
 
-static void amiga_sprite_set_ctrl( int spritenum, unsigned short data ) {
+void amiga_sprite_set_ctrl( int spritenum, unsigned short data ) {
 	int i;
 
 	update_regs.sprite_h_start[spritenum] &= 0x1fe;

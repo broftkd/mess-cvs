@@ -1,12 +1,6 @@
 #ifndef MESS_H
 #define MESS_H
 
-#include "osdepend.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -43,7 +37,6 @@ extern void showmessinfo(void);
 extern int displayimageinfo(struct osd_bitmap *bitmap, int selected);
 extern int filemanager(struct osd_bitmap *bitmap, int selected);
 extern int tapecontrol(struct osd_bitmap *bitmap, int selected);
-extern int diskcontrol(struct osd_bitmap *bitmap, int selected);
 
 /* driver.h - begin */
 #define IPT_SELECT1		IPT_COIN1
@@ -73,6 +66,7 @@ typedef struct
 	int crc;
 	int length;
 	char * name;
+
 } image_details;
 
 /* possible values for osd_fopen() last argument
@@ -109,12 +103,20 @@ int parse_image_types(char *arg);
  *	osd_fdc_exit
  *		shut down
  *	osd_fdc_motors
- *              start/stop motors for <unit> number (0 = A:, 1 = B:)
+ *		start motors for <unit> number (0 = A:, 1 = B:)
  *	osd_fdc_density
  *		set type of drive from bios info (1: 360K, 2: 1.2M, 3: 720K, 4: 1.44M)
  *		set density (0:FM,LO 1:FM,HI 2:MFM,LO 3:MFM,HI) ( FM doesn't work )
  *		tracks, sectors per track and sector length code are given to
  *		calculate the appropriate double step and GAP II, GAP III values
+ *	osd_fdc_interrupt
+ *		stop motors and interrupt the current command
+ *	osd_fdc_recal
+ *		recalibrate the current drive and update *track if not NULL
+ *	osd_fdc_seek
+ *		seek to a given track number and update *track if not NULL
+ *	osd_fdc_step
+ *		step into a direction (+1/-1) and update *track if not NULL
  *	osd_fdc_format
  *		format track t, head h, spt sectors per track
  *		sector map at *fmt
@@ -134,21 +136,15 @@ int parse_image_types(char *arg);
 
 int  osd_fdc_init(void);
 void osd_fdc_exit(void);
-void osd_fdc_motors(int unit, int state);
-void osd_fdc_density(int unit, int density, int tracks, int spt, int eot, int secl);
-
-void osd_fdc_format(int t, int h, int spt, UINT8 *fmt);
-void osd_fdc_put_sector(int unit, int side, int C, int H, int R, int N, UINT8 *buff, int ddam);
-void osd_fdc_get_sector(int unit, int side, int C, int H, int R, int N, UINT8 *buff, int ddma);
-
-void osd_fdc_read_id(int unit, int side, unsigned char *pBuffer);
-
-/* perform a seek on physical drive 'unit'. dir will be -ve or +ve.
-For a single step this will be -1 or +1. */
-void osd_fdc_seek(int unit, int dir);
-
-/* get status of physical drive 'unit' */
-int osd_fdc_get_status(int unit);
+void osd_fdc_motors(unsigned char unit);
+void osd_fdc_density(unsigned char unit, unsigned char density, unsigned char tracks, unsigned char spt, unsigned char eot, unsigned char secl);
+void osd_fdc_interrupt(int param);
+unsigned char osd_fdc_recal(unsigned char *track);
+unsigned char osd_fdc_seek(unsigned char t, unsigned char *track);
+unsigned char osd_fdc_step(int dir, unsigned char *track);
+unsigned char osd_fdc_format(unsigned char t, unsigned char h, unsigned char spt, unsigned char *fmt);
+unsigned char osd_fdc_put_sector(unsigned char track, unsigned char side, unsigned char head, unsigned char sector, unsigned char *buff, unsigned char ddam);
+unsigned char osd_fdc_get_sector(unsigned char track, unsigned char side, unsigned char head, unsigned char sector, unsigned char *buff);
 
 #ifdef MAX_KEYS
  #undef MAX_KEYS
@@ -193,17 +189,11 @@ enum {
 	IO_COUNT
 };
 
-enum {
-	IO_RESET_NONE,		/* changing the device file doesn't reset anything */
-	IO_RESET_CPU,		/* only reset the CPU */
-	IO_RESET_ALL		/* restart the driver including audio/video */
-};
-
 struct IODevice {
 	int type;
 	int count;
 	const char *file_extensions;
-	int reset_depth;
+	void *_private;
 	int (*id)(int id);
 	int (*init)(int id);
 	void (*exit)(int id);
@@ -261,13 +251,7 @@ extern void device_output_chunk(int type, int id, void *src, int chunks);
 
 /* This is the dummy GameDriver with flag NOT_A_DRIVER set
    It allows us to use an empty PARENT field in the macros. */
-extern const struct GameDriver driver_0;
-
-/* Flag is used to bail out in mame.c/run_game() and cpuintrf.c/run_cpu()
- * but keep the program going. It will be set eg. if the filename for a
- * device which has IO_RESET_ALL flag set is changed
- */
-extern int mess_keep_going;
+extern struct GameDriver driver_0;
 
 /******************************************************************************
  * MESS' version of the GAME() and GAMEX() macros of MAME
@@ -275,8 +259,8 @@ extern int mess_keep_going;
  * COMP and COMPX are for computers
  ******************************************************************************/
 #define CONS(YEAR,NAME,PARENT,MACHINE,INPUT,INIT,COMPANY,FULLNAME)	\
-extern const struct GameDriver driver_##PARENT; \
-const struct GameDriver driver_##NAME = 	\
+extern struct GameDriver driver_##PARENT;	\
+struct GameDriver driver_##NAME =			\
 {											\
 	__FILE__,								\
 	&driver_##PARENT,						\
@@ -293,8 +277,8 @@ const struct GameDriver driver_##NAME = 	\
 };
 
 #define CONSX(YEAR,NAME,PARENT,MACHINE,INPUT,INIT,COMPANY,FULLNAME,FLAGS)	\
-extern const struct GameDriver driver_##PARENT;   \
-const struct GameDriver driver_##NAME = 	\
+extern struct GameDriver driver_##PARENT;	\
+struct GameDriver driver_##NAME =			\
 {											\
 	__FILE__,								\
 	&driver_##PARENT,						\
@@ -311,8 +295,8 @@ const struct GameDriver driver_##NAME = 	\
 };
 
 #define COMP(YEAR,NAME,PARENT,MACHINE,INPUT,INIT,COMPANY,FULLNAME)	\
-extern const struct GameDriver driver_##PARENT;   \
-const struct GameDriver driver_##NAME = 	\
+extern struct GameDriver driver_##PARENT;	\
+struct GameDriver driver_##NAME =			\
 {											\
 	__FILE__,								\
 	&driver_##PARENT,						\
@@ -329,8 +313,8 @@ const struct GameDriver driver_##NAME = 	\
 };
 
 #define COMPX(YEAR,NAME,PARENT,MACHINE,INPUT,INIT,COMPANY,FULLNAME,FLAGS)	\
-extern const struct GameDriver driver_##PARENT;   \
-const struct GameDriver driver_##NAME = 	\
+extern struct GameDriver driver_##PARENT;	\
+struct GameDriver driver_##NAME =			\
 {											\
 	__FILE__,								\
 	&driver_##PARENT,						\
@@ -346,8 +330,5 @@ const struct GameDriver driver_##NAME = 	\
 	ROT0|GAME_COMPUTER|(FLAGS)	 			\
 };
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif

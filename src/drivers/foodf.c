@@ -200,7 +200,7 @@ static struct GfxDecodeInfo gfxdecodeinfo[] =
 static struct POKEYinterface pokey_interface =
 {
 	3,	/* 3 chips */
-	600000,	/* .6 MHz */
+	600000,	/* .6 Mhz */
 	{ 33, 33, 33 },
 	/* The 8 pot handlers */
 	{ 0, 0, 0 },
@@ -217,13 +217,13 @@ static struct POKEYinterface pokey_interface =
 
 
 
-static const struct MachineDriver machine_driver_foodf =
+static struct MachineDriver machine_driver_foodf =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M68000,
-			6000000,	/* 6 MHz */
+			6000000,	/* 6 Mhz */
 			foodf_readmem,foodf_writemem,0,0,
 			foodf_interrupt,4
 		},
@@ -238,7 +238,7 @@ static const struct MachineDriver machine_driver_foodf =
 	256, 256,
 	foodf_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE,
+	VIDEO_TYPE_RASTER | VIDEO_SUPPORTS_DIRTY | VIDEO_MODIFIES_PALETTE,
 	0,
 	foodf_vh_start,
 	foodf_vh_stop,

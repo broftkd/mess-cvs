@@ -1347,7 +1347,7 @@ static struct AY8910interface ay8910_interface =
 
 #define MACHINE_DRIVER(GAMENAME, CLOCK, MAIN_IRQ, SOUND_IRQ, GFX, COLOR)   \
 																	\
-static const struct MachineDriver machine_driver_##GAMENAME =             \
+static struct MachineDriver machine_driver_##GAMENAME =             \
 {                                                                   \
 	/* basic machine hardware */                                	\
 	{		                                                        \
@@ -1794,7 +1794,7 @@ static struct MemoryReadAddress decocass_readmem[] =
 {
 	{ 0x0000, 0x01ff, MRA_RAM },
 	{ 0xe300, 0xe300, input_port_3_r },     /* DSW1 */
-	{ 0xe700, 0xe702, pip_r },	/* read data from tape */
+	{ 0xe500, 0xe502, pip_r },	/* read data from tape */
 #if 0
 	{ 0x0000, 0x03ff, MRA_RAM },
 	{ 0x0500, 0x3fff, MRA_ROM },
@@ -1948,7 +1948,7 @@ static struct GfxDecodeInfo decocass_gfxdecodeinfo[] =
 	{ -1 } /* end of array */
 };
 
-static const struct MachineDriver machine_driver_decocass =
+static struct MachineDriver machine_driver_decocass =
 {
 	/* basic machine hardware */
 	{

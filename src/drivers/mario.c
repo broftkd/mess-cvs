@@ -415,19 +415,19 @@ static struct MemoryWriteAddress masao_sound_writemem[] =
 };
 
 
-static const struct MachineDriver machine_driver_mario =
+static struct MachineDriver machine_driver_mario =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3072000,	/* 3.072 MHz (?) */
+			3072000,	/* 3.072 Mhz (?) */
 			readmem,writemem,0,mario_writeport,
 			nmi_interrupt,1
 		},
 		{
 			CPU_I8039 | CPU_AUDIO_CPU,
-			730000,         /* 730 kHz */
+                        730000,         /* 730 khz */
 			readmem_sound,writemem_sound,readport_sound,writeport_sound,
 			ignore_interrupt,1
 		}
@@ -462,13 +462,13 @@ static const struct MachineDriver machine_driver_mario =
 	}
 };
 
-static const struct MachineDriver machine_driver_masao =
+static struct MachineDriver machine_driver_masao =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			4000000,        /* 4.000 MHz (?) */
+			4000000,        /* 4.000 Mhz (?) */
 			readmem,masao_writemem,0,0,
 			nmi_interrupt,1
 		},

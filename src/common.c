@@ -392,15 +392,8 @@ int readroms(void)
 
 		if (!options.gui_host && !bailing)
 		{
-			int k;
-
 			printf ("Press any key to continue\n");
-			do
-			{
-				k = code_read_async();
-			}
-			while (k == CODE_NONE || k == KEYCODE_LCONTROL);
-
+			keyboard_read_sync();
 			if (keyboard_pressed(KEYCODE_LCONTROL) && keyboard_pressed(KEYCODE_C))
 				return 1;
 		}
@@ -938,7 +931,7 @@ void save_screen_snapshot_as(void *fp,struct osd_bitmap *bitmap)
 		sizex = Machine->visible_area.max_x - Machine->visible_area.min_x + 1;
 		sizey = Machine->visible_area.max_y - Machine->visible_area.min_y + 1;
 
-		scalex = (Machine->drv->video_attributes & VIDEO_PIXEL_ASPECT_RATIO_2_1) ? 2 : 1;
+		scalex = 1;
 		scaley = (Machine->drv->video_attributes & VIDEO_PIXEL_ASPECT_RATIO_1_2) ? 2 : 1;
 
 		copy = bitmap_alloc_depth(sizex * scalex,sizey * scaley,bitmap->depth);

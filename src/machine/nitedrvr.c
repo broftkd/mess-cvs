@@ -243,7 +243,7 @@ D5 = Spare (Not used)
 ***************************************************************************/
 WRITE_HANDLER( nitedrvr_out1_w )
 {
-	set_led_status(0,data & 0x10);
+	osd_led_w(0,(data & 0x10)>>4);
 	/* TODO: put sound bits here */
 }
 

@@ -1,10 +1,5 @@
 /***************************************************************************
 
-Notes:
-- Currently the Flip Screen dip switch only flips the screen horizontally.
-  This might not be the correct behaviour. Verification of the real board
-  would be necessary to emulate this accurately.
-
 ***************************************************************************/
 
 #include "driver.h"
@@ -115,7 +110,7 @@ INPUT_PORTS_START( pkunwar )
 	PORT_DIPSETTING(    0x30, "Medium" )
 	PORT_DIPSETTING(    0x20, "Hard" )
 	PORT_DIPSETTING(    0x00, "Hardest" )
-	PORT_DIPNAME( 0x40, 0x40, DEF_STR( Flip_Screen ) )
+	PORT_DIPNAME( 0x40, 0x40, DEF_STR( Unknown ) )
 	PORT_DIPSETTING(    0x40, DEF_STR( Off ) )
 	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
 	PORT_DIPNAME( 0x80, 0x80, DEF_STR( Free_Play ) )
@@ -170,7 +165,7 @@ static struct AY8910interface ay8910_interface = {
 
 
 
-static const struct MachineDriver machine_driver_pkunwar =
+static struct MachineDriver machine_driver_pkunwar =
 {
 	/* basic machine hardware */
 	{

@@ -2,6 +2,10 @@
 //
 #include "resource.h"
 
+#ifdef MESS
+#define MESS_PICKER
+#endif
+
 // Generated Help ID header file
 #define APSTUDIO_HIDDEN_SYMBOLS
 #include "resource.hm"
@@ -58,19 +62,9 @@ BEGIN
         MENUITEM "Play and &Record Input...",   ID_FILE_PLAY_RECORD
         MENUITEM "P&layback Input...",          ID_FILE_PLAY_BACK
         MENUITEM "Play and Record A&VI...",     ID_FILE_PLAY_RECORD_AVI
-#ifdef MESS
-        MENUITEM "Play &network system...",     ID_FILE_NETPLAY
-#else
         MENUITEM "Play &network game...",       ID_FILE_NETPLAY
-#endif
         MENUITEM SEPARATOR
-#ifdef MESS
-        MENUITEM "&Select Random System",       ID_CONTEXT_SELECT_RANDOM
-        MENUITEM SEPARATOR
-		MENUITEM "Op&en Other Software...",     ID_MESS_OPEN_SOFTWARE
-#else
         MENUITEM "&Select Random Game",         ID_CONTEXT_SELECT_RANDOM
-#endif
         MENUITEM SEPARATOR
         MENUITEM "A&dd to 'Favorites'",         ID_CONTEXT_ADD_FAVORITE
         MENUITEM "R&emove from 'Favorites'",    ID_CONTEXT_DEL_FAVORITE
@@ -114,18 +108,24 @@ BEGIN
         MENUITEM "Default &Options...",         ID_OPTIONS_DEFAULTS
         MENUITEM "&Reset to Default...",        ID_OPTIONS_RESET_DEFAULTS
         MENUITEM "&Startup Options...",         ID_OPTIONS_STARTUP
-        MENUITEM "&Language...",                ID_OPTIONS_LANGUAGE
+#if defined(MESS) && !defined(MESS_PICKER)
+        MENUITEM SEPARATOR
+        MENUITEM "Image 0",                     ID_IMAGE0_CONFIG
+        MENUITEM "Image 1",                     ID_IMAGE1_CONFIG
+        MENUITEM "Image 2",                     ID_IMAGE2_CONFIG
+        MENUITEM "Image 3",                     ID_IMAGE3_CONFIG
+#endif
     END
     POPUP "&Help"
     BEGIN
-        MENUITEM "&Help Contents\tF1",          ID_HELP_CONTENTS
-        MENUITEM "&What's New",                 ID_HELP_WHATS_NEW32
-        MENUITEM "&Quickstart Guide",           ID_HELP_QUICKSTART
-        MENUITEM SEPARATOR
 #ifdef MESS
         MENUITEM "&Mess Release Notes",         ID_HELP_RELEASE
         MENUITEM "&New Mess Features",          ID_HELP_WHATS_NEW
 #else
+        MENUITEM "&Help Contents\tF1",          ID_HELP_CONTENTS
+        MENUITEM "&What's New",                 ID_HELP_WHATS_NEW32
+        MENUITEM "&Quickstart Guide",           ID_HELP_QUICKSTART
+        MENUITEM SEPARATOR
         MENUITEM "&Mame Release Notes",         ID_HELP_RELEASE
         MENUITEM "&New Mame Features",          ID_HELP_WHATS_NEW
         MENUITEM "&Cheats in Mame?",            ID_HELP_CHEATS
@@ -298,16 +298,14 @@ IDI_FOLDER_YEAR         ICON    DISCARDABLE     "res\\foldyear.ico"
 IDI_WORKING             ICON    DISCARDABLE     "res\\working.ico"
 IDI_NONWORKING          ICON    DISCARDABLE     "res\\nonwork.ico"
 IDI_YEAR                ICON    DISCARDABLE     "res\\year.ico"
-#ifndef MESS
 IDI_NEOGEO              ICON    DISCARDABLE     "res\\neogeo.ico"
-#endif
 IDI_KEYBOARD            ICON    DISCARDABLE     "Res\\keyboard.ico"
 IDI_JOYSTICK            ICON    DISCARDABLE     "Res\\joystick.ico"
 IDI_SOUND               ICON    DISCARDABLE     "Res\\samples.ico"
 IDI_DISPLAY             ICON    DISCARDABLE     "Res\\display.ico"
 IDI_CHECKMARK           ICON    DISCARDABLE     "Res\\checkmark.ico"
 IDI_NETPLAY             ICON    DISCARDABLE     "Res\\netplay.ico"
-#ifdef MESS
+#if defined(MESS) && defined(MESS_PICKER)
 IDI_WIN_FLOP            ICON    DISCARDABLE     "res/win_flop.ico"
 IDI_WIN_CASS            ICON    DISCARDABLE     "res/win_cass.ico"
 IDI_WIN_SERL            ICON    DISCARDABLE     "res/win_serl.ico"
@@ -444,7 +442,7 @@ CAPTION "Directories"
 FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "Show directories for:",IDC_STATIC,7,7,157,8
-    COMBOBOX        IDC_DIR_COMBO,7,19,157,79,CBS_DROPDOWNLIST | CBS_SORT | 
+    COMBOBOX        IDC_DIR_COMBO,7,19,157,68,CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
     LTEXT           "Directories:",IDC_STATIC,7,37,157,8
     CONTROL         "List1",IDC_DIR_LIST,"SysListView32",LVS_REPORT | 
@@ -570,7 +568,7 @@ END
 IDD_PROP_SOUND DIALOGEX 0, 0, 220, 205
 STYLE WS_CHILD | WS_CAPTION
 CAPTION "Sound"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     ICON            IDI_SOUND,IDC_STATIC,20,11,20,20
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,20,38,178,1
@@ -613,14 +611,14 @@ BEGIN
     EDITTEXT        IDC_SKIP_LINES,61,50,29,12,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER,0,HIDC_SKIP_LINES
     CONTROL         "Spin1",IDC_SKIP_LINES_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_ARROWKEYS,90,50,
-                    11,12
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | 
+                    UDS_ARROWKEYS,90,50,11,12
     LTEXT           "Columns",IDC_SKIPCOLSTEXT,23,66,36,12,SS_CENTERIMAGE
     EDITTEXT        IDC_SKIP_COLUMNS,61,66,29,12,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER,0,HIDC_SKIP_COLUMNS
     CONTROL         "Spin1",IDC_SKIP_COLUMNS_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_ARROWKEYS,90,66,
-                    11,12
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | 
+                    UDS_ARROWKEYS,90,66,11,12
     GROUPBOX        "Rotation",IDC_STATIC,7,87,98,60
     COMBOBOX        IDC_ROTATE,23,99,40,72,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP,0,HIDC_ROTATE
@@ -762,7 +760,7 @@ BEGIN
                     TVS_FULLROWSELECT | WS_BORDER | WS_TABSTOP,5,28,48,172
     GROUPBOX        "",IDC_SPLITTER,55,28,8,172,BS_NOTIFY | NOT WS_VISIBLE
     GROUPBOX        "",IDC_SPLITTER2,109,28,8,172,BS_NOTIFY | NOT WS_VISIBLE
-#ifdef MESS
+#ifdef MESS_PICKER
     CONTROL         "List2",IDC_LIST2,"SysListView32",LVS_REPORT | 
                     LVS_SHOWSELALWAYS | LVS_OWNERDRAWFIXED | WS_BORDER |
 					WS_TABSTOP,119,28,42,172
@@ -787,47 +785,39 @@ BEGIN
 #endif
 END
 
-IDD_FILTERS DIALOGEX 0, 0, 205, 185
+IDD_FILTERS DIALOGEX 0, 0, 205, 180
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Game Filters"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
-    GROUPBOX        "Game filters",IDC_STATIC,13,36,179,84
+    GROUPBOX        "Game Filters",IDC_STATIC,13,39,179,84
     CONTROL         "&Vector Graphics",IDC_FILTER_VECTOR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,23,49,76,10,0,
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,52,76,10,0,
                     HIDC_FILTER_VECTOR
     CONTROL         "&Raster Graphics",IDC_FILTER_RASTER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,107,49,78,10,0,
+                    BS_AUTOCHECKBOX | WS_TABSTOP,107,52,78,10,0,
                     HIDC_FILTER_RASTER
     CONTROL         "C&lones",IDC_FILTER_CLONES,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,23,63,76,10,0,HIDC_FILTER_CLONES
+                    WS_TABSTOP,23,66,76,10,0,HIDC_FILTER_CLONES
     CONTROL         "Ori&ginals",IDC_FILTER_ORIGINALS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,107,63,78,10,0,
+                    BS_AUTOCHECKBOX | WS_TABSTOP,107,66,78,10,0,
                     HIDC_FILTER_ORIGINALS
     CONTROL         "Non-Wor&king",IDC_FILTER_NONWORKING,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,23,77,76,10,0,
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,80,76,10,0,
                     HIDC_FILTER_NONWORKING
     CONTROL         "&Working",IDC_FILTER_WORKING,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,107,77,78,10,0,HIDC_FILTER_WORKING
+                    WS_TABSTOP,107,80,78,10,0,HIDC_FILTER_WORKING
     CONTROL         "&Unavailable",IDC_FILTER_UNAVAILABLE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,23,91,76,10,0,
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,94,76,10,0,
                     HIDC_FILTER_UNAVAILABLE
-#ifdef MESS
-    CONTROL         "&Computers",IDC_FILTER_COMPUTER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,23,104,76,10,0
-    CONTROL         "C&onsoles",IDC_FILTER_CONSOLE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,107,104,76,10,0
-#else
     CONTROL         "&Neo-Geo Games",IDC_FILTER_NEOGEO,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,23,104,76,10,0,
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,107,76,10,0,
                     HIDC_FILTER_NEOGEO
-#endif
-    GROUPBOX        "&Description filter",IDC_STATIC,13,123,179,33
-    EDITTEXT        IDC_FILTER_EDIT,23,136,159,12,ES_AUTOHSCROLL,0,
-                    HIDC_FILTER_EDIT
-    DEFPUSHBUTTON   "&OK",IDOK,49,164,50,14
-    PUSHBUTTON      "&Cancel",IDCANCEL,105,164,50,14
+    CTEXT           "Select the filters you wish to apply to this folder from the list above and click OK.",
+                    IDC_STATIC,28,131,148,20
+    PUSHBUTTON      "&OK",IDOK,49,159,50,14
+    DEFPUSHBUTTON   "&Cancel",IDCANCEL,105,159,50,14
     CTEXT           "Game filters allow customizing the games that are displayed in each folder by hiding games that match the filters applied.",
                     IDC_STATIC,23,7,159,27
 END
@@ -991,7 +981,7 @@ IDD_LANGUAGE DIALOGEX 0, 0, 186, 66
 STYLE DS_MODALFRAME | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Language"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "Use language file",IDC_LANGUAGECHECK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,7,79,10,0,
@@ -1153,7 +1143,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 198
         TOPMARGIN, 7
-        BOTTOMMARGIN, 178
+        BOTTOMMARGIN, 173
     END
 
     IDD_RESET, DIALOG

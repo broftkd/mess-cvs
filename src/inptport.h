@@ -12,9 +12,6 @@
 /* address or I/O port. */
 
 /***************************************************************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct InputPortTiny
 {
@@ -98,7 +95,6 @@ enum { IPT_END=1,IPT_PORT,
 	IPT_UI_SHOW_PROFILER,
 	IPT_UI_SHOW_COLORS,
 	IPT_UI_TOGGLE_UI,
-	IPT_UI_TOGGLE_DEBUG,
 	__ipt_max
 };
 
@@ -341,10 +337,5 @@ struct ipd
 	const char *name;
 	InputSeq seq;
 };
-
-#ifdef __cplusplus
-}
-#endif
-
 
 #endif

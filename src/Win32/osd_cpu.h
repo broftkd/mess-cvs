@@ -106,7 +106,6 @@ typedef union {
 #ifdef MESS
 #define HAS_Z80         1
 #define HAS_Z80GB       1
-#define HAS_CDP1802 	1
 #define HAS_8080        0
 #define HAS_8085A       0
 #define HAS_M6502       1
@@ -144,7 +143,7 @@ typedef union {
 #define HAS_NSC8105     1
 #define HAS_M68705      0
 #define HAS_HD63705     0
-#define HAS_HD6309      1
+#define HAS_HD6309      0
 #define HAS_M6309       0
 #define HAS_M6809       1
 #define HAS_KONAMI      0
@@ -154,8 +153,6 @@ typedef union {
 #define HAS_M68020      0
 #define HAS_T11         0
 #define HAS_S2650       0
-#define HAS_F8			1
-#define HAS_CP1600		1
 #define HAS_TMS34010    0
 #define HAS_TMS9900     1
 #define HAS_TMS9940     0
@@ -174,11 +171,9 @@ typedef union {
 #define HAS_MIPS        0
 #define HAS_SC61860     1
 #define HAS_ARM         1
-#define HAS_G65816      1
 #else
 #define HAS_Z80         1
 #define HAS_Z80GB       0
-#define HAS_CDP1802 	0
 #define HAS_8080        1
 #define HAS_8085A       1
 #define HAS_M6502       1
@@ -226,8 +221,6 @@ typedef union {
 #define HAS_M68020      1
 #define HAS_T11         1
 #define HAS_S2650       1
-#define HAS_F8			0
-#define HAS_CP1600		0
 #define HAS_TMS34010    1
 #define HAS_TMS9900     0
 #define HAS_TMS9940     0
@@ -246,7 +239,6 @@ typedef union {
 #define HAS_MIPS        1
 #define HAS_SC61860     0
 #define ARM             0
-#define HAS_G65816      0
 #endif
 
 #endif  /* !NEOMAME */
@@ -287,7 +279,6 @@ typedef union {
 #define HAS_ASTROCADE   1
 #define HAS_NAMCO       0
 #define HAS_TMS36XX     0
-#define HAS_TMS5110     0
 #define HAS_TMS5220     1
 #define HAS_VLM5030     0
 #define HAS_ADPCM       0
@@ -304,10 +295,8 @@ typedef union {
 #define HAS_CEM3394     0
 #define HAS_C140        0
 #define HAS_QSOUND      1
-#define HAS_SAA1099     1
 #define HAS_SPEAKER     1
 #define HAS_WAVE        1
-#define HAS_BEEP        1
 #else
 #define HAS_CUSTOM      1
 #define HAS_SAMPLES     1
@@ -334,7 +323,6 @@ typedef union {
 #define HAS_ASTROCADE   1
 #define HAS_NAMCO       1
 #define HAS_TMS36XX     1
-#define HAS_TMS5110     1
 #define HAS_TMS5220     1
 #define HAS_VLM5030     1
 #define HAS_ADPCM       1
@@ -351,10 +339,8 @@ typedef union {
 #define HAS_CEM3394     1
 #define HAS_C140        1
 #define HAS_QSOUND      1
-#define HAS_SAA1099     0
 #define HAS_SPEAKER     0
 #define HAS_WAVE        0
-#define HAS_BEEP        0
 #endif
 
 #endif  /* !NEOMAME */

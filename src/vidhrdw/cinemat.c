@@ -24,8 +24,8 @@ static int cinemat_screenh;
 static struct artwork_element *cinemat_simple_overlay;
 
 static int color_display;
-static struct artwork_info *spacewar_panel;
-static struct artwork_info *spacewar_pressed_panel;
+static struct artwork *spacewar_panel;
+static struct artwork *spacewar_pressed_panel;
 
 struct artwork_element starcas_overlay[]=
 {
@@ -253,6 +253,13 @@ void spacewar_init_colors (unsigned char *palette, unsigned short *colortable,co
 int cinemat_vh_start (void)
 {
 	vector_set_shift (VEC_SHIFT);
+
+	if (artwork_backdrop)
+	{
+		backdrop_refresh (artwork_backdrop);
+		backdrop_refresh_tables (artwork_backdrop);
+	}
+
 	cinemat_screenh = Machine->visible_area.max_y - Machine->visible_area.min_y;
 	return vector_vh_start();
 }

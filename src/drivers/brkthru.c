@@ -407,19 +407,19 @@ static struct YM3526interface ym3526_interface =
 
 
 
-static const struct MachineDriver machine_driver_brkthru =
+static struct MachineDriver machine_driver_brkthru =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6809,
-			1250000,        /* 1.25 MHz ? */
+			1250000,        /* 1.25 Mhz ? */
 			readmem,writemem,0,0,
 			brkthru_interrupt,2
 		},
 		{
 			CPU_M6809 | CPU_AUDIO_CPU,
-			1250000,        /* 1.25 MHz ? */
+			1250000,        /* 1.25 Mhz ? */
 			sound_readmem,sound_writemem,0,0,
 			ignore_interrupt,0	/* IRQs are caused by the YM3526 */
 		}
@@ -454,19 +454,19 @@ static const struct MachineDriver machine_driver_brkthru =
 	}
 };
 
-static const struct MachineDriver machine_driver_darwin =
+static struct MachineDriver machine_driver_darwin =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6809,
-			1500000,        /* 1.25 MHz ? */
+			1500000,        /* 1.25 Mhz ? */
 			darwin_readmem,darwin_writemem,0,0,
 			brkthru_interrupt,2
 		},
 		{
 			CPU_M6809 | CPU_AUDIO_CPU,
-			1500000,        /* 1.25 MHz ? */
+			1500000,        /* 1.25 Mhz ? */
 			sound_readmem,sound_writemem,0,0,
 			ignore_interrupt,0	/* IRQs are caused by the YM3526 */
 		}

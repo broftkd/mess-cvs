@@ -114,7 +114,7 @@ READ_HANDLER( mhavoc_port_0_r )
 	if (player_1)
 		res = (res & 0x3f) | (readinputport (5) & 0xc0);
 
-	/* Emulate the 2.4Khz source on bit 2 (divide 2.5MHz by 1024) */
+	/* Emulate the 2.4Khz source on bit 2 (divide 2.5Mhz by 1024) */
 	if (cpu_gettotalcycles() & 0x400)
 		res &=~0x02;
 	else
@@ -170,13 +170,13 @@ WRITE_HANDLER( mhavoc_out_0_w )
 	}
 	player_1 = data & 0x20;
 	/* Emulate the roller light (Blinks on fatal errors) */
-	set_led_status (2, data & 0x01);
+	osd_led_w (2, data & 0x01);
 }
 
 WRITE_HANDLER( mhavoc_out_1_w )
 {
-	set_led_status (1,data & 0x01);
-	set_led_status (0,data & 0x02);
+	osd_led_w (1, data & 0x01);
+	osd_led_w (0, (data & 0x02)>>1);
 }
 
 static void mhavoc_gamma_irq(int param)

@@ -323,19 +323,19 @@ static struct AY8910interface ay8910_interface =
 
 
 
-static const struct MachineDriver machine_driver_arkanoid =
+static struct MachineDriver machine_driver_arkanoid =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			6000000,	/* 6 MHz ?? */
+			6000000,	/* 6 Mhz ?? */
 			readmem,writemem,0,0,
 			interrupt,1
 		},
 		{
 			CPU_M68705,
-			500000,	/* .5 MHz (don't know really how fast, but it doesn't need to even be this fast) */
+			500000,	/* .5 Mhz (don't know really how fast, but it doesn't need to even be this fast) */
 			mcu_readmem,mcu_writemem,0,0,
 			ignore_interrupt,1
 		},
@@ -350,7 +350,7 @@ static const struct MachineDriver machine_driver_arkanoid =
 	512, 512,
 	arkanoid_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER | VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_vh_start,
 	generic_vh_stop,
@@ -366,13 +366,13 @@ static const struct MachineDriver machine_driver_arkanoid =
 	}
 };
 
-static const struct MachineDriver machine_driver_bootleg =
+static struct MachineDriver machine_driver_bootleg =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			6000000,	/* 6 MHz ?? */
+			6000000,	/* 6 Mhz ?? */
 			boot_readmem,boot_writemem,0,0,
 			interrupt,1
 		},
@@ -387,7 +387,7 @@ static const struct MachineDriver machine_driver_bootleg =
 	512, 512,
 	arkanoid_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER | VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_vh_start,
 	generic_vh_stop,

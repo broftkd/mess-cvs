@@ -86,7 +86,7 @@ static struct MemoryWriteAddress writemem_cpu1[] =
 	{ 0x1780, 0x17ff, MWA_RAM, &spriteram_2 },
 	{ 0x1800, 0x1f7f, MWA_RAM },
 	{ 0x1f80, 0x1fff, MWA_RAM, &spriteram_3 },
-	{ 0x2000, 0x2000, flip_screen_w },
+	{ 0x2000, 0x2000, superpac_flipscreen_w },
 	{ 0x4040, 0x43ff, superpac_sharedram_w, &superpac_sharedram },
 	{ 0x4800, 0x480f, MWA_RAM, &superpac_customio_1 },
 	{ 0x4810, 0x481f, MWA_RAM, &superpac_customio_2 },
@@ -363,19 +363,19 @@ static struct namco_interface namco_interface =
 
 
 
-static const struct MachineDriver machine_driver_superpac =
+static struct MachineDriver machine_driver_superpac =
 {
 	/* basic machine hardware  */
 	{
 		{
 			CPU_M6809,
-			1100000,             /* 1.1 MHz */
+			1100000,             /* 1.1 Mhz */
 			readmem_cpu1,writemem_cpu1,0,0,
 			interrupt,1
 		},
 		{
 			CPU_M6809,
-			1100000,             /* 1.1 MHz */
+			1100000,             /* 1.1 Mhz */
 			superpac_readmem_cpu2,superpac_writemem_cpu2,0,0,
 			ignore_interrupt,1
 		}
@@ -391,7 +391,7 @@ static const struct MachineDriver machine_driver_superpac =
 	32,	4*(64+64),
 	superpac_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER|VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_vh_start,
 	generic_vh_stop,
@@ -407,19 +407,19 @@ static const struct MachineDriver machine_driver_superpac =
 	}
 };
 
-static const struct MachineDriver machine_driver_pacnpal =
+static struct MachineDriver machine_driver_pacnpal =
 {
 	/* basic machine hardware  */
 	{
 		{
 			CPU_M6809,
-			1100000,             /* 1.1 MHz */
+			1100000,             /* 1.1 Mhz */
 			readmem_cpu1,writemem_cpu1,0,0,
 			interrupt,1
 		},
 		{
 			CPU_M6809,
-			1100000,             /* 1.1 MHz */
+			1100000,             /* 1.1 Mhz */
 			pacnpal_readmem_cpu2,pacnpal_writemem_cpu2,0,0,
 			interrupt,1
 		}
@@ -435,7 +435,7 @@ static const struct MachineDriver machine_driver_pacnpal =
 	32,	4*(64+64),
 	superpac_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER|VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_vh_start,
 	generic_vh_stop,

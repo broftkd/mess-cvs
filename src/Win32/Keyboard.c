@@ -39,6 +39,7 @@ static void         Keyboard_exit(void);
 static const struct KeyboardInfo * Keyboard_get_key_list(void);
 static void         Keyboard_customize_inputport_defaults(struct ipd *defaults);
 static int          Keyboard_is_key_pressed(int keycode);
+static int          Keyboard_wait_keypress(void);
 static int          Keyboard_readkey_unicode(int flush);
 
 
@@ -59,6 +60,7 @@ struct OSDKeyboard  Keyboard =
     { Keyboard_get_key_list },                 /* get_key_list                 */
     { Keyboard_customize_inputport_defaults }, /* customize_inputport_defaults */
     { Keyboard_is_key_pressed },               /* is_key_pressed               */
+    { Keyboard_wait_keypress },                /* wait_keypress                */
     { Keyboard_readkey_unicode },              /* readkey_unicode              */
 
     { Keyboard_OnMessage }                     /* OnMessage                    */
@@ -71,6 +73,7 @@ struct OSDKeyboard  Keyboard =
 struct tKeyboard_private
 {
     BOOL    m_bPauseKeyPressed;
+    BOOL    m_key_pressed;
     int     m_DefaultInput;
     TCHAR   m_chPressed;
 };
@@ -282,6 +285,26 @@ static int Keyboard_is_key_pressed(int keycode)
     return 0;
 }
 
+/*
+  wait for the user to press a key and return its code. This function is not
+  required to do anything, it is here so we can avoid bogging down multitasking
+  systems while using the debugger. If you don't want to or can't support this
+  function you can just return OSD_KEY_NONE.
+*/
+static int Keyboard_wait_keypress(void)
+{
+    This.m_key_pressed = FALSE;
+    while (1)
+    {
+       Sleep(1);
+       MAME32App.ProcessMessages();
+
+       if (This.m_key_pressed)
+          break;
+    }
+    return OSD_KEY_NONE;
+}
+
 static int Keyboard_readkey_unicode(int flush)
 {
     if (flush)
@@ -396,6 +419,10 @@ static void OnKey(HWND hWnd, UINT vk, BOOL fDown, int cRepeat, UINT flags)
     */
     if (vk == VK_PAUSE)
         This.m_bPauseKeyPressed = TRUE;
+
+
+    if (fDown)
+        This.m_key_pressed = TRUE;
 }
 
 static void OnChar(HWND hWnd, TCHAR ch, int cRepeat)

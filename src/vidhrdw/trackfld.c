@@ -12,6 +12,7 @@
 
 unsigned char *trackfld_scroll;
 unsigned char *trackfld_scroll2;
+static int flipscreen;
 
 
 
@@ -114,6 +115,17 @@ void trackfld_vh_stop(void)
 
 
 
+WRITE_HANDLER( trackfld_flipscreen_w )
+{
+	if (flipscreen != (data & 1))
+	{
+		flipscreen = data & 1;
+		memset(dirtybuffer,1,videoram_size);
+	}
+}
+
+
+
 /***************************************************************************
 
   Draw the game screen in the given osd_bitmap.
@@ -124,12 +136,6 @@ void trackfld_vh_stop(void)
 void trackfld_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 {
 	int offs;
-
-
-	if (full_refresh)
-	{
-		memset(dirtybuffer,1,videoram_size);
-	}
 
 
 	/* for every character in the Video RAM, check if it has been modified */
@@ -147,7 +153,7 @@ void trackfld_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 			sy = offs / 64;
 			flipx = colorram[offs] & 0x10;
 			flipy = colorram[offs] & 0x20;
-			if (flip_screen)
+			if (flipscreen)
 			{
 				sx = 63 - sx;
 				sy = 31 - sy;
@@ -170,7 +176,7 @@ void trackfld_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 		int scroll[32];
 
 
-		if (flip_screen)
+		if (flipscreen)
 		{
 			for (offs = 0;offs < 32;offs++)
 				scroll[31-offs] = 256 - (trackfld_scroll[offs] + 256 * (trackfld_scroll2[offs] & 1));
@@ -195,13 +201,13 @@ void trackfld_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 		sy = 240 - spriteram_2[offs + 1];
 		flipx = ~spriteram_2[offs] & 0x40;
 		flipy = spriteram_2[offs] & 0x80;
-		if (flip_screen)
+		if (flipscreen)
 		{
 			sy = 240 - sy;
 			flipy = !flipy;
 		}
 
-		/* Note that this adjustement must be done AFTER handling flip screen, thus */
+		/* Note that this adjustement must be done AFTER handling flipscreen, thus */
 		/* proving that this is a hardware related "feature" */
 		sy += 1;
 

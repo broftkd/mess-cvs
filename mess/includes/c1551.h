@@ -12,7 +12,7 @@ void cbm_drive_close (void);
    IO_FLOPPY,          /* type */\
    2,				   /* count */\
    "d64\0",            /* G64 later *//*file extensions */\
-   IO_RESET_NONE,	   /* reset if file changed */\
+   NULL,               /* private */\
    NULL,               /* id */\
    cbm_drive_attach_image,        /* init */\
    NULL,			   /* exit */\

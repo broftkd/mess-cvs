@@ -152,7 +152,7 @@ static UINT8 *liberatr_ctrld;
 
 static WRITE_HANDLER( liberatr_led_w )
 {
-	set_led_status(offset,~data & 0x10);
+	osd_led_w(offset, (data >> 4) & 0x01);
 }
 
 
@@ -353,7 +353,7 @@ INPUT_PORTS_END
 static struct POKEYinterface pokey_interface =
 {
 	2,				/* 2 chips */
-	FREQ_17_APPROX,	/* 1.7 MHz */
+	FREQ_17_APPROX,	/* 1.7 Mhz */
 	{ 50, 50 },
 	/* The 8 pot handlers */
 	{ 0, 0 },
@@ -370,13 +370,13 @@ static struct POKEYinterface pokey_interface =
 
 
 #define MACHINE_DRIVER(NAME)							\
-static const struct MachineDriver machine_driver_##NAME =		\
+static struct MachineDriver machine_driver_##NAME =		\
 {														\
 	/* basic machine hardware */						\
 	{													\
 		{												\
 			CPU_M6502,									\
-			1250000,		/* 1.25 MHz */				\
+			1250000,		/* 1.25 Mhz */				\
 			NAME##_readmem,NAME##_writemem,0,0,			\
 			interrupt, 4								\
 		}												\

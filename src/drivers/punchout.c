@@ -785,12 +785,9 @@ static struct GfxDecodeInfo armwrest_gfxdecodeinfo[] =
 
 static struct NESinterface nes_interface =
 {
-    1,
-    N2A03_DEFAULTCLOCK,
-	{ 50 }, 			/* mixing level */
-	{ 1 },				/* CPU number */
-	{ NULL },
-	{ NULL }
+	1,
+	{ REGION_CPU2 },
+	{ 50 },
 };
 
 /* filename for speech sample files */
@@ -819,13 +816,13 @@ static struct VLM5030interface vlm5030_interface =
 
 
 #define MACHINE_DRIVER(NAME,GFX,COLORTABLE)											\
-static const struct MachineDriver machine_driver_##NAME =									\
+static struct MachineDriver machine_driver_##NAME =									\
 {																					\
 	/* basic machine hardware */													\
 	{																				\
 		{																			\
 			CPU_Z80,																\
-			8000000/2,	/* 4 MHz */													\
+			8000000/2,	/* 4 Mhz */													\
 			readmem,writemem,readport,writeport,									\
 			nmi_interrupt,1															\
 		},																			\

@@ -22,8 +22,8 @@ static unsigned char *sharedram;
 
 int sf1_vh_start(void);
 void sf1_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh);
-WRITE_HANDLER( sf1_bgb_scroll_w );
-WRITE_HANDLER( sf1_bgm_scroll_w );
+WRITE_HANDLER( sf1_deltaxb_w );
+WRITE_HANDLER( sf1_deltaxm_w );
 WRITE_HANDLER( sf1_videoram_w );
 void sf1_active_w(int data);
 
@@ -139,8 +139,8 @@ static WRITE_HANDLER( protection_w )
 			cpu_writemem24bew_word(0xffc00c, 0xc0);
 			cpu_writemem24bew_word(0xffc00e, 0);
 
-			sf1_bgm_scroll_w(0, d1);
-			sf1_bgb_scroll_w(0, d2);
+			sf1_deltaxm_w(0, d1);
+			sf1_deltaxb_w(0, d2);
 			break;
 		}
 	case 4:
@@ -160,7 +160,7 @@ static WRITE_HANDLER( protection_w )
 				}
 				cpu_writemem24bew_word(0xffc682, d1);
 				cpu_writemem24bew_word(0xffc00e, off);
-				sf1_bgb_scroll_w(0, d1);
+				sf1_deltaxb_w(0, d1);
 			}
 			break;
 		}
@@ -268,8 +268,8 @@ static struct MemoryWriteAddress writemem[] =
 	{ 0x800000, 0x800fff, sf1_videoram_w, &videoram, &videoram_size },
 	{ 0xb00000, 0xb007ff, paletteram_xxxxRRRRGGGGBBBB_word_w, &paletteram },
 	{ 0xc00010, 0xc00011, MWA_NOP }, /* Coin counters, etc... */
-	{ 0xc00014, 0xc00015, sf1_bgm_scroll_w },
-	{ 0xc00018, 0xc00019, sf1_bgb_scroll_w },
+	{ 0xc00014, 0xc00015, sf1_deltaxm_w },
+	{ 0xc00017, 0xc00018, sf1_deltaxb_w },
 	{ 0xc0001a, 0xc0001b, active_w },
 	{ 0xc0001c, 0xc0001d, soundcmd_w },
 	{ 0xc0001e, 0xc0001f, protection_w },
@@ -308,8 +308,7 @@ static struct MemoryReadAddress sound2_readmem[] =
 /* Yes, _no_ ram */
 static struct MemoryWriteAddress sound2_writemem[] =
 {
-/*	{ 0x0000, 0xffff, MWA_ROM }, avoid cluttering up error.log */
-	{ 0x0000, 0xffff, MWA_NOP },
+	{ 0x0000, 0xffff, MWA_ROM },
 	{ -1 }
 };
 
@@ -864,7 +863,7 @@ static struct MSM5205interface msm5205_interface =
 	{ 100, 100 }
 };
 
-static const struct MachineDriver machine_driver_sf1 =
+static struct MachineDriver machine_driver_sf1 =
 {
 	{
 		{
@@ -919,7 +918,7 @@ static const struct MachineDriver machine_driver_sf1 =
 	}
 };
 
-static const struct MachineDriver machine_driver_sf1us =
+static struct MachineDriver machine_driver_sf1us =
 {
 	{
 		{
@@ -974,7 +973,7 @@ static const struct MachineDriver machine_driver_sf1us =
 	}
 };
 
-static const struct MachineDriver machine_driver_sf1jp =
+static struct MachineDriver machine_driver_sf1jp =
 {
 	{
 		{
@@ -1086,12 +1085,6 @@ ROM_START( sf1 )
 	ROM_LOAD( "sf-36.bin", 0x010000, 0x010000, 0xea16df6c )
 	ROM_LOAD( "sf-32.bin", 0x020000, 0x010000, 0x72df2bd9 )
 	ROM_LOAD( "sf-33.bin", 0x030000, 0x010000, 0x3e99d3d5 )
-
-	ROM_REGION( 0x0320, REGION_PROMS )
-	ROM_LOAD( "mb7114h.12k",  0x0000, 0x0100, 0x75af3553 )	/* unknown */
-	ROM_LOAD( "mb7114h.11h",  0x0100, 0x0100, 0xc0e56586 )	/* unknown */
-	ROM_LOAD( "mb7114h.12j",  0x0200, 0x0100, 0x4c734b64 )	/* unknown */
-	ROM_LOAD( "mmi-7603.13h", 0x0300, 0x0020, 0x06bcda53 )	/* unknown */
 ROM_END
 
 ROM_START( sf1us )
@@ -1150,12 +1143,6 @@ ROM_START( sf1us )
 	ROM_LOAD( "sf-36.bin", 0x010000, 0x010000, 0xea16df6c )
 	ROM_LOAD( "sf-32.bin", 0x020000, 0x010000, 0x72df2bd9 )
 	ROM_LOAD( "sf-33.bin", 0x030000, 0x010000, 0x3e99d3d5 )
-
-	ROM_REGION( 0x0320, REGION_PROMS )
-	ROM_LOAD( "mb7114h.12k",  0x0000, 0x0100, 0x75af3553 )	/* unknown */
-	ROM_LOAD( "mb7114h.11h",  0x0100, 0x0100, 0xc0e56586 )	/* unknown */
-	ROM_LOAD( "mb7114h.12j",  0x0200, 0x0100, 0x4c734b64 )	/* unknown */
-	ROM_LOAD( "mmi-7603.13h", 0x0300, 0x0020, 0x06bcda53 )	/* unknown */
 ROM_END
 
 ROM_START( sf1jp )
@@ -1214,12 +1201,6 @@ ROM_START( sf1jp )
 	ROM_LOAD( "sf-36.bin", 0x010000, 0x010000, 0xea16df6c )
 	ROM_LOAD( "sf-32.bin", 0x020000, 0x010000, 0x72df2bd9 )
 	ROM_LOAD( "sf-33.bin", 0x030000, 0x010000, 0x3e99d3d5 )
-
-	ROM_REGION( 0x0320, REGION_PROMS )
-	ROM_LOAD( "sfb05.bin",    0x0000, 0x0100, 0x864199ad )	/* unknown */
-	ROM_LOAD( "sfb00.bin",    0x0100, 0x0100, 0xbd3f8c5d )	/* unknown */
-	ROM_LOAD( "mb7114h.12j",  0x0200, 0x0100, 0x4c734b64 )	/* unknown */
-	ROM_LOAD( "mmi-7603.13h", 0x0300, 0x0020, 0x06bcda53 )	/* unknown */
 ROM_END
 
 

@@ -72,7 +72,7 @@ static READ_HANDLER( canyon_switches_r )
 
 WRITE_HANDLER( canyon_led_w )
 {
-	set_led_status((offset & 0x01), data & 0x01);
+	osd_led_w((offset & 0x01), data & 0x01);
 }
 
 static struct MemoryReadAddress readmem[] =
@@ -206,13 +206,13 @@ static void init_palette(unsigned char *game_palette, unsigned short *game_color
 }
 
 
-static const struct MachineDriver machine_driver_canyon =
+static struct MachineDriver machine_driver_canyon =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-            750000,        /* 0.3 MHz ???? */
+            750000,        /* 0.3 Mhz ???? */
 			readmem,writemem,0,0,
             nmi_interrupt,1
 		}
@@ -250,16 +250,14 @@ ROM_START( canyon )
 	ROM_LOAD( "9496-01.d1", 0x3800, 0x0800, 0x8be15080 )
 	ROM_RELOAD(             0xF800, 0x0800 )
 
-	ROM_REGION( 0x0400, REGION_GFX1 | REGIONFLAG_DISPOSE )
+	ROM_REGION( 0x400, REGION_GFX1 | REGIONFLAG_DISPOSE )
 	ROM_LOAD( "9492-01.n8", 0x0000, 0x0400, 0x7449f754 )
 
-	ROM_REGION( 0x0200, REGION_GFX2 | REGIONFLAG_DISPOSE )
+	ROM_REGION( 0x200, REGION_GFX2 | REGIONFLAG_DISPOSE )
 	ROM_LOAD( "9505-01.n5", 0x0000, 0x0100, 0x60507c07 )
 	ROM_LOAD( "9506-01.m5", 0x0100, 0x0100, 0x0d63396a )
-
-	ROM_REGION( 0x0100, REGION_PROMS )
-	ROM_LOAD( "9491-01.j6", 0x0000, 0x0100, 0xb8094b4c )	/* sync (not used) */
 ROM_END
+
 
 ROM_START( canbprot )
 	ROM_REGION( 0x10000, REGION_CPU1 )	/* 64k for code */
@@ -270,15 +268,12 @@ ROM_START( canbprot )
 	ROM_LOAD_NIB_HIGH( "cbp3800m.r1", 0x3800, 0x0800, 0x94246a9a )
 	ROM_RELOAD_NIB_HIGH (             0xf800, 0x0800 ) /* for 6502 vectors */
 
-	ROM_REGION( 0x0400, REGION_GFX1 | REGIONFLAG_DISPOSE )
+	ROM_REGION( 0x400, REGION_GFX1 | REGIONFLAG_DISPOSE )
 	ROM_LOAD( "9492-01.n8", 0x0000, 0x0400, 0x7449f754 )
 
-	ROM_REGION( 0x0200, REGION_GFX2 | REGIONFLAG_DISPOSE )
+	ROM_REGION( 0x200, REGION_GFX2 | REGIONFLAG_DISPOSE )
 	ROM_LOAD( "9505-01.n5", 0x0000, 0x0100, 0x60507c07 )
 	ROM_LOAD( "9506-01.m5", 0x0100, 0x0100, 0x0d63396a )
-
-	ROM_REGION( 0x0100, REGION_PROMS )
-	ROM_LOAD( "9491-01.j6", 0x0000, 0x0100, 0xb8094b4c )	/* sync (not used) */
 ROM_END
 
 

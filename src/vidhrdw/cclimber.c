@@ -20,8 +20,9 @@ unsigned char *cclimber_bigspriteram;
 unsigned char *cclimber_column_scroll;
 static unsigned char *bsdirtybuffer;
 static struct osd_bitmap *bsbitmap;
-static data_t palettebank;
-static data_t sidepanel_enabled;
+static int flipscreen[2];
+static int palettebank;
+static int sidepanel_enabled;
 static int bgpen;
 
 
@@ -307,6 +308,17 @@ void cclimber_vh_stop(void)
 
 
 
+WRITE_HANDLER( cclimber_flipscreen_w )
+{
+	if (flipscreen[offset] != (data & 1))
+	{
+		flipscreen[offset] = data & 1;
+		memset(dirtybuffer,1,videoram_size);
+	}
+}
+
+
+
 WRITE_HANDLER( cclimber_colorram_w )
 {
 	if (colorram[offset] != data)
@@ -340,14 +352,25 @@ WRITE_HANDLER( cclimber_bigsprite_videoram_w )
 
 WRITE_HANDLER( swimmer_palettebank_w )
 {
-	set_vh_global_attribute(&palettebank, data & 1);
+	if (palettebank != (data & 1))
+	{
+		palettebank = data & 1;
+		memset(dirtybuffer,1,videoram_size);
+	}
 }
 
 
 
 WRITE_HANDLER( swimmer_sidepanel_enable_w )
 {
-	set_vh_global_attribute(&sidepanel_enabled, data );
+    if (data != sidepanel_enabled)
+    {
+		sidepanel_enabled = data;
+
+		/* We only need to dirty the side panel, but this location is not */
+		/* written to very often, so we just dirty the whole screen */
+		memset(dirtybuffer,1,videoram_size);
+    }
 }
 
 
@@ -368,7 +391,7 @@ static void drawbigsprite(struct osd_bitmap *bitmap)
 	sy = 128 - cclimber_bigspriteram[2];
 	flipx = cclimber_bigspriteram[1] & 0x10;
 	flipy = cclimber_bigspriteram[1] & 0x20;
-	if (flip_screen_y)      /* only the Y direction has to be flipped */
+	if (flipscreen[1])      /* only the Y direction has to be flipped */
 	{
 		sy = 128 - sy;
 		flipy = !flipy;
@@ -401,12 +424,6 @@ void cclimber_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 	int offs;
 
 
-	if (palette_recalc() || full_refresh)
-	{
-		memset(dirtybuffer,1,videoram_size);
-		memset(bsdirtybuffer,1,cclimber_bsvideoram_size);
-	}
-
 	/* for every character in the Video RAM, check if it has been modified */
 	/* since last time and update it accordingly. */
 	for (offs = videoram_size - 1;offs >= 0;offs--)
@@ -425,12 +442,12 @@ void cclimber_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 			/* vertical flipping flips two adjacent characters */
 			if (flipy) sy ^= 1;
 
-			if (flip_screen_x)
+			if (flipscreen[0])
 			{
 				sx = 31 - sx;
 				flipx = !flipx;
 			}
-			if (flip_screen_y)
+			if (flipscreen[1])
 			{
 				sy = 31 - sy;
 				flipy = !flipy;
@@ -451,12 +468,12 @@ void cclimber_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 		int scroll[32];
 
 
-		if (flip_screen_x)
+		if (flipscreen[0])
 		{
 			for (offs = 0;offs < 32;offs++)
 			{
 				scroll[offs] = -cclimber_column_scroll[31 - offs];
-				if (flip_screen_y) scroll[offs] = -scroll[offs];
+				if (flipscreen[1]) scroll[offs] = -scroll[offs];
 			}
 		}
 		else
@@ -464,7 +481,7 @@ void cclimber_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 			for (offs = 0;offs < 32;offs++)
 			{
 				scroll[offs] = -cclimber_column_scroll[offs];
-				if (flip_screen_y) scroll[offs] = -scroll[offs];
+				if (flipscreen[1]) scroll[offs] = -scroll[offs];
 			}
 		}
 
@@ -521,12 +538,12 @@ void cclimber_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 		sy = 240 - spriteram[offs + 2];
 		flipx = spriteram[offs] & 0x40;
 		flipy = spriteram[offs] & 0x80;
-		if (flip_screen_x)
+		if (flipscreen[0])
 		{
 			sx = 240 - sx;
 			flipx = !flipx;
 		}
-		if (flip_screen_y)
+		if (flipscreen[1])
 		{
 			sy = 240 - sy;
 			flipy = !flipy;
@@ -553,7 +570,7 @@ void swimmer_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 	int offs;
 
 
-	if (palette_recalc() || full_refresh)
+	if (palette_recalc())
 	{
 		memset(dirtybuffer,1,videoram_size);
 		memset(bsdirtybuffer,1,cclimber_bsvideoram_size);
@@ -577,21 +594,21 @@ void swimmer_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 			/* vertical flipping flips two adjacent characters */
 			if (flipy) sy ^= 1;
 
-			color = (colorram[offs] & 0x0f) + 0x10 * palettebank;
-			if (sx >= 24 && sidepanel_enabled)
-			{
-			    color += 32;
-			}
-
-			if (flip_screen_x)
+			if (flipscreen[0])
 			{
 				sx = 31 - sx;
 				flipx = !flipx;
 			}
-			if (flip_screen_y)
+			if (flipscreen[1])
 			{
 				sy = 31 - sy;
 				flipy = !flipy;
+			}
+
+			color = (colorram[offs] & 0x0f) + 0x10 * palettebank;
+			if (sx >= 24 && sidepanel_enabled)
+			{
+			    color += 32;
 			}
 
 			drawgfx(tmpbitmap,Machine->gfx[0],
@@ -609,7 +626,7 @@ void swimmer_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 		int scroll[32];
 
 
-		if (flip_screen_y)
+		if (flipscreen[1])
 		{
 			for (offs = 0;offs < 32;offs++)
 				scroll[offs] = cclimber_column_scroll[31 - offs];
@@ -674,12 +691,12 @@ void swimmer_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 		sy = 240 - spriteram[offs + 2];
 		flipx = spriteram[offs] & 0x40;
 		flipy = spriteram[offs] & 0x80;
-		if (flip_screen_x)
+		if (flipscreen[0])
 		{
 			sx = 240 - sx;
 			flipx = !flipx;
 		}
-		if (flip_screen_y)
+		if (flipscreen[1])
 		{
 			sy = 240 - sy;
 			flipy = !flipy;

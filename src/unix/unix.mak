@@ -4,7 +4,7 @@
 
 # *** Comment this line to get verbose make output, for debugging build
 # problems
-QUIET = 1
+QUIET = 0
 
 
 ##############################################################################
@@ -13,7 +13,6 @@ QUIET = 1
 #note : -D__CPU_$(MY_CPU) is added automaticly later on.
 CFLAGS.i386       = -DLSB_FIRST -DX86_ASM
 CFLAGS.i386_noasm = -DLSB_FIRST
-CFLAGS.ia64       = -DLSB_FIRST -DALIGN_INTS -DALIGN_SHORTS -D__LP64__
 CFLAGS.alpha      = -DLSB_FIRST -DALIGN_INTS -DALIGN_SHORTS -D__LP64__
 CFLAGS.m68k       = 
 CFLAGS.risc       = -DALIGN_INTS -DALIGN_SHORTS 
@@ -96,14 +95,20 @@ endif
 ##############################################################################
 OBJ     = $(TARGET).obj
 
-OBJDIRS = $(OBJ) $(OBJ)/cpu $(OBJ)/sound $(OBJ)/drivers $(OBJ)/machine \
-	$(OBJ)/vidhrdw $(OBJ)/sndhrdw
-ifeq ($(TARGET),mess)
-OBJDIRS += $(OBJ)/mess $(OBJ)/mess/systems $(OBJ)/mess/machine $(OBJ)/mess/vidhrdw \
-	$(OBJ)/mess/sndhrdw $(OBJ)/mess/tools $(OBJ)/mess/formats
-endif
+OBJDIRS = $(OBJ) \
+	$(OBJ)/drivers $(OBJ)/machine $(OBJ)/vidhrdw $(OBJ)/sndhrdw \
+	$(OBJ)/cpu $(OBJ)/sound $(OBJ)/cpu/i8039 $(OBJ)/cpu/i8085 \
+	$(OBJ)/cpu/i86 $(OBJ)/cpu/m6502 $(OBJ)/cpu/m68000 $(OBJ)/cpu/m6805 \
+	$(OBJ)/cpu/m6800 $(OBJ)/cpu/m6809 $(OBJ)/cpu/s2650 $(OBJ)/cpu/t11 \
+	$(OBJ)/cpu/z80 $(OBJ)/cpu/tms34010 $(OBJ)/cpu/tms9900 \
+	$(OBJ)/cpu/z8000 $(OBJ)/cpu/tms32010 $(OBJ)/cpu/h6280 \
+	$(OBJ)/cpu/ccpu $(OBJ)/cpu/pdp1 $(OBJ)/cpu/konami $(OBJ)/cpu/nec \
+	$(OBJ)/cpu/gensync $(OBJ)/cpu/adsp2100 $(OBJ)/cpu/z80gb $(OBJ)/cpu/arm \
+	$(OBJ)/cpu/mips $(OBJ)/cpu/sc61860 \
+	$(OBJ)/mess $(OBJ)/mess/formats $(OBJ)/mess/systems $(OBJ)/mess/machine \
+	$(OBJ)/mess/vidhrdw $(OBJ)/mess/sndhrdw $(OBJ)/mess/tools
+
 IMGTOOL_OBJS = $(OBJ)/unix.$(DISPLAY_METHOD)/dirio.o
-INCLUDE_PATH = -Isrc -Imess -Isrc/unix -I$(OBJ)/cpu/m68000 -Isrc/cpu/m68000
 
 ##############################################################################
 # "Calculate" the final CFLAGS, unix CONFIG, LIBS and OBJS
@@ -112,13 +117,10 @@ ifdef ZLIB
 ZLIB    = contrib/cutzlib-1.1.3/libz.a
 endif
 
-all: maketree $(ZLIB) $(OBJDIRS) osdepend x$(TARGET).$(DISPLAY_METHOD)
+all: $(ZLIB) $(OBJDIRS) osdepend x$(TARGET).$(DISPLAY_METHOD)
 
 # CPU core include paths
 VPATH=src $(wildcard src/cpu/*)
-
-#the dirio object for imagetool
-IMGTOOL_OBJS = $(OBJ)/unix.$(DISPLAY_METHOD)/dirio.o
 
 include src/core.mak
 include src/$(TARGET).mak
@@ -131,14 +133,13 @@ MY_CFLAGS = $(CFLAGS) $(IL) $(CFLAGS.$(MY_CPU)) \
 	-Dstricmp=strcasecmp -Dstrnicmp=strncasecmp \
 	-DPI=M_PI -DUNIX -DSIGNED_SAMPLES \
 	$(COREDEFS) $(SOUNDDEFS) $(CPUDEFS) $(ASMDEFS) \
-	$(INCLUDES) -Isrc -Imess -Isrc/unix \
-	-I$(OBJ)/cpu/m68000 -Isrc/cpu/m68000
+	$(INCLUDES) -Isrc -Imess -Isrc/unix -I$(OBJ)/cpu/m68000 -Isrc/cpu/m68000
 
 MY_LIBS = $(LIBS) $(LIBS.$(ARCH)) $(LIBS.$(DISPLAY_METHOD)) -lz -lm
 
 ifdef ZLIB
 MY_CFLAGS += -Icontrib/cutzlib-1.1.3 -I../../contrib/cutzlib-1.1.3
-LDFLAGS   = -Lcontrib/cutzlib-1.1.3
+MY_LIBS   += -Lcontrib/cutzlib-1.1.3
 endif
 
 ifdef MAME_DEBUG
@@ -161,21 +162,12 @@ CONFIG  += -DSYSDEP_DSP_ESOUND `esd-config --cflags`
 MY_LIBS += `esd-config --libs`
 endif
 
-ifdef SOUND_ALSA
-CONFIG  += -DSYSDEP_DSP_ALSA 
-MY_LIBS += -lasound
-endif
-
 # Joystick drivers config
 ifdef JOY_I386
 CONFIG += -DI386_JOYSTICK
 endif
 ifdef JOY_PAD
 CONFIG += -DLIN_FM_TOWNS
-endif
-ifdef JOY_USB
-CONFIG += -DUSB_JOYSTICK
-MY_LIBS += -lusb
 endif
 
 ifdef EFENCE
@@ -192,20 +184,21 @@ OBJS  += $(subst $(OBJ)/vidhrdw/vector.o, ,$(COREOBJS)) $(DRVLIBS) \
 ##############################################################################
 x$(TARGET).$(DISPLAY_METHOD): $(OBJS)
 	$(CC_COMMENT) @echo 'Linking $@ ...'
-	$(CC_COMPILE) $(LD) $(LDFLAGS) -o $@ $(OBJS) $(MY_LIBS)
+	$(CC_COMPILE) $(LD) -o $@ $(OBJS) $(MY_LIBS)
 
 tools: $(ZLIB) $(OBJDIRS) $(TOOLS)
 
-$(sort $(OBJDIRS)):
+gamelist: all
+	./x$(TARGET).$(DISPLAY_METHOD) -listgamelistheader > doc/gamelist.$(TARGET)
+	./x$(TARGET).$(DISPLAY_METHOD) -listgamelist >> doc/gamelist.$(TARGET)
+
+$(OBJDIRS):
 	-mkdir $@
 
 xlistdev: contrib/tools/xlistdev.c
 	$(CC_COMMENT) @echo 'Compiling $< ...'
 	$(CC_COMPILE) $(CC) $(X11INC) contrib/tools/xlistdev.c -o xlistdev $(JSLIB) $(LIBS.$(ARCH)) $(LIBS.$(DISPLAY_METHOD)) -lm
 
-romcmp: $(OBJ)/romcmp.o $(OBJ)/unzip.o
-	$(CC_COMMENT) @echo Linking $@...
-	$(CC_COMPILE) $(LD) $(LDFLAGS) -o $@ $^ -lz
 
 osdepend:
 	$(CC_COMMENT) @echo 'Compiling in the unix directory...'
@@ -213,7 +206,7 @@ osdepend:
 	 ( \
 	 cd src/unix; \
 	  $(MAKE) CC="$(CC)" RANLIB="$(RANLIB)" ARCH="$(ARCH)" \
-	  DISPLAY_METHOD="$(DISPLAY_METHOD)" CFLAGS="$(CONFIG)" \
+	  DISPLAY_METHOD="$(DISPLAY_METHOD)" CFLAGS="$(CONFIG) -I../../mess" \
 	  CC_COMMENT="$(CC_COMMENT)" CC_COMPILE="$(CC_COMPILE)" \
 	  AR_OPTS="$(AR_OPTS)" OBJ="$(OBJ)" \
 	 )
@@ -237,7 +230,6 @@ $(OBJ)/%.o: src/%.c
 
 $(OBJ)/%.a:
 	$(CC_COMMENT) @echo 'Archiving $@ ...'
-	$(CC_COMPILE) rm -f $@
 	$(CC_COMPILE) ar $(AR_OPTS) $@ $^
 	$(CC_COMPILE) $(RANLIB) $@
 
@@ -269,6 +261,10 @@ $(OBJ)/cpu/m68000/68kem.o: $(OBJ)/cpu/m68000/68kem.asm
 	$(CC_COMPILE) $(ASM_STRIP) $<
 	$(CC_COMPILE) nasm $(NASM_FMT) -o $@ $<
 
+romcmp$(EXE): $(OBJ)/romcmp.o $(OBJ)/unzip.o
+	@echo Linking $@...
+	$(LD) $(LDFLAGS) $^ -lz -o $@
+
 #some tricks, since vector.o these days is display-method dependent:
 $(OBJ)/unix.$(DISPLAY_METHOD)/vector.o: src/vidhrdw/vector.c
 	$(CC_COMMENT) @echo 'Compiling $< ...'
@@ -276,29 +272,6 @@ $(OBJ)/unix.$(DISPLAY_METHOD)/vector.o: src/vidhrdw/vector.c
 
 #make sure this isn't accidently in makefile.$(OBJ):
 $(OBJ)/vidhrdw/vector.o: bla
-
-doc: doc/xmame-doc.txt doc/x$(TARGET)rc.dist doc/gamelist.$(TARGET) doc/x$(TARGET).6
-
-doc/xmame-doc.txt: doc/xmame-doc.sgml
-	cd doc; \
-	sgml2txt   -l en -p a4 -f          xmame-doc.sgml; \
-	sgml2html  -l en -p a4             xmame-doc.sgml; \
-	sgml2latex -l en -p a4 --output=ps xmame-doc.sgml; \
-	rm -f xmame-doc.lyx~
-	
-doc/x$(TARGET)rc.dist: all src/unix/xmamerc-keybinding-notes.txt
-	./x$(TARGET).$(DISPLAY_METHOD) -noloadconfig -showconfig | \
-	 grep -v loadconfig > doc/x$(TARGET)rc.dist
-	cat src/unix/xmamerc-keybinding-notes.txt >> doc/x$(TARGET)rc.dist
-	
-doc/gamelist.$(TARGET): all
-	./x$(TARGET).$(DISPLAY_METHOD) -listgamelistheader > doc/gamelist.$(TARGET)
-	./x$(TARGET).$(DISPLAY_METHOD) -listgamelist >> doc/gamelist.$(TARGET)
-
-doc/x$(TARGET).6: all src/unix/xmame.6-1 src/unix/xmame.6-3
-	cat src/unix/xmame.6-1 > doc/x$(TARGET).6
-	./x$(TARGET).$(DISPLAY_METHOD) -manhelp >> doc/x$(TARGET).6
-	cat src/unix/xmame.6-3 >> doc/x$(TARGET).6
 
 install: $(INST.$(DISPLAY_METHOD)) install-man
 	@echo x$(TARGET) for $(ARCH)-$(MY_CPU) installation completed
@@ -322,7 +295,4 @@ copycab:
 	$(INSTALL) -R cab $(XMAMEROOT)
 
 clean: 
-	rm -fr $(OBJ) x$(TARGET).* xlistdev contrib/cutzlib-1.1.3/libz.a contrib/cutzlib-1.1.3/*.o $(TARGET).dep
-#	cd makedep; make clean
-
-maketree: $(sort $(OBJDIRS))
+	rm -fr $(OBJ) x$(TARGET).* xlistdev contrib/cutzlib-1.1.3/libz.a contrib/cutzlib-1.1.3/*.o

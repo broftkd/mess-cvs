@@ -214,13 +214,13 @@ INPUT_PORTS_END
 
 
 #define MACHINE_DRIVER(GAMENAME, NUMCOLORS) 								   \
-static const struct MachineDriver machine_driver_##GAMENAME =						   \
+static struct MachineDriver machine_driver_##GAMENAME =						   \
 {																			   \
 	/* basic machine hardware */											   \
 	{																		   \
 		{																	   \
 			CPU_M6502,														   \
-			10595000/16,	/* 0.66 MHz */									   \
+			10595000/16,	/* 0.66 Mhz */									   \
 			readmem,GAMENAME##_writemem,0,0,								   \
 			astrof_interrupt,1												   \
 		}																	   \

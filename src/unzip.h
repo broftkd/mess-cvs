@@ -4,10 +4,6 @@
 #include "osd_cpu.h"
 #include <stdio.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /***************************************************************************
  * Support for retrieving files from zipfiles
  ***************************************************************************/
@@ -130,9 +126,5 @@ void unzip_cache_clear(void);
 
 /* public globals */
 extern int	gUnzipQuiet;	/* flag controls error messages */
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

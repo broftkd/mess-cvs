@@ -505,13 +505,13 @@ static struct AY8910interface wanted_ay8910_interface =
 #define wanted_vh_screenrefresh  springer_vh_screenrefresh
 
 #define DRIVER(NAME, INITMACHINE, SNDHRDW, INTERRUPT)				\
-static const struct MachineDriver machine_driver_##NAME =					\
+static struct MachineDriver machine_driver_##NAME =					\
 {																	\
 	/* basic machine hardware */									\
 	{																\
 		{															\
 			CPU_Z80,												\
-			3072000,	/* 3.072 MHz */								\
+			3072000,	/* 3.072 Mhz */								\
 			readmem,writemem,0,SNDHRDW##_writeport,					\
 			INTERRUPT,1	 	                                        \
 		}															\

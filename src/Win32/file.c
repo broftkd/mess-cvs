@@ -123,7 +123,7 @@ static char nvramfname[FILENAME_MAX] = "";
 static tDirPaths RomDirPath;
 static tDirPaths SampleDirPath;
 
-#ifdef MESS
+#ifdef MESS_PICKER
 static tDirPaths SoftwareDirPath;
 
 int GetMessSoftwarePathCount(void)
@@ -153,7 +153,7 @@ static int File_init(void)
     SetPaths(&RomDirPath,    GetRomDirs());
     SetPaths(&SampleDirPath, GetSampleDirs());
 
-#ifdef MESS
+#ifdef MESS_PICKER
     memset(&SoftwareDirPath, 0, sizeof(tDirPaths));
     SetPaths(&SoftwareDirPath, GetSoftwareDirs());
 #endif
@@ -337,10 +337,7 @@ static void *File_fopen(const char *gamename,const char *filename,int filetype,i
         
         /* only for reading */
         if (write)
-		{
-			logerror("osd_fopen: type %02x write not supported\n", filetype);
             break;
-		}
 
         if (filetype == OSD_FILETYPE_ROM)
             pDirPaths = &RomDirPath;
@@ -355,14 +352,11 @@ static void *File_fopen(const char *gamename,const char *filename,int filetype,i
             if (!found)
             {
                 sprintf(name, "%s/%s.zip", dirname, gamename);
-                if (stat(name, &stat_buffer) == 0)
+                if (load_zipped_file(name, filename, &mf->file_data, &mf->file_length) == 0)
                 {
-                    if (load_zipped_file(name, filename, &mf->file_data, &mf->file_length) == 0)
-                    {
-                        mf->access_type = ACCESS_ZIP;
-                        mf->crc = crc32(0L, mf->file_data, mf->file_length);
-                        found = 1;
-                    }
+                    mf->access_type = ACCESS_ZIP;
+                    mf->crc = crc32(0L, mf->file_data, mf->file_length);
+                    found = 1;
                 }
             }
 
@@ -431,10 +425,18 @@ static void *File_fopen(const char *gamename,const char *filename,int filetype,i
 
 		switch (imgType)
 		{
-		case PICT_SCREENSHOT:   dirname = GetImgDir();      break;
-		case PICT_FLYER:        dirname = GetFlyerDir();    break;
-		case PICT_CABINET:      dirname = GetCabinetDir();  break;
-		case PICT_MARQUEE:      dirname = GetMarqueeDir();  break;
+		case PICT_SCREENSHOT:
+			dirname = GetImgDir();
+			break;
+
+		case PICT_FLYER:
+			dirname = GetFlyerDir();
+			break;
+
+		case PICT_CABINET:
+			dirname = GetCabinetDir();
+			break;
+
 		default:
 			return 0;
 		}
@@ -483,25 +485,18 @@ static void *File_fopen(const char *gamename,const char *filename,int filetype,i
 
                 if (use_flyers)
 				{
-		            switch (GetShowPictType())
-		            {
-		            case PICT_FLYER:    sprintf(name, "%s/flyers.zip",   dirname); break;
-		            case PICT_CABINET:  sprintf(name, "%s/cabinets.zip", dirname); break;
-		            case PICT_MARQUEE:  sprintf(name, "%s/marquees.zip", dirname); break;
-		            default:
-                        assert(FALSE);
-		            }
+					if (GetShowPictType() == PICT_FLYER)
+						sprintf(name, "%s/flyers.zip", dirname);
+					else
+						sprintf(name, "%s/cabinets.zip", dirname);
 				}
                 else
                     sprintf(name, "%s/snap.zip", dirname);
 
-                if (stat(name, &stat_buffer) == 0)
+                if (load_zipped_file(name, imagename, &mf->file_data, &mf->file_length) == 0)
                 {
-                    if (load_zipped_file(name, imagename, &mf->file_data, &mf->file_length) == 0)
-                    {
-                        found = 1;
-                        break;
-                    }
+                    found = 1;
+                    break;
                 }
             }
 
@@ -513,18 +508,13 @@ static void *File_fopen(const char *gamename,const char *filename,int filetype,i
                 /* Try ZipMagic in subfolder */
                 if (use_flyers)
                 {
-		            switch (GetShowPictType())
-		            {
-		            case PICT_FLYER:    sprintf(name, "%s/flyers.zip/%s.%s", dirname, gamename, pic_format[i]);   break;
-		            case PICT_CABINET:  sprintf(name, "%s/cabinets.zip/%s.%s", dirname, gamename, pic_format[i]); break;
-		            case PICT_MARQUEE:  sprintf(name, "%s/marquees.zip/%s.%s", dirname, gamename, pic_format[i]); break;
-		            default:
-			            assert(FALSE);
-		            }
+                    if (GetShowPictType() == PICT_FLYER)
+                        sprintf(name, "%s/flyers.zip/%s.%s", dirname, gamename, pic_format[i]);
+                    else
+                        sprintf(name, "%s/cabinets.zip/%s.%s", dirname, gamename, pic_format[i]);
                 }
                 else
                     sprintf(name, "%s/snap.zip/%s.%s", dirname, gamename, pic_format[i]);
-
                 mf->fptr = fopen(name, "rb");
                 mf->access_type = ACCESS_FILE;
                 if ((found = mf->fptr != 0) != 0)
@@ -641,11 +631,8 @@ static void *File_fopen(const char *gamename,const char *filename,int filetype,i
                 mf->access_type = ACCESS_ZIP;
                 sprintf(name, "%s.%s", gamename, typestr);
                 sprintf(subdir, "%s.zip", typestr);
-                if (stat(subdir, &stat_buffer) == 0)
-                {
-                    if (load_zipped_file(subdir, name, &mf->file_data, &mf->file_length) == 0)
-                        found = 1;
-                }
+                if (load_zipped_file(subdir, name, &mf->file_data, &mf->file_length) == 0)
+                    found = 1;
             }
         }
 
@@ -679,16 +666,13 @@ static void *File_fopen(const char *gamename,const char *filename,int filetype,i
                 if (write == 0)
                 {
                     sprintf(name, "%s.inp", fname);
-                    if (stat(gamename, &stat_buffer) == 0)
+                    if (load_zipped_file(gamename,
+                                         name,
+                                         &mf->file_data,
+                                         &mf->file_length) == 0)
                     {
-                        if (load_zipped_file(gamename,
-                                             name,
-                                             &mf->file_data,
-                                             &mf->file_length) == 0)
-                        {
-                            mf->access_type = ACCESS_ZIP;
-                            found = 1;
-                        }
+                        mf->access_type = ACCESS_ZIP;
+                        found = 1;
                     }
                 }
             }
@@ -745,11 +729,8 @@ static void *File_fopen(const char *gamename,const char *filename,int filetype,i
             /* try .zip file */
             sprintf(name, "%s/artwork.zip", GetArtDir());
             mf->access_type = ACCESS_ZIP;
-            if (stat(name, &stat_buffer) == 0)
-            {
-                if (load_zipped_file(name, filename, &mf->file_data, &mf->file_length) == 0)
-                    found = 1;
-            }
+            if (load_zipped_file(name, filename, &mf->file_data, &mf->file_length) == 0)
+                found = 1;
         }
         else
             found = mf->fptr != 0;

@@ -9,7 +9,7 @@
 #include "sound/streams.h"
 #include "mame.h"
 
-#define VERBOSE_DBG 1
+#define VERBOSE_DBG 0
 #include "includes/cbm.h"
 #include "includes/c16.h"
 #include "includes/ted7360.h"
@@ -64,9 +64,8 @@ static INT8 *noise;
 
 void ted7360_soundport_w (int offset, int data)
 {
-	stream_update(channel,0);
 	/*    int old=ted7360[offset]; */
-	DBG_LOG (1, "sound", ("write %.2x %.2x\n", offset, data));
+	DBG_LOG (1, "sound", (errorlog, "write %.2x %.2x\n", offset, data));
 	switch (offset)
 	{
 	case 0xe:
@@ -89,7 +88,7 @@ void ted7360_soundport_w (int offset, int data)
 			tone2samples = 1;
 		noisesamples = (int) ((double) NOISE_FREQUENCY_MAX * options.samplerate
 							  * NOISE_BUFFER_SIZE_SEC / NOISE_FREQUENCY);
-		DBG_LOG (1, "ted7360", ("noise %.2x %d sample:%d\n",
+		DBG_LOG (1, "vic6560", (errorlog, "noise %.2x %d sample:%d\n",
 								data, NOISE_FREQUENCY, noisesamples));
 		if (!NOISE_ON || ((double) noisepos / noisesamples >= 1.0))
 		{
@@ -102,6 +101,7 @@ void ted7360_soundport_w (int offset, int data)
 			noisepos = 0;
 		break;
 	}
+	/*    stream_update(channel,0); */
 }
 
 /************************************/
@@ -189,14 +189,14 @@ int ted7360_custom_start (const struct MachineSound *driver)
 
 	channel = stream_init ("ted7360", 50, options.samplerate, 0, ted7360_update);
 
-	tone = (INT8*)malloc (tonesize * sizeof (tone[0]));
+	tone = malloc (tonesize * sizeof (tone[0]));
 	if (!tone)
 		return 1;
 
 	/* buffer for fastest played sample for 5 second
 	 * so we have enough data for min 5 second */
 	noisesize = NOISE_FREQUENCY_MAX * NOISE_BUFFER_SIZE_SEC;
-	noise = (INT8*)malloc (noisesize * sizeof (noise[0]));
+	noise = malloc (noisesize * sizeof (noise[0]));
 	if (!noise)
 	{
 		free (tone);
@@ -205,7 +205,7 @@ int ted7360_custom_start (const struct MachineSound *driver)
 
 	for (i = 0; i < tonesize; i++)
 	{
-		tone[i] = (INT16)(sin (2 * M_PI * i / tonesize) * 127 + 0.5);
+		tone[i] = (sin (2 * M_PI * i / tonesize) * 127 + 0.5);
 	}
 
 	{

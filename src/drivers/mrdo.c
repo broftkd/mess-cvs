@@ -207,13 +207,13 @@ static struct SN76496interface sn76496_interface =
 
 
 
-static const struct MachineDriver machine_driver_mrdo =
+static struct MachineDriver machine_driver_mrdo =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			4000000,	/* 4 MHz */
+			4000000,	/* 4 Mhz */
 			readmem,writemem,0,0,
 			interrupt,1
 		}
@@ -271,11 +271,10 @@ ROM_START( mrdo )
 	ROM_LOAD( "h5-05.bin",    0x0000, 0x1000, 0xe1218cc5 )
 	ROM_LOAD( "k5-06.bin",    0x1000, 0x1000, 0xb1f68b04 )
 
-	ROM_REGION( 0x0080, REGION_PROMS )
+	ROM_REGION( 0x0060, REGION_PROMS )
 	ROM_LOAD( "u02--2.bin",   0x0000, 0x0020, 0x238a65d7 )	/* palette (high bits) */
 	ROM_LOAD( "t02--3.bin",   0x0020, 0x0020, 0xae263dc0 )	/* palette (low bits) */
 	ROM_LOAD( "f10--1.bin",   0x0040, 0x0020, 0x16ee4ca2 )	/* sprite color lookup table */
-	ROM_LOAD( "j10--4.bin",   0x0060, 0x0020, 0xff7fe284 )	/* timing (not used) */
 ROM_END
 
 ROM_START( mrdot )
@@ -297,11 +296,10 @@ ROM_START( mrdot )
 	ROM_LOAD( "h5-05.bin",    0x0000, 0x1000, 0xe1218cc5 )
 	ROM_LOAD( "k5-06.bin",    0x1000, 0x1000, 0xb1f68b04 )
 
-	ROM_REGION( 0x0080, REGION_PROMS )
+	ROM_REGION( 0x0060, REGION_PROMS )
 	ROM_LOAD( "u02--2.bin",   0x0000, 0x0020, 0x238a65d7 )	/* palette (high bits) */
 	ROM_LOAD( "t02--3.bin",   0x0020, 0x0020, 0xae263dc0 )	/* palette (low bits) */
 	ROM_LOAD( "f10--1.bin",   0x0040, 0x0020, 0x16ee4ca2 )	/* sprite color lookup table */
-	ROM_LOAD( "j10--4.bin",   0x0060, 0x0020, 0xff7fe284 )	/* timing (not used) */
 ROM_END
 
 ROM_START( mrdofix )
@@ -323,11 +321,10 @@ ROM_START( mrdofix )
 	ROM_LOAD( "h5-05.bin",    0x0000, 0x1000, 0xe1218cc5 )
 	ROM_LOAD( "k5-06.bin",    0x1000, 0x1000, 0xb1f68b04 )
 
-	ROM_REGION( 0x0080, REGION_PROMS )
-	ROM_LOAD( "u02--2.bin",   0x0000, 0x0020, 0x238a65d7 )	/* palette (high bits) */
-	ROM_LOAD( "t02--3.bin",   0x0020, 0x0020, 0xae263dc0 )	/* palette (low bits) */
-	ROM_LOAD( "f10--1.bin",   0x0040, 0x0020, 0x16ee4ca2 )	/* sprite color lookup table */
-	ROM_LOAD( "j10--4.bin",   0x0060, 0x0020, 0xff7fe284 )	/* timing (not used) */
+	ROM_REGION( 0x0060, REGION_PROMS )
+	ROM_LOAD( "u02--2.bin",   0x0000, 0x0020, 0x238a65d7 )  /* palette (high bits) */
+	ROM_LOAD( "t02--3.bin",   0x0020, 0x0020, 0xae263dc0 )  /* palette (low bits) */
+	ROM_LOAD( "f10--1.bin",   0x0040, 0x0020, 0x16ee4ca2 )  /* sprite color lookup table */
 ROM_END
 
 ROM_START( mrlo )
@@ -349,11 +346,10 @@ ROM_START( mrlo )
 	ROM_LOAD( "h5-05.bin",    0x0000, 0x1000, 0xe1218cc5 )
 	ROM_LOAD( "k5-06.bin",    0x1000, 0x1000, 0xb1f68b04 )
 
-	ROM_REGION( 0x0080, REGION_PROMS )
+	ROM_REGION( 0x0060, REGION_PROMS )
 	ROM_LOAD( "u02--2.bin",   0x0000, 0x0020, 0x238a65d7 )	/* palette (high bits) */
 	ROM_LOAD( "t02--3.bin",   0x0020, 0x0020, 0xae263dc0 )	/* palette (low bits) */
 	ROM_LOAD( "f10--1.bin",   0x0040, 0x0020, 0x16ee4ca2 )	/* sprite color lookup table */
-	ROM_LOAD( "j10--4.bin",   0x0060, 0x0020, 0xff7fe284 )	/* timing (not used) */
 ROM_END
 
 ROM_START( mrdu )
@@ -375,11 +371,10 @@ ROM_START( mrdu )
 	ROM_LOAD( "h5-05.bin",    0x0000, 0x1000, 0xe1218cc5 )
 	ROM_LOAD( "k5-06.bin",    0x1000, 0x1000, 0xb1f68b04 )
 
-	ROM_REGION( 0x0080, REGION_PROMS )
+	ROM_REGION( 0x0060, REGION_PROMS )
 	ROM_LOAD( "u02--2.bin",   0x0000, 0x0020, 0x238a65d7 )	/* palette (high bits) */
 	ROM_LOAD( "t02--3.bin",   0x0020, 0x0020, 0xae263dc0 )	/* palette (low bits) */
 	ROM_LOAD( "f10--1.bin",   0x0040, 0x0020, 0x16ee4ca2 )	/* sprite color lookup table */
-	ROM_LOAD( "j10--4.bin",   0x0060, 0x0020, 0xff7fe284 )	/* timing (not used) */
 ROM_END
 
 ROM_START( mrdoy )
@@ -401,11 +396,10 @@ ROM_START( mrdoy )
 	ROM_LOAD( "dosnow.5",     0x0000, 0x1000, 0x7662d828 )
 	ROM_LOAD( "dosnow.6",     0x1000, 0x1000, 0x413f88d1 )
 
-	ROM_REGION( 0x0080, REGION_PROMS )
+	ROM_REGION( 0x0060, REGION_PROMS )
 	ROM_LOAD( "u02--2.bin",   0x0000, 0x0020, 0x238a65d7 )	/* palette (high bits) */
 	ROM_LOAD( "t02--3.bin",   0x0020, 0x0020, 0xae263dc0 )	/* palette (low bits) */
 	ROM_LOAD( "f10--1.bin",   0x0040, 0x0020, 0x16ee4ca2 )	/* sprite color lookup table */
-	ROM_LOAD( "j10--4.bin",   0x0060, 0x0020, 0xff7fe284 )	/* timing (not used) */
 ROM_END
 
 ROM_START( yankeedo )
@@ -427,11 +421,10 @@ ROM_START( yankeedo )
 	ROM_LOAD( "yd_d5.h5",     0x0000, 0x1000, 0xf530b79b )
 	ROM_LOAD( "yd_d6.k5",     0x1000, 0x1000, 0x790579aa )
 
-	ROM_REGION( 0x0080, REGION_PROMS )
+	ROM_REGION( 0x0060, REGION_PROMS )
 	ROM_LOAD( "u02--2.bin",   0x0000, 0x0020, 0x238a65d7 )	/* palette (high bits) */
 	ROM_LOAD( "t02--3.bin",   0x0020, 0x0020, 0xae263dc0 )	/* palette (low bits) */
 	ROM_LOAD( "f10--1.bin",   0x0040, 0x0020, 0x16ee4ca2 )	/* sprite color lookup table */
-	ROM_LOAD( "j10--4.bin",   0x0060, 0x0020, 0xff7fe284 )	/* timing (not used) */
 ROM_END
 
 

@@ -274,19 +274,19 @@ static struct YM2203interface ym2203_interface =
 
 
 
-static const struct MachineDriver machine_driver_goindol =
+static struct MachineDriver machine_driver_goindol =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			6000000,        /* 6 MHz (?) */
+			6000000,        /* 6 Mhz (?) */
 			readmem,writemem,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,	/* 4 MHz (?) */
+			4000000,	/* 4 Mhz (?) */
 			sound_readmem,sound_writemem,0,0,
 			interrupt,4
 		}

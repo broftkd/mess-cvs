@@ -219,14 +219,14 @@ int sqix_interrupt(void)
 		return 0;
 }
 
-static const struct MachineDriver machine_driver_superqix =
+static struct MachineDriver machine_driver_superqix =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80 | CPU_16BIT_PORT,
-//			10000000,	/* 10 MHz ? */
-			6000000,	/* 6 MHz ? */
+//			10000000,	/* 10 Mhz ? */
+			6000000,	/* 6 Mhz ? */
 			readmem,writemem,readport,writeport,
 //			nmi_interrupt,3	/* ??? */
 			sqix_interrupt,6	/* ??? */
@@ -242,7 +242,7 @@ static const struct MachineDriver machine_driver_superqix =
 	256, 256,
 	0,
 
-	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE,
+	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE,// | VIDEO_SUPPORTS_DIRTY,
 	0,
 	superqix_vh_start,
 	superqix_vh_stop,

@@ -8,7 +8,6 @@ Driver by Manuel Abadia <manu@teleline.es>
 
 #include "driver.h"
 #include "cpu/m6809/m6809.h"
-#include "cpu/hd6309/hd6309.h"
 #include "vidhrdw/generic.h"
 #include "vidhrdw/konamiic.h"
 
@@ -273,7 +272,7 @@ static struct VLM5030interface vlm5030_interface =
 	0
 };
 
-static const struct MachineDriver machine_driver_rockrage =
+static struct MachineDriver machine_driver_rockrage =
 {
 	/* basic machine hardware */
 	{

@@ -9,10 +9,6 @@
 #ifndef DRAWGFX_H
 #define DRAWGFX_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define MAX_GFX_PLANES 8
 #define MAX_GFX_SIZE 64
 
@@ -21,10 +17,6 @@ extern "C" {
 #define FRAC_NUM(offset) (((offset) >> 27) & 0x0f)
 #define FRAC_DEN(offset) (((offset) >> 23) & 0x0f)
 #define FRAC_OFFSET(offset) ((offset) & 0x007fffff)
-
-#define STEP4(START,STEP)  (START),(START)+1*(STEP),(START)+2*(STEP),(START)+3*(STEP)
-#define STEP8(START,STEP)  STEP4(START,STEP),STEP4((START)+4*(STEP),STEP)
-#define STEP16(START,STEP) STEP8(START,STEP),STEP8((START)+8*(STEP),STEP)
 
 
 struct GfxLayout
@@ -178,9 +170,5 @@ void pdrawgfxzoom( struct osd_bitmap *dest_bmp,const struct GfxElement *gfx,
 		unsigned int code,unsigned int color,int flipx,int flipy,int sx,int sy,
 		const struct rectangle *clip,int transparency,int transparent_color,int scalex,int scaley,
 		UINT32 priority_mask);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

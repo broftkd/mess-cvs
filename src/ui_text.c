@@ -113,7 +113,6 @@ const char * default_text[] =
 	"Image Information",
 	"File Manager",
 	"Tape Control",
-	"Disk Control",
 #endif
 	"Cheat",
 	"Memory Card",
@@ -322,4 +321,3 @@ const char * ui_getstring (int string_num)
 		/* That failed, use the default strings */
 		return default_text[string_num];
 }
-

@@ -10,8 +10,8 @@
 #include "vidhrdw/generic.h"
 
 
-static data_t gfx_bank,palette_bank;
-static int grid_on;
+static int flipscreen;
+static int gfx_bank,palette_bank,grid_on;
 static const unsigned char *color_codes;
 
 
@@ -154,12 +154,20 @@ int dkong_vh_start(void)
 
 WRITE_HANDLER( dkongjr_gfxbank_w )
 {
-	set_vh_global_attribute(&gfx_bank, data & 1);
+	if (gfx_bank != (data & 1))
+	{
+		gfx_bank = data & 1;
+		memset(dirtybuffer,1,videoram_size);
+	}
 }
 
 WRITE_HANDLER( dkong3_gfxbank_w )
 {
-	set_vh_global_attribute(&gfx_bank, ~data & 1);
+	if (gfx_bank != (~data & 1))
+	{
+		gfx_bank = ~data & 1;
+		memset(dirtybuffer,1,videoram_size);
+	}
 }
 
 
@@ -175,7 +183,11 @@ WRITE_HANDLER( dkong_palettebank_w )
 	else
 		newbank &= ~(1 << offset);
 
-	set_vh_global_attribute(&palette_bank, newbank);
+	if (palette_bank != newbank)
+	{
+		palette_bank = newbank;
+		memset(dirtybuffer,1,videoram_size);
+	}
 }
 
 WRITE_HANDLER( radarscp_grid_enable_w )
@@ -196,7 +208,11 @@ WRITE_HANDLER( radarscp_grid_color_w )
 
 WRITE_HANDLER( dkong_flipscreen_w )
 {
-	flip_screen_w(0,~data & 1);
+	if (flipscreen != (~data & 1))
+	{
+		flipscreen = ~data & 1;
+		memset(dirtybuffer,1,videoram_size);
+	}
 }
 
 /***************************************************************************
@@ -230,7 +246,7 @@ static void draw_tiles(struct osd_bitmap *bitmap)
 			/* retrieve the character color from the PROM */
 			color = (color_codes[offs % 32 + 32 * (offs / 32 / 4)] & 0x0f) + 0x10 * palette_bank;
 
-			if (flip_screen)
+			if (flipscreen)
 			{
 				sx = 31 - sx;
 				sy = 31 - sy;
@@ -238,7 +254,7 @@ static void draw_tiles(struct osd_bitmap *bitmap)
 
 			drawgfx(tmpbitmap,Machine->gfx[0],
 					charcode,color,
-					flip_screen,flip_screen,
+					flipscreen,flipscreen,
 					8*sx,8*sy,
 					&Machine->visible_area,TRANSPARENCY_NONE,0);
 		}
@@ -269,7 +285,7 @@ static void draw_sprites(struct osd_bitmap *bitmap)
 			x = spriteram[offs + 3] - 8;
 			y = 240 - spriteram[offs] + 7;
 
-			if (flip_screen)
+			if (flipscreen)
 			{
 				x = 240 - x;
 				y = 240 - y;
@@ -315,7 +331,7 @@ static void draw_grid(struct osd_bitmap *bitmap)
 	const unsigned char *table = memory_region(REGION_GFX3);
 	int x,y,counter;
 
-	counter = flip_screen ? 0x000 : 0x400;
+	counter = flipscreen ? 0x000 : 0x400;
 
 	x = Machine->visible_area.min_x;
 	y = Machine->visible_area.min_y;
@@ -345,7 +361,7 @@ void radarscp_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 {
 	palette_change_color(256,0xff,0x00,0x00);	/* stars */
 
-	if (palette_recalc() || full_refresh)
+	if (palette_recalc())
 		memset(dirtybuffer,1,videoram_size);
 
 	draw_tiles(bitmap);
@@ -355,9 +371,6 @@ void radarscp_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 
 void dkong_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 {
-	if (full_refresh)
-		memset(dirtybuffer,1,videoram_size);
-
 	draw_tiles(bitmap);
 	draw_sprites(bitmap);
 }

@@ -45,7 +45,7 @@ int c1551_config(int id, int mode, C1551_CONFIG*config);
    IO_FLOPPY,          /* type */\
    1,                                      /* count */\
    "d64\0",            /* G64 later *//*file extensions */\
-   IO_RESET_CPU,       /* reset if file changed */\
+   NULL,               /* private */\
    NULL,               /* id */\
    vc1541_init,        /* init */\
    vc1541_exit,        /* exit */\
@@ -67,7 +67,7 @@ int c1551_config(int id, int mode, C1551_CONFIG*config);
    IO_FLOPPY,          /* type */\
    1,                                      /* count */\
    "d64\0",            /* G64 later *//*file extensions */\
-   IO_RESET_CPU,       /* reset if file changed */\
+   NULL,               /* private */\
    NULL,               /* id */\
    vc1541_init,        /* init */\
    vc1541_exit,        /* exit */\
@@ -87,7 +87,7 @@ int c1551_config(int id, int mode, C1551_CONFIG*config);
    IO_FLOPPY,          /* type */\
    1,                                      /* count */\
    "d64\0",            /* G64 later *//*file extensions */\
-   IO_RESET_CPU,       /* reset if file changed */\
+   NULL,               /* private */\
    NULL,               /* id */\
    vc1541_init,        /* init */\
    vc1541_exit,        /* exit */\
@@ -121,7 +121,7 @@ int c1551_config(int id, int mode, C1551_CONFIG*config);
 			dolphin_readmem,dolphin_writemem,\
 			0,0,\
 			0,0,\
-		  }
+       	  }
 
 #define C1551_CPU \
           {\
@@ -258,3 +258,4 @@ int c1551x_0_read_data (void);
 void c1551x_0_write_handshake (int data);
 int c1551x_0_read_handshake (void);
 int c1551x_0_read_status (void);
+

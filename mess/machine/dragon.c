@@ -61,12 +61,10 @@
 #include "driver.h"
 #include "cpu/m6809/m6809.h"
 #include "machine/6821pia.h"
-#include "includes/wd179x.h"
+#include "machine/wd179x.h"
 #include "vidhrdw/m6847.h"
 #include "includes/dragon.h"
 #include "formats/cocopak.h"
-#include "formats/cococas.h"
-#include "includes/basicdsk.h"
 
 static UINT8 *coco_rom;
 static int coco3_enable_64k;
@@ -107,9 +105,8 @@ static void coco3_pia1_firq_b(int state);
 #define LOG_INT_MASKING	0
 #define LOG_INT_TMR		0
 #define LOG_INT_COCO3	0
-#define LOG_GIME		0
+#define LOG_GIME		1
 #define LOG_MMU			0
-#define LOG_OS9         0
 
 #define COCO_CPU_SPEED	(TIME_IN_HZ(894886))
 
@@ -308,8 +305,6 @@ static void pak_load_trailer_callback(int param)
 static int generic_rom_load(int id, UINT8 *rambase, UINT8 *rombase, UINT8 *pakbase)
 {
 	void *fp;
-
-	cart_inserted = 0;
 
 	fp = image_fopen (IO_SNAPSHOT, id, OSD_FILETYPE_IMAGE_R, 0);
 	if (fp)
@@ -605,9 +600,9 @@ static WRITE_HANDLER ( d_pia1_cb2_w )
 #endif
 
 	status = device_status(IO_CASSETTE, 0, -1);
-	status &= ~WAVE_STATUS_MUTED;
+	status &= ~2;
 	if (!data)
-		status |= WAVE_STATUS_MUTED;
+		status |= 2;
 	device_status(IO_CASSETTE, 0, status);
 
 	sound_mux = data;
@@ -626,7 +621,7 @@ static WRITE_HANDLER ( d_pia1_pa_w )
 	if (sound_mux)
 		DAC_data_w(0,d_dac);
 	else
-		device_output(IO_CASSETTE, 0, ((int) d_dac - 0x80) * 0x100);
+		device_output(IO_CASSETTE, 0, ((int) d_dac - 0x80) * 0x102);
 
 }
 
@@ -660,9 +655,9 @@ static WRITE_HANDLER ( d_pia1_ca2_w )
 	if (tape_motor ^ data)
 	{
 		status = device_status(IO_CASSETTE, 0, -1);
-		status &= ~WAVE_STATUS_MOTOR_INHIBIT;
-		if (!data)
-			status |= WAVE_STATUS_MOTOR_INHIBIT;
+		status &= ~1;
+		if (data)
+			status |= 1;
 		device_status(IO_CASSETTE, 0, status);
 		tape_motor = data;
 	}
@@ -730,14 +725,6 @@ static WRITE_HANDLER ( d_pia0_pb_w )
 READ_HANDLER(dragon_mapped_irq_r)
 {
 	return coco_rom[0x3ff0 + offset];
-}
-
-READ_HANDLER(coco3_mapped_irq_r)
-{
-	/* NPW 28-Aug-2000 - I discovered this when we moved over to the new ROMset
-	 * and Tim confirmed this
-	 */
-	return coco_rom[0x7ff0 + offset];
 }
 
 WRITE_HANDLER(dragon_sam_speedctrl)
@@ -1051,94 +1038,6 @@ int coco3_mmu_translate(int block, int offset)
 	return (coco3_mmu_lookup(block, forceram) * 0x2000) + offset;
 }
 
-#if 0
-/* We don't need this code for now */
-
-int coco3_mmu_translatelogicaladdr(int logicaladdr)
-{
-	int block;;
-
-	if (logicaladdr >= 0xfe00) {
-		block = 8;
-		logicaladdr -= 0xfe00;
-	}
-	else {
-		block = logicaladdr / 0x2000;
-		logicaladdr %= 0x2000;
-	}
-
-	return coco3_mmu_translate(block, logicaladdr);
-}
-
-static int calc_nextlogicaladdr(int logicaladdr, int len)
-{
-	int nextlogicaladdr;
-
-	if (logicaladdr < 0xe000)
-		nextlogicaladdr = logicaladdr - (logicaladdr % 0x2000) + 0x2000;
-	else if (logicaladdr < 0xfe00)
-		nextlogicaladdr = 0xfe00;
-	else
-		nextlogicaladdr = 0xffff;
-
-	if (nextlogicaladdr > (logicaladdr + len))
-		nextlogicaladdr = logicaladdr + len;
-
-	return nextlogicaladdr;
-}
-
-int coco3_mmu_ismemorycontiguous(int logicaladdr, int len)
-{
-	int physicalbase;
-	int nextlogicaladdr;
-	int nextphysicalbase;
-	int difference;
-
-	if ((logicaladdr + len) > 0xff00)
-		len -= (logicaladdr + len) - 0xff00;
-
-	physicalbase = coco3_mmu_translatelogicaladdr(logicaladdr);
-
-	while(len) {
-		nextlogicaladdr = calc_nextlogicaladdr(logicaladdr, len);
-
-		nextphysicalbase = coco3_mmu_translatelogicaladdr(nextlogicaladdr - 1);
-		if (nextphysicalbase != (physicalbase + nextlogicaladdr - logicaladdr - 1))
-			return 0;
-
-		difference = nextphysicalbase - physicalbase;
-		len -= difference;
-		logicaladdr += difference;
-		physicalbase = nextphysicalbase;
-	}
-	return 1;
-}
-
-void coco3_mmu_readlogicalmemory(UINT8 *buffer, int logicaladdr, int len)
-{
-	UINT8 *RAM = memory_region(REGION_CPU1);
-	int physicalbase;
-	int nextlogicaladdr;
-	int difference;
-
-	if ((logicaladdr + len) > 0xff00)
-		len -= (logicaladdr + len) - 0xff00;
-
-	while(len) {
-		physicalbase = coco3_mmu_translatelogicaladdr(logicaladdr);
-
-		nextlogicaladdr = calc_nextlogicaladdr(logicaladdr, len);
-
-		difference = nextlogicaladdr - logicaladdr;
-
-		memcpy(buffer, &RAM[physicalbase], difference);
-		buffer += difference;
-		len -= difference;
-		logicaladdr += difference;
-	}
-}
-#endif
-
 static void coco3_mmu_update(int lowblock, int hiblock)
 {
 	UINT8 *RAM = memory_region(REGION_CPU1);
@@ -1228,7 +1127,7 @@ WRITE_HANDLER(coco3_gime_w)
 	coco3_gimereg[offset] = data;
 
 #if LOG_GIME
-	logerror("CoCo3 GIME: $%04x <== $%02x pc=$%04x\n", offset + 0xff90, data, cpu_get_pc());
+	logerror("CoCo3 GIME: $%04x <== $%02x pc=$%04x\n", offset + 0xff90, data, m6809_get_pc());
 #endif
 
 	/* Features marked with '!' are not yet implemented */
@@ -1372,6 +1271,195 @@ static void autocenter_init(int dipport, int dipmask)
   Cassette support
 ***************************************************************************/
 
+#define WAVEENTRY_HIGH  32767
+#define WAVEENTRY_LOW   -32768
+#define WAVEENTRY_NULL  0
+#define WAVESAMPLES_BYTE    8*4
+#define WAVESAMPLES_HEADER  3000
+#define WAVESAMPLES_TRAILER 1000
+
+static INT16* fill_wave_byte(INT16 *p, UINT8 b)
+{
+    int i;
+    /* Each byte in a .CAS file is read bit by bit, starting at bit 0, and
+     * ending with bit 7.  High bits are decoded into {l,h} (a 2400hz pulse)
+     * and low bits are decoded into {l,l,h,h} (a 1200hz pulse)
+     */
+    for (i = 0; i < 8; i++) {
+        *(p++) = WAVEENTRY_LOW;
+        if (((b >> i) & 0x01) == 0) {
+            *(p++) = WAVEENTRY_LOW;
+            *(p++) = WAVEENTRY_HIGH;
+        }
+        *(p++) = WAVEENTRY_HIGH;
+    }
+    return p;
+}
+
+static int get_cas_block(const UINT8 *bytes, int length, UINT8 *block, int *blocklen)
+{
+	int i, j, state, phase=0;
+	UINT8 newb, b;
+	UINT8 block_length=0, block_checksum=0;
+
+	b = 0x00;
+	state = 0;
+
+	for (i = 0; i < length; i++) {
+		newb = bytes[i];
+		for (j = 0; j < 8; j++) {
+			b >>= 1;
+			if (newb & 1)
+				b |= 0x80;
+			newb >>= 1;
+
+			if (state == 0) {
+				/* Searching for a block */
+				if (b == 0x3c) {
+					/* Found one! */
+					phase = j;
+					state = 1;
+				}
+			}
+			else if (j == phase) {
+				switch(state) {
+				case 1:
+					/* Found file type */
+					block_checksum = b;
+					state++;
+					break;
+
+				case 2:
+					/* Found file size */
+					block_length = b;
+					block_checksum += b;
+					state++;
+					*blocklen = ((int) block_length) + 3;
+					break;
+
+				case 3:
+					/* Data byte */
+					if (block_length) {
+						block_length--;
+						block_checksum += b;
+					}
+					else {
+						/* End of block! check the checksum */
+						if (b != block_checksum) {
+							/* Checksum error */
+							return 0;
+						}
+						/* We got a block! Return new position */
+						*block = b;
+						return i + 1;
+					}
+					break;
+
+				}
+				*(block++) = b;
+			}
+		}
+	}
+	/* Couldn't find a block */
+	return 0;
+}
+
+static int wave_size;
+
+static int coco_cassette_fill_wave(INT16 *buffer, int length, UINT8 *bytes)
+{
+	int i, usedbytes, blocklen, position;
+	UINT8 last_blocktype;
+    INT16 *p;
+	UINT8 block[258];	/* 255 bytes per block + 3 (type, length, checksum) */
+
+    p = buffer;
+
+    if (bytes == CODE_HEADER) {
+        for (i = 0; i < WAVESAMPLES_HEADER; i++)
+            *(p++) = WAVEENTRY_NULL;
+    }
+    else if (bytes == CODE_TRAILER) {
+        /* Fill in one magic byte; then the empty trailer */
+        for (i = fill_wave_byte(p, 0x55) - p; i < WAVESAMPLES_TRAILER; i++)
+            *(p++) = WAVEENTRY_NULL;
+    }
+    else {
+		/* This is the actual code that processes the CAS data.  CAS files are
+		 * a problem because they are a legacy of previous CoCo emulators, and
+		 * most of these emulators patch the system as a shortcut.  In doing
+		 * so, they make the CoCo more tolerant of short headers and lack of
+		 * delays between blocks.  This legacy is reflected in most CAS files
+		 * in use, and thus presents a problem for a pure hardware emulation
+		 * like MESS.
+		 *
+		 * One alternative is to preprocess the data on the CAS, file by file,
+		 * but this proves to be problematic because in the process, legitimate
+		 * data that is unrecognized by the preprocessor may get dropped.
+		 *
+		 * The approach taken here is a hybrid approach - it retrieves the data
+		 * block by block until an error occurs; be it the end of the CAS or a
+		 * corrupt (?!) block.  When "legitimate" blocks are done processing,
+		 * the remainder of the data is added to the waveform in a traditional
+		 * manner.  The result has proven to work quite well.
+		 *
+		 * One slight issue; strict bounds checking is not done and as such,
+		 * this code could theoretically overflow.  However, I made sure that
+		 * double the amount of required memory was set aside so such overflows
+		 * may be very rare in practice
+		 */
+
+		position = 0;
+		last_blocktype = 0;
+
+		while((usedbytes = get_cas_block(&bytes[position], wave_size, block, &blocklen)) > 0) {
+			#if LOG_WAVE
+				logerror("COCO found block; position=0x%06x type=%i len=%i\n", position, (int) block[0], blocklen);
+			#endif
+
+			/* was the last block a filename block? */
+			if ((last_blocktype == 0) || (last_blocktype == 0xff)) {
+				#if LOG_WAVE
+					logerror("COCO filling silence %d\n", WAVESAMPLES_HEADER);
+				#endif
+
+				/* silence */
+				for (i = 0; i < WAVESAMPLES_HEADER; i++)
+					*(p++) = WAVEENTRY_NULL;
+				/* sync data */
+				for (i = 0; i < 128; i++)
+					p = fill_wave_byte(p, 0x55);
+			}
+			/* Now fill in the magic bytes */
+			p = fill_wave_byte(p, 0x55);
+			p = fill_wave_byte(p, 0x3c);
+
+			/* Write the block */
+			for (i = 0; i < blocklen; i++)
+				p = fill_wave_byte(p, block[i]);
+
+			/* Now fill in the last magic byte */
+			p = fill_wave_byte(p, 0x55);
+
+			/* Move the pointers ahead etc */
+			position += usedbytes;
+			wave_size -= usedbytes;
+			last_blocktype = block[0];
+		}
+
+		/* We havn't been able to decipher any further blocks; so we are going
+		 * to output the rest of the CAS verbatim
+		 */
+		#if LOG_WAVE
+			logerror("COCO leaving %i extraneous bytes; position=%i\n", wave_size, position);
+		#endif
+
+		for (i = 0; i < wave_size ; i++)
+			p = fill_wave_byte(p, bytes[position + i]);
+    }
+    return p - buffer;
+}
+
 int coco_cassette_init(int id)
 {
 	void *file;
@@ -1380,22 +1468,22 @@ int coco_cassette_init(int id)
 	file = image_fopen(IO_CASSETTE, id, OSD_FILETYPE_IMAGE_RW, OSD_FOPEN_READ);
 	if( file )
 	{
-		coco_wave_size = osd_fsize(file);
+		wave_size = osd_fsize(file);
 
 		memset(&wa, 0, sizeof(&wa));
 		wa.file = file;
-		wa.chunk_size = coco_wave_size;
-		wa.chunk_samples = 8*8 * coco_wave_size;	/* 8 bits * 4 samples */
+		wa.chunk_size = wave_size;
+		wa.chunk_samples = 8*8 * wave_size;	/* 8 bits * 4 samples */
 		wa.smpfreq = 4800; /* cassette samples go at 4800 baud */
 		wa.fill_wave = coco_cassette_fill_wave;
-		wa.header_samples = COCO_WAVESAMPLES_HEADER;
-		wa.trailer_samples = COCO_WAVESAMPLES_TRAILER;
+		wa.header_samples = WAVESAMPLES_HEADER;
+		wa.trailer_samples = WAVESAMPLES_TRAILER;
 		wa.display = 1;
 		if( device_open(IO_CASSETTE,id,0,&wa) )
 			return INIT_FAILED;
 
-		/* immediately inhibit/mute/play the output */
-        device_status(IO_CASSETTE,id, WAVE_STATUS_MOTOR_ENABLE|WAVE_STATUS_MUTED|WAVE_STATUS_MOTOR_INHIBIT);
+		/* immediately pause/mute the output */
+        device_status(IO_CASSETTE,id,2);
 		return INIT_OK;
 	}
 
@@ -1405,12 +1493,12 @@ int coco_cassette_init(int id)
 		memset(&wa, 0, sizeof(&wa));
 		wa.file = file;
 		wa.display = 1;
-		wa.smpfreq = 19200;
+		wa.smpfreq = 11025;
 		if( device_open(IO_CASSETTE,id,1,&wa) )
             return INIT_FAILED;
 
-		/* immediately inhibit/mute/play the output */
-        device_status(IO_CASSETTE,id, WAVE_STATUS_MOTOR_ENABLE|WAVE_STATUS_MUTED|WAVE_STATUS_MOTOR_INHIBIT);
+		/* immediately pause the output */
+        device_status(IO_CASSETTE,id,2);
 		return INIT_OK;
     }
 
@@ -1450,10 +1538,10 @@ void coco_cassette_exit(int id)
  * ---------------------------------------------------------------------------
  */
 
+static int flop_specified[4];
 static int haltenable;
 static int dskreg;
 static int raise_nmi;
-static void coco_fdc_callback(int event);
 
 enum {
 	HW_COCO,
@@ -1462,10 +1550,21 @@ enum {
 
 static void coco_fdc_init(void)
 {
-    floppy_drives_init();
-    wd179x_init(coco_fdc_callback);
+	wd179x_init(1);
 	dskreg = -1;
 	raise_nmi = 0;
+}
+
+int coco_floppy_init(int id)
+{
+	flop_specified[id] = device_filename(IO_FLOPPY,id) != NULL;
+	return INIT_OK;
+}
+
+void coco_floppy_exit(int id)
+{
+	wd179x_select_drive(id, 0, NULL, NULL);
+	flop_specified[id] = 0;
 }
 
 static void coco_fdc_callback(int event)
@@ -1478,7 +1577,7 @@ static void coco_fdc_callback(int event)
 	 */
 	switch(event) {
 	case WD179X_IRQ_CLR:
-		cpu_set_nmi_line(0, CLEAR_LINE);
+		m6809_set_nmi_line(CLEAR_LINE);
 		break;
 	case WD179X_IRQ_SET:
 		raise_nmi = 1;
@@ -1495,40 +1594,14 @@ static void coco_fdc_callback(int event)
 	}
 }
 
-int dragon_floppy_init(int id)
-{
-	if (basicdsk_floppy_init(id)==INIT_OK)
-	{
-		void *file;
-
-		file = image_fopen(IO_FLOPPY, id, OSD_FILETYPE_IMAGE_R, OSD_FOPEN_READ);
-
-		if (file)
-		{
-			int tracks;
-
-			/* For now, assume that real floppies are always 35 tracks */
-			tracks = (floppy_drive_get_flag_state(id, FLOPPY_DRIVE_REAL_FDD)) ? 35 : (osd_fsize(file) / (18*256));
-
-			basicdsk_set_geometry(id, tracks, 1, 18, 256, 1);
-
-			osd_fclose(file);
-
-			return INIT_OK;
-		}
-	}
-	return INIT_FAILED;
-}
-
-
 static void set_dskreg(int data, int hardware)
 {
 	UINT8 drive = 0;
 	UINT8 head = 0;
 	int motor_mask = 0;
 	int haltenable_mask = 0;
-        /*int tracks;*/
-        /*void *fd;*/
+	int tracks;
+	void *fd;
 
 	switch(hardware) {
 	case HW_COCO:
@@ -1571,8 +1644,12 @@ static void set_dskreg(int data, int hardware)
 	dskreg = data;
 
 	if (data & motor_mask) {
-		wd179x_set_drive(drive);
-                wd179x_set_side(head);
+		fd = wd179x_select_drive(drive, head, coco_fdc_callback, device_filename(IO_FLOPPY,drive));
+		if (fd) {
+			/* For now, assume that real floppies are always 35 tracks */
+			tracks = (fd == REAL_FDD) ? 35 : (osd_fsize(fd) / (18*256));
+			wd179x_set_geometry(drive, tracks, 1, 18, 256, 0, 0, 1);
+		}
 	}
 	else {
 		wd179x_stop_drive();
@@ -1613,7 +1690,7 @@ static void dc_floppy_w(int offset, int data, int hardware)
 	case 6:
 	case 7:
 		if (raise_nmi) {
-			cpu_set_nmi_line(0, ASSERT_LINE);
+			m6809_set_nmi_line(ASSERT_LINE);
 			raise_nmi = 0;
 		}
 		set_dskreg(data, hardware);
@@ -1696,10 +1773,6 @@ static void generic_init_machine(struct pia6821_interface *piaintf)
 	pia1_firq_a = CLEAR_LINE;
 	pia1_firq_b = CLEAR_LINE;
 
-	pia0_pb = sound_mux = tape_motor = 0;
-	joystick_axis = joystick = 0;
-	d_dac = 0;
-
 	pia_config(0, PIA_STANDARD_ORDERING | PIA_8BIT, &piaintf[0]);
 	pia_config(1, PIA_STANDARD_ORDERING | PIA_8BIT, &piaintf[1]);
 	pia_reset();
@@ -1779,185 +1852,6 @@ void coco3_init_machine(void)
 void dragon_stop_machine(void)
 {
 }
-
-/***************************************************************************
-  OS9 Syscalls (This is a helper not enabled by default to aid in logging
-****************************************************************************/
-
-#if LOG_OS9
-
-static const char *os9syscalls[] = {
-	"F$Link",          /* Link to Module */
-	"F$Load",          /* Load Module from File */
-	"F$UnLink",        /* Unlink Module */
-	"F$Fork",          /* Start New Process */
-	"F$Wait",          /* Wait for Child Process to Die */
-	"F$Chain",         /* Chain Process to New Module */
-	"F$Exit",          /* Terminate Process */
-	"F$Mem",           /* Set Memory Size */
-	"F$Send",          /* Send Signal to Process */
-	"F$Icpt",          /* Set Signal Intercept */
-	"F$Sleep",         /* Suspend Process */
-	"F$SSpd",          /* Suspend Process */
-	"F$ID",            /* Return Process ID */
-	"F$SPrior",        /* Set Process Priority */
-	"F$SSWI",          /* Set Software Interrupt */
-	"F$PErr",          /* Print Error */
-	"F$PrsNam",        /* Parse Pathlist Name */
-	"F$CmpNam",        /* Compare Two Names */
-	"F$SchBit",        /* Search Bit Map */
-	"F$AllBit",        /* Allocate in Bit Map */
-	"F$DelBit",        /* Deallocate in Bit Map */
-	"F$Time",          /* Get Current Time */
-	"F$STime",         /* Set Current Time */
-	"F$CRC",           /* Generate CRC */
-	"F$GPrDsc",        /* get Process Descriptor copy */
-	"F$GBlkMp",        /* get System Block Map copy */
-	"F$GModDr",        /* get Module Directory copy */
-	"F$CpyMem",        /* Copy External Memory */
-	"F$SUser",         /* Set User ID number */
-	"F$UnLoad",        /* Unlink Module by name */
-	"F$Alarm",         /* Color Computer Alarm Call (system wide) */
-	NULL,						
-	NULL,
-	"F$NMLink",        /* Color Computer NonMapping Link */
-	"F$NMLoad",        /* Color Computer NonMapping Load */
-	NULL,
-	NULL,
-	"F$TPS",           /* Return System's Ticks Per Second */
-	"F$TimAlm",        /* COCO individual process alarm call */
-	"F$VIRQ",          /* Install/Delete Virtual IRQ */
-	"F$SRqMem",        /* System Memory Request */
-	"F$SRtMem",        /* System Memory Return */
-	"F$IRQ",           /* Enter IRQ Polling Table */
-	"F$IOQu",          /* Enter I/O Queue */
-	"F$AProc",         /* Enter Active Process Queue */
-	"F$NProc",         /* Start Next Process */
-	"F$VModul",        /* Validate Module */
-	"F$Find64",        /* Find Process/Path Descriptor */
-	"F$All64",         /* Allocate Process/Path Descriptor */
-	"F$Ret64",         /* Return Process/Path Descriptor */
-	"F$SSvc",          /* Service Request Table Initialization */
-	"F$IODel",         /* Delete I/O Module */
-	"F$SLink",         /* System Link */
-	"F$Boot",          /* Bootstrap System */
-	"F$BtMem",         /* Bootstrap Memory Request */
-	"F$GProcP",        /* Get Process ptr */
-	"F$Move",          /* Move Data (low bound first) */
-	"F$AllRAM",        /* Allocate RAM blocks */
-	"F$AllImg",        /* Allocate Image RAM blocks */
-	"F$DelImg",        /* Deallocate Image RAM blocks */
-	"F$SetImg",        /* Set Process DAT Image */
-	"F$FreeLB",        /* Get Free Low Block */
-	"F$FreeHB",        /* Get Free High Block */
-	"F$AllTsk",        /* Allocate Process Task number */
-	"F$DelTsk",        /* Deallocate Process Task number */
-	"F$SetTsk",        /* Set Process Task DAT registers */
-	"F$ResTsk",        /* Reserve Task number */
-	"F$RelTsk",        /* Release Task number */
-	"F$DATLog",        /* Convert DAT Block/Offset to Logical */
-	"F$DATTmp",        /* Make temporary DAT image (Obsolete) */
-	"F$LDAXY",         /* Load A [X,[Y]] */
-	"F$LDAXYP",        /* Load A [X+,[Y]] */
-	"F$LDDDXY",        /* Load D [D+X,[Y]] */
-	"F$LDABX",         /* Load A from 0,X in task B */
-	"F$STABX",         /* Store A at 0,X in task B */
-	"F$AllPrc",        /* Allocate Process Descriptor */
-	"F$DelPrc",        /* Deallocate Process Descriptor */
-	"F$ELink",         /* Link using Module Directory Entry */
-	"F$FModul",        /* Find Module Directory Entry */
-	"F$MapBlk",        /* Map Specific Block */
-	"F$ClrBlk",        /* Clear Specific Block */
-	"F$DelRAM",        /* Deallocate RAM blocks */
-	"F$GCMDir",        /* Pack module directory */
-	"F$AlHRam",        /* Allocate HIGH RAM Blocks */
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	"F$RegDmp",        /* Ron Lammardo's debugging register dump call */
-	"F$NVRAM",         /* Non Volatile RAM (RTC battery backed static) read/write */
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	"I$Attach",        /* Attach I/O Device */
-	"I$Detach",        /* Detach I/O Device */
-	"I$Dup",           /* Duplicate Path */
-	"I$Create",        /* Create New File */
-	"I$Open",          /* Open Existing File */
-	"I$MakDir",        /* Make Directory File */
-	"I$ChgDir",        /* Change Default Directory */
-	"I$Delete",        /* Delete File */
-	"I$Seek",          /* Change Current Position */
-	"I$Read",          /* Read Data */
-	"I$Write",         /* Write Data */
-	"I$ReadLn",        /* Read Line of ASCII Data */
-	"I$WritLn",        /* Write Line of ASCII Data */
-	"I$GetStt",        /* Get Path Status */
-	"I$SetStt",        /* Set Path Status */
-	"I$Close",         /* Close Path */
-	"I$DeletX"         /* Delete from current exec dir */
-};
-
-static const char *getos9call(int call)
-{
-	return (call >= (sizeof(os9syscalls) / sizeof(os9syscalls[0]))) ? NULL : os9syscalls[call];
-}
-
-void log_os9call(int call)
-{
-	const char *mnemonic;
-
-	mnemonic = getos9call(call);
-	if (!mnemonic)
-		mnemonic = "(unknown)";
-
-	logerror("Logged OS9 Call Through SWI2 $%02x (%s): pc=$%04x\n", (void *) call, mnemonic, cpu_get_pc());
-}
-
-void os9_in_swi2(void)
-{
-	unsigned pc;
-	pc = cpu_get_pc();
-	log_os9call(cpu_readmem16(pc));
-}
-
-#endif /* LOG_OS9 */
 
 /***************************************************************************
   Other hardware

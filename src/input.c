@@ -312,6 +312,9 @@ InputCode keyoscode_to_code(unsigned oscode)
 {
 	InputCode code;
 
+	if (oscode == OSD_KEY_NONE)
+		return CODE_NONE;
+
 	code = internal_oscode_find(oscode,CODE_TYPE_KEYBOARD);
 
 	/* insert if missing */
@@ -495,6 +498,27 @@ InputCode code_read_async(void)
 	profiler_mark(PROFILER_END);
 
 	return CODE_NONE;
+}
+
+InputCode code_read_sync(void)
+{
+	InputCode code;
+	unsigned oscode;
+
+	/* now let the OS process it */
+	oscode = osd_wait_keypress();
+
+	/* convert the code */
+	code = keyoscode_to_code(oscode);
+
+	/* update the memory of the code, like if code_pressed_memory was called */
+	if (code != CODE_NONE)
+		code_map[code].memory = 1;
+
+	while (code == CODE_NONE)
+		code = code_read_async();
+
+	return code;
 }
 
 /* returns the numerical value of a typed hex digit, or -1 if none */

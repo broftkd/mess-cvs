@@ -1,11 +1,10 @@
 #include <string.h>
 #include <ctype.h>
-#include <assert.h>
 #include "osdepend.h"
 #include "imgtool.h"
 #include "osd_cpu.h"
 #include "config.h"
-#include "osdtools.h"
+
 
 /* ----------------------------------------------------------------------- */
 
@@ -30,7 +29,6 @@ CARTMODULE(vectrex,  "Vectrex Cartridge",				"bin")
 CARTMODULE(vic20,    "Commodore Vic-20 Cartridge",		"a0")
 
 extern struct ImageModule imgmod_rsdos;	/* CoCo RS-DOS disks */
-extern struct ImageModule imgmod_cococas;	/* CoCo cassettes */
 extern struct ImageModule imgmod_pchd;	/* PC HD images */
 extern struct ImageModule imgmod_msdos;	/* FAT/MSDOS diskett images */
 extern struct ImageModule imgmod_msdoshd;	/* FAT/MSDOS harddisk images */
@@ -47,7 +45,6 @@ extern struct ImageModule imgmod_fs;
 
 static const struct ImageModule *images[] = {
 	&imgmod_rsdos,
-	&imgmod_cococas,
 	&imgmod_pchd,
 	&imgmod_msdos,
 	&imgmod_msdoshd,
@@ -111,21 +108,14 @@ static const char *msgs[] = {
 	"File not found",
 	"Unrecognized format",
 	"Not implemented",
-	"Parameter too small",
-	"Parameter too large",
-	"Missing parameter not found",
-	"Inappropriate parameter",
+	"Incorrect or missing parameters",
 	"Bad file name",
-	"Out of space on image",
-	"Input past end of file"
+	"Out of space on image"
 };
 
 const char *imageerror(int err)
 {
-	err = (err & ~IMGTOOLERR_SRC_MASK) - 1;
-	assert(err >= 0);
-	assert(err < (sizeof(msgs) / sizeof(msgs[0])));
-	return msgs[err];
+	return msgs[(err & ~IMGTOOLERR_SRC_MASK) - 1];
 }
 
 static int markerrorsource(int err)
@@ -138,7 +128,6 @@ static int markerrorsource(int err)
 		break;
 
 	case IMGTOOLERR_FILENOTFOUND:
-	case IMGTOOLERR_BADFILENAME:
 		err |= IMGTOOLERR_SRC_FILEONIMAGE;
 		break;
 
@@ -198,8 +187,6 @@ void img_close(IMAGE *img)
 int img_beginenum(IMAGE *img, IMAGEENUM **outenum)
 {
 	int err;
-
-	assert(img);
 
 	if (!img->module->beginenum)
 		return IMGTOOLERR_UNIMPLEMENTED | IMGTOOLERR_SRC_FUNCTIONALITY;
@@ -305,19 +292,19 @@ int img_extract(IMAGE *img, const char *fname)
 	return err;
 }
 
-int img_putfile(IMAGE *img, const char *newfname, const char *source, const file_options *options)
+int img_putfile(IMAGE *img, const char *fname, const char *source, const file_options *options)
 {
 	int err;
 	STREAM *f;
 
-	if (!newfname)
-		newfname = basename(source);
+	if (!source)
+		source = fname;
 
 	f = stream_open(source, OSD_FOPEN_READ);
 	if (!f)
 		return IMGTOOLERR_FILENOTFOUND | IMGTOOLERR_SRC_NATIVEFILE;
 
-	err = img_writefile(img, newfname, f, options);
+	err = img_writefile(img, fname, f, options);
 	stream_close(f);
 	return err;
 }

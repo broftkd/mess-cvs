@@ -277,13 +277,13 @@ static struct TMS36XXinterface tms3615_interface =
 
 
 
-static const struct MachineDriver machine_driver_naughtyb =
+static struct MachineDriver machine_driver_naughtyb =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			1500000,	/* 3 MHz ? */
+			1500000,	/* 3 Mhz ? */
 			readmem,writemem,0,0,
 			naughtyb_interrupt,1
 		}
@@ -320,13 +320,13 @@ static const struct MachineDriver machine_driver_naughtyb =
 };
 
 /* Exactly the same but for the writemem handler */
-static const struct MachineDriver machine_driver_popflame =
+static struct MachineDriver machine_driver_popflame =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			1500000,	/* 3 MHz ? */
+			1500000,	/* 3 Mhz ? */
 			readmem,popflame_writemem,0,0,
 			naughtyb_interrupt,1
 		}

@@ -715,13 +715,13 @@ static struct tms34010_config cpu_config =
  *
  *************************************/
 
-static const struct MachineDriver machine_driver_zunit =
+static struct MachineDriver machine_driver_zunit =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_TMS34010,
-			48000000/TMS34010_CLOCK_DIVIDER,	/* 48 MHz */
+			48000000/TMS34010_CLOCK_DIVIDER,	/* 48 Mhz */
 			readmem,writemem,0,0,
 			ignore_interrupt,0,
 			0,0,&cpu_config
@@ -761,13 +761,13 @@ static const struct MachineDriver machine_driver_zunit =
  *
  *************************************/
 
-static const struct MachineDriver machine_driver_yunit_cvsd_4bit =
+static struct MachineDriver machine_driver_yunit_cvsd_4bit =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_TMS34010,
-			50000000/TMS34010_CLOCK_DIVIDER,	/* 50 MHz */
+			50000000/TMS34010_CLOCK_DIVIDER,	/* 50 Mhz */
 			readmem,writemem,0,0,
 			ignore_interrupt,0,
 			0,0,&cpu_config
@@ -800,13 +800,13 @@ static const struct MachineDriver machine_driver_yunit_cvsd_4bit =
 };
 
 
-static const struct MachineDriver machine_driver_yunit_cvsd_6bit =
+static struct MachineDriver machine_driver_yunit_cvsd_6bit =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_TMS34010,
-			50000000/TMS34010_CLOCK_DIVIDER,	/* 50 MHz */
+			50000000/TMS34010_CLOCK_DIVIDER,	/* 50 Mhz */
 			readmem,writemem,0,0,
 			ignore_interrupt,0,
 			0,0,&cpu_config
@@ -839,13 +839,13 @@ static const struct MachineDriver machine_driver_yunit_cvsd_6bit =
 };
 
 
-static const struct MachineDriver machine_driver_yunit_adpcm =
+static struct MachineDriver machine_driver_yunit_adpcm =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_TMS34010,
-			48000000/TMS34010_CLOCK_DIVIDER,	/* 48 MHz */
+			48000000/TMS34010_CLOCK_DIVIDER,	/* 48 Mhz */
 			readmem,writemem,0,0,
 			ignore_interrupt,0,
 			0,0,&cpu_config

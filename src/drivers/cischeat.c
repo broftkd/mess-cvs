@@ -981,7 +981,7 @@ static struct OKIM6295interface _shortname_##_okim6295_interface = \
 	{ 33, 33 } \
 }; \
 \
-static const struct MachineDriver machine_driver_##_shortname_ = \
+static struct MachineDriver machine_driver_##_shortname_ = \
 { \
 	{ \
 		{ \
@@ -1099,7 +1099,7 @@ From "ARCADE ROMS FROM JAPAN (ARFJ)"'s readme:
  --------------------------------
 
 Video                        Sound
- -BOARD #2 CH-9071 EB90001-20023- 	X1:12MHz  X2:4MHz  X3:20MHz  X4:7MHz
+ -BOARD #2 CH-9071 EB90001-20023- 	X1:12Mhz  X2:4Mhz  X3:20Mhz  X4:7Mhz
 |68000             [9]      68000|	YM2151x1 OKI M6295 x2 ([8]82S147 [9]:82S185)
 |[1]01 X3               X4 [11]11|	EP:	[1]ch9071v2.01 "CH-9071 Ver.2  1"
 |[2]02                     [10]10|		[2]ch9071.02

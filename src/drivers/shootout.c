@@ -299,13 +299,13 @@ static int shootout_interrupt(void)
 	return 0;
 }
 
-static const struct MachineDriver machine_driver_shootout =
+static struct MachineDriver machine_driver_shootout =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			2000000,	/* 2 MHz? */
+			2000000,	/* 2 Mhz? */
 			readmem,writemem,0,0,
 			shootout_interrupt,1 /* nmi's are triggered at coin up */
 		},
@@ -342,13 +342,13 @@ static const struct MachineDriver machine_driver_shootout =
 	}
 };
 
-static const struct MachineDriver machine_driver_shootouj =
+static struct MachineDriver machine_driver_shootouj =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			2000000,	/* 2 MHz? */
+			2000000,	/* 2 Mhz? */
 			readmem_alt,writemem_alt,0,0,
 			shootout_interrupt,1 /* nmi's are triggered at coin up */
 		}

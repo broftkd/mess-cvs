@@ -6,7 +6,7 @@
 
 	-------------------------------------
 
-	To enter service mode in Ataxx and Brute Force, press 1P start and
+	To enter service mode in Ataxx and Brute Force, press 1P start and 
 	then press the service switch (F2).
 
 	For World Soccer Finals, press the 1P button B and then press the
@@ -960,7 +960,7 @@ static struct CustomSound_interface i186_custom_interface =
  *
  *************************************/
 
-static const struct MachineDriver machine_driver_ataxx =
+static struct MachineDriver machine_driver_ataxx =
 {
 	/* basic machine hardware */
 	{
@@ -1011,7 +1011,7 @@ static const struct MachineDriver machine_driver_ataxx =
 };
 
 
-static const struct MachineDriver machine_driver_wsf =
+static struct MachineDriver machine_driver_wsf =
 {
 	/* basic machine hardware */
 	{

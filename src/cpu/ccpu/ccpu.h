@@ -40,10 +40,7 @@ enum {
 #endif
 
 /* an ICount variable (mostly irrelevant) */
-extern int ccpu_icount;
-
-#define CCPU_DATA_OFFSET    0x0000
-#define CCPU_PGM_OFFSET     0x8000
+extern int ccpu_ICount;
 
 /* MAME interface functions */
 void ccpu_reset(void *param);

@@ -1080,7 +1080,7 @@ static struct YM2610interface ym2610_interface =
 
 
 
-static const struct MachineDriver machine_driver_pspikes =
+static struct MachineDriver machine_driver_pspikes =
 {
 	/* basic machine hardware */
 	{
@@ -1092,7 +1092,7 @@ static const struct MachineDriver machine_driver_pspikes =
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			8000000/2,	/* 4 MHz ??? */
+			8000000/2,	/* 4 Mhz ??? */
 			sound_readmem,sound_writemem,turbofrc_sound_readport,turbofrc_sound_writeport,
 			ignore_interrupt,0	/* NMIs are triggered by the main CPU */
 								/* IRQs are triggered by the YM2610 */
@@ -1124,7 +1124,7 @@ static const struct MachineDriver machine_driver_pspikes =
 	}
 };
 
-static const struct MachineDriver machine_driver_karatblz =
+static struct MachineDriver machine_driver_karatblz =
 {
 	/* basic machine hardware */
 	{
@@ -1136,7 +1136,7 @@ static const struct MachineDriver machine_driver_karatblz =
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			8000000/2,	/* 4 MHz ??? */
+			8000000/2,	/* 4 Mhz ??? */
 			sound_readmem,sound_writemem,turbofrc_sound_readport,turbofrc_sound_writeport,
 			ignore_interrupt,0	/* NMIs are triggered by the main CPU */
 								/* IRQs are triggered by the YM2610 */
@@ -1168,7 +1168,7 @@ static const struct MachineDriver machine_driver_karatblz =
 	}
 };
 
-static const struct MachineDriver machine_driver_spinlbrk =
+static struct MachineDriver machine_driver_spinlbrk =
 {
 	/* basic machine hardware */
 	{
@@ -1180,7 +1180,7 @@ static const struct MachineDriver machine_driver_spinlbrk =
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			8000000/2,	/* 4 MHz ??? */
+			8000000/2,	/* 4 Mhz ??? */
 			sound_readmem,sound_writemem,turbofrc_sound_readport,turbofrc_sound_writeport,
 			ignore_interrupt,0	/* NMIs are triggered by the main CPU */
 								/* IRQs are triggered by the YM2610 */
@@ -1212,7 +1212,7 @@ static const struct MachineDriver machine_driver_spinlbrk =
 	}
 };
 
-static const struct MachineDriver machine_driver_turbofrc =
+static struct MachineDriver machine_driver_turbofrc =
 {
 	/* basic machine hardware */
 	{
@@ -1224,7 +1224,7 @@ static const struct MachineDriver machine_driver_turbofrc =
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			8000000/2,	/* 4 MHz ??? */
+			8000000/2,	/* 4 Mhz ??? */
 			sound_readmem,sound_writemem,turbofrc_sound_readport,turbofrc_sound_writeport,
 			ignore_interrupt,0	/* NMIs are triggered by the main CPU */
 								/* IRQs are triggered by the YM2610 */
@@ -1256,7 +1256,7 @@ static const struct MachineDriver machine_driver_turbofrc =
 	}
 };
 
-static const struct MachineDriver machine_driver_aerofgtb =
+static struct MachineDriver machine_driver_aerofgtb =
 {
 	/* basic machine hardware */
 	{
@@ -1268,7 +1268,7 @@ static const struct MachineDriver machine_driver_aerofgtb =
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			8000000/2,	/* 4 MHz ??? */
+			8000000/2,	/* 4 Mhz ??? */
 			sound_readmem,sound_writemem,aerofgt_sound_readport,aerofgt_sound_writeport,
 			ignore_interrupt,0	/* NMIs are triggered by the main CPU */
 								/* IRQs are triggered by the YM2610 */
@@ -1301,7 +1301,7 @@ static const struct MachineDriver machine_driver_aerofgtb =
 	}
 };
 
-static const struct MachineDriver machine_driver_aerofgt =
+static struct MachineDriver machine_driver_aerofgt =
 {
 	/* basic machine hardware */
 	{
@@ -1313,7 +1313,7 @@ static const struct MachineDriver machine_driver_aerofgt =
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			8000000/2,	/* 4 MHz ??? */
+			8000000/2,	/* 4 Mhz ??? */
 			sound_readmem,sound_writemem,aerofgt_sound_readport,aerofgt_sound_writeport,
 			ignore_interrupt,0	/* NMIs are triggered by the main CPU */
 								/* IRQs are triggered by the YM2610 */

@@ -315,19 +315,19 @@ static struct YM3526interface ym3526_interface =
 };
 
 
-static const struct MachineDriver machine_driver_battlane =
+static struct MachineDriver machine_driver_battlane =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6809,
-            1250000,        /* 1.25 MHz ? */
+            1250000,        /* 1.25 Mhz ? */
             battlane_readmem, battlane_writemem,0,0,
             battlane_cpu1_interrupt,2
 		},
 		{
 			CPU_M6809,
-            1250000,        /* 1.25 MHz ? */
+            1250000,        /* 1.25 Mhz ? */
             battlane_readmem, battlane_writemem,0,0,
             battlane_cpu2_interrupt,1
 		}

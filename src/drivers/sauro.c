@@ -80,6 +80,7 @@ void sauro_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh);
 
 WRITE_HANDLER( sauro_scroll1_w );
 WRITE_HANDLER( sauro_scroll2_w );
+WRITE_HANDLER( sauro_flipscreen_w );
 
 static WRITE_HANDLER( sauro_sound_command_w )
 {
@@ -128,7 +129,7 @@ static struct IOWritePort writeport[] =
 		{ 0xa0, 0xa0, sauro_scroll1_w, },
 		{ 0xa1, 0xa1, sauro_scroll2_w, },
 		{ 0x80, 0x80, sauro_sound_command_w, },
-		{ 0xc0, 0xc0, flip_screen_w, },
+		{ 0xc0, 0xc0, sauro_flipscreen_w, },
 		{ 0xc1, 0xce, MWA_NOP, },
 		{ 0xe0, 0xe0, watchdog_reset_w },
 		{ -1 }	/* end of table */
@@ -144,13 +145,13 @@ static struct MemoryReadAddress sound_readmem[] =
 
 static struct MemoryWriteAddress sound_writemem[] =
 {
-	{ 0x8000, 0x87ff, MWA_RAM },
-	{ 0xc000, 0xc000, YM3812_control_port_0_w },
-	{ 0xc001, 0xc001, YM3812_write_port_0_w },
-//	{ 0xa000, 0xa000, ADPCM_trigger },
-	{ 0xe000, 0xe006, MWA_NOP },
-	{ 0xe00e, 0xe00f, MWA_NOP },
-	{ -1 }  /* end of table */
+		{ 0x8000, 0x87ff, MWA_RAM },
+		{ 0xc000, 0xc000, YM3812_control_port_0_w },
+		{ 0xc001, 0xc001, YM3812_write_port_0_w },
+	  //{ 0xa000, 0xa000, ADPCM_trigger },
+		{ 0xe000, 0xe006, MWA_NOP },
+		{ 0xe00e, 0xe00f, MWA_NOP },
+        { -1 }  /* end of table */
 };
 
 
@@ -271,7 +272,7 @@ static struct YM3526interface ym3812_interface =
 };
 
 
-static const struct MachineDriver machine_driver_sauro =
+static struct MachineDriver machine_driver_sauro =
 {
 	/* basic machine hardware */
 	{
@@ -320,7 +321,6 @@ static const struct MachineDriver machine_driver_sauro =
   Game driver(s)
 
 ***************************************************************************/
-
 ROM_START( sauro )
 	ROM_REGION( 0x10000, REGION_CPU1 )          /* 64k for code */
 	ROM_LOAD( "sauro-2.bin",     0x00000, 0x8000, 0x19f8de25 )
@@ -363,4 +363,4 @@ static void init_sauro(void)
 }
 
 
-GAMEX( 1987, sauro, 0, sauro, sauro, sauro, ROT0, "Tecfri", "Sauro", GAME_IMPERFECT_COLORS | GAME_IMPERFECT_SOUND )
+GAMEX( 1987, sauro, 0, sauro, sauro, sauro, ROT0, "Tecfri", "Sauro", GAME_IMPERFECT_COLORS )

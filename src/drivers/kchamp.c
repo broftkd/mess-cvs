@@ -445,7 +445,7 @@ static void msmint( int data ) {
 static struct AY8910interface ay8910_interface =
 {
 	2, /* 2 chips */
-	1500000,			/* 12 MHz / 8 = 1.5 MHz */
+	1500000,			/* 12 Mhz / 8 = 1.5 Mhz */
 	{ 30, 30 },			// Modified by T.Nogi 1999/11/08
 	{ 0 },
 	{ 0 },
@@ -456,7 +456,7 @@ static struct AY8910interface ay8910_interface =
 static struct MSM5205interface msm_interface =
 {
 	1,				/* 1 chip */
-	375000,				/* 12MHz / 16 / 2 */
+	375000,				/* 12Mhz / 16 / 2 */
 	{ msmint },			/* interrupt function */
 	{ MSM5205_S96_4B },		/* 1 / 96 = 3906.25Hz playback */
 	{ 100 }
@@ -481,19 +481,19 @@ static struct DACinterface dac_interface =
 };
 
 
-static const struct MachineDriver machine_driver_kchampvs =
+static struct MachineDriver machine_driver_kchampvs =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3000000,	/* 12MHz / 4 = 3.0 MHz */
+			3000000,	/* 12Mhz / 4 = 3.0 Mhz */
 			readmem,writemem,readport,writeport,
 			kc_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			3000000,	/* 12MHz / 4 = 3.0 MHz */
+			3000000,	/* 12Mhz / 4 = 3.0 Mhz */
 			sound_readmem,sound_writemem,sound_readport,sound_writeport,
 			ignore_interrupt, 0
 			/* irq's triggered from main cpu */
@@ -511,7 +511,7 @@ static const struct MachineDriver machine_driver_kchampvs =
 	256, /* color table length */
 	kchamp_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER | VIDEO_SUPPORTS_DIRTY,
 	0,
 	kchampvs_vh_start,
 	generic_vh_stop,
@@ -535,19 +535,19 @@ static const struct MachineDriver machine_driver_kchampvs =
 * 1 Player Version  *
 ********************/
 
-static const struct MachineDriver machine_driver_kchamp =
+static struct MachineDriver machine_driver_kchamp =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3000000,	/* 12MHz / 4 = 3.0 MHz */
+			3000000,	/* 12Mhz / 4 = 3.0 Mhz */
 			kc_readmem, kc_writemem, kc_readport, kc_writeport,
 			kc_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			3000000,	/* 12MHz / 4 = 3.0 MHz */
+			3000000,	/* 12Mhz / 4 = 3.0 Mhz */
 			kc_sound_readmem,kc_sound_writemem,kc_sound_readport,kc_sound_writeport,
 			ignore_interrupt, 0,
 			sound_int, 125 /* Hz */
@@ -566,7 +566,7 @@ static const struct MachineDriver machine_driver_kchamp =
 	256, /* color table length */
 	kchamp_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER | VIDEO_SUPPORTS_DIRTY,
 	0,
 	kchamp1p_vh_start,
 	generic_vh_stop,

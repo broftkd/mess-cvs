@@ -464,25 +464,25 @@ static struct Samplesinterface samples_interface =
 
 
 
-static const struct MachineDriver machine_driver_gaplus =
+static struct MachineDriver machine_driver_gaplus =
 {
 	/* basic machine hardware  */
 	{
 		{
 			CPU_M6809,			/* MAIN CPU */
-			1536000,			/* 24.576 MHz / 16 = 1.536 MHz */
+			1536000,			/* 24.576 Mhz / 16 = 1.536 Mhz */
 			readmem_cpu1,writemem_cpu1,0,0,
 			gaplus_interrupt_1,1
 		},
 		{
 			CPU_M6809,			/* SUB CPU */
-			1536000,			/* 24.576 MHz / 16 = 1.536 MHz */
+			1536000,			/* 24.576 Mhz / 16 = 1.536 Mhz */
 			readmem_cpu2,writemem_cpu2,0,0,
 			gaplus_interrupt_2,1
 		},
 		{
 			CPU_M6809,			/* SOUND CPU */
-			1536000,			/* 24.576 MHz / 16 = 1.536 MHz */
+			1536000,			/* 24.576 Mhz / 16 = 1.536 Mhz */
 			readmem_cpu3,writemem_cpu3,0,0,
 			gaplus_interrupt_3,1
 		}
@@ -519,25 +519,25 @@ static const struct MachineDriver machine_driver_gaplus =
 	}
 };
 
-static const struct MachineDriver machine_driver_gaplusa =
+static struct MachineDriver machine_driver_gaplusa =
 {
 	/* basic machine hardware  */
 	{
 		{
 			CPU_M6809,			/* MAIN CPU */
-			1536000,			/* 24.576 MHz / 16 = 1.536 MHz */
+			1536000,			/* 24.576 Mhz / 16 = 1.536 Mhz */
 			gaplusa_readmem_cpu1,writemem_cpu1,0,0,
 			gaplus_interrupt_1,1
 		},
 		{
 			CPU_M6809,			/* SUB CPU */
-			1536000,			/* 24.576 MHz / 16 = 1.536 MHz */
+			1536000,			/* 24.576 Mhz / 16 = 1.536 Mhz */
 			readmem_cpu2,writemem_cpu2,0,0,
 			gaplus_interrupt_2,1
 		},
 		{
 			CPU_M6809,			/* SOUND CPU */
-			1536000,			/* 24.576 MHz / 16 = 1.536 MHz */
+			1536000,			/* 24.576 Mhz / 16 = 1.536 Mhz */
 			readmem_cpu3,writemem_cpu3,0,0,
 			gaplus_interrupt_3,1
 		}
@@ -574,25 +574,25 @@ static const struct MachineDriver machine_driver_gaplusa =
 	}
 };
 
-static const struct MachineDriver machine_driver_galaga3 =
+static struct MachineDriver machine_driver_galaga3 =
 {
 	/* basic machine hardware  */
 	{
 		{
 			CPU_M6809,			/* MAIN CPU */
-			1536000,			/* 24.576 MHz / 16 = 1.536 MHz */
+			1536000,			/* 24.576 Mhz / 16 = 1.536 Mhz */
 			galaga3_readmem_cpu1,writemem_cpu1,0,0,
 			gaplus_interrupt_1,1
 		},
 		{
 			CPU_M6809,			/* SUB CPU */
-			1536000,			/* 24.576 MHz / 16 = 1.536 MHz */
+			1536000,			/* 24.576 Mhz / 16 = 1.536 Mhz */
 			readmem_cpu2,writemem_cpu2,0,0,
 			gaplus_interrupt_2,1
 		},
 		{
 			CPU_M6809,			/* SOUND CPU */
-			1536000,			/* 24.576 MHz / 16 = 1.536 MHz */
+			1536000,			/* 24.576 Mhz / 16 = 1.536 Mhz */
 			readmem_cpu3,writemem_cpu3,0,0,
 			gaplus_interrupt_3,1
 		}

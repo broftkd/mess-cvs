@@ -532,17 +532,17 @@ static struct IOWritePort outzone_sound_writeport[] =
 
 static struct MemoryReadAddress DSP_readmem[] =
 {
-	{ 0x0000, 0x011f, MRA_RAM },	/* 90h words internal RAM */
-	{ 0x8000, 0x8fff, MRA_ROM },	/* 800h words. The real DSPs ROM is at */
-									/* address 0 */
-									/* View it at 8000h in the debugger */
+	{ 0x0000, 0x0fff, MRA_ROM },	/* 0x800 words */
+	{ 0x8000, 0x811f, MRA_RAM },	/* The real DSP has this at address 0 */
+									/* View this at 4000h in the debugger */
 	{ -1 }	/* end of table */
 };
 
 static struct MemoryWriteAddress DSP_writemem[] =
 {
-	{ 0x0000, 0x011f, MWA_RAM },
-	{ 0x8000, 0x8fff, MWA_ROM },
+	{ 0x0000, 0x0fff, MWA_ROM },	/* 0x800 words */
+	{ 0x8000, 0x811f, MWA_RAM },	/* The real DSP has this at address 0 */
+									/* View this at 4000h in the debugger */
 	{ -1 }	/* end of table */
 };
 
@@ -1412,14 +1412,14 @@ static void irqhandler(int linestate)
 static struct YM3812interface ym3812_interface =
 {
 	1,
-	28000000/8,		/* 3.5MHz (28MHz Oscillator) */
+	28000000/8,		/* 3.5Mhz (28Mhz Oscillator) */
 	{ 255 },
 	{ irqhandler },
 };
 
 
 
-static const struct MachineDriver machine_driver_rallybik =
+static struct MachineDriver machine_driver_rallybik =
 {
 	/* basic machine hardware */
 	{
@@ -1431,7 +1431,7 @@ static const struct MachineDriver machine_driver_rallybik =
 		},
 		{
 			CPU_Z80,
-			28000000/8,		/* 3.5MHz (28MHz Oscillator) */
+			28000000/8,		/* 3.5Mhz (28Mhz Oscillator) */
 			sound_readmem,sound_writemem,truxton_sound_readport,rallybik_sound_writeport,
 			ignore_interrupt,0
 		}
@@ -1462,7 +1462,7 @@ static const struct MachineDriver machine_driver_rallybik =
 	}
 };
 
-static const struct MachineDriver machine_driver_truxton =
+static struct MachineDriver machine_driver_truxton =
 {
 	/* basic machine hardware */
 	{
@@ -1474,7 +1474,7 @@ static const struct MachineDriver machine_driver_truxton =
 		},
 		{
 			CPU_Z80,
-			28000000/8,		/* 3.5MHz (28MHz Oscillator) */
+			28000000/8,		/* 3.5Mhz (28Mhz Oscillator) */
 			sound_readmem,sound_writemem,truxton_sound_readport,truxton_sound_writeport,
 			ignore_interrupt,0
 		}
@@ -1505,7 +1505,7 @@ static const struct MachineDriver machine_driver_truxton =
 	}
 };
 
-static const struct MachineDriver machine_driver_hellfire =
+static struct MachineDriver machine_driver_hellfire =
 {
 	/* basic machine hardware */
 	{
@@ -1517,7 +1517,7 @@ static const struct MachineDriver machine_driver_hellfire =
 		},
 		{
 			CPU_Z80,
-			28000000/8,		/* 3.5MHz (28MHz Oscillator) */
+			28000000/8,		/* 3.5Mhz (28Mhz Oscillator) */
 			sound_readmem,sound_writemem,hellfire_sound_readport,hellfire_sound_writeport,
 			ignore_interrupt,0
 		}
@@ -1548,7 +1548,7 @@ static const struct MachineDriver machine_driver_hellfire =
 	}
 };
 
-static const struct MachineDriver machine_driver_zerowing =
+static struct MachineDriver machine_driver_zerowing =
 {
 	/* basic machine hardware */
 	{
@@ -1560,7 +1560,7 @@ static const struct MachineDriver machine_driver_zerowing =
 		},
 		{
 			CPU_Z80,
-			28000000/8,		/* 3.5MHz (28MHz Oscillator) */
+			28000000/8,		/* 3.5Mhz (28Mhz Oscillator) */
 			sound_readmem,sound_writemem,zerowing_sound_readport,zerowing_sound_writeport,
 			ignore_interrupt,0
 		}
@@ -1591,7 +1591,7 @@ static const struct MachineDriver machine_driver_zerowing =
 	}
 };
 
-static const struct MachineDriver machine_driver_demonwld =
+static struct MachineDriver machine_driver_demonwld =
 {
 	/* basic machine hardware */
 	{
@@ -1603,7 +1603,7 @@ static const struct MachineDriver machine_driver_demonwld =
 		},
 		{
 			CPU_Z80,
-			28000000/8,		/* 3.5MHz (28MHz Oscillator) */
+			28000000/8,		/* 3.5Mhz (28Mhz Oscillator) */
 			sound_readmem,sound_writemem,demonwld_sound_readport,demonwld_sound_writeport,
 			ignore_interrupt,0
 		},
@@ -1640,7 +1640,7 @@ static const struct MachineDriver machine_driver_demonwld =
 	}
 };
 
-static const struct MachineDriver machine_driver_samesame =
+static struct MachineDriver machine_driver_samesame =
 {
 	/* basic machine hardware */
 	{
@@ -1677,7 +1677,7 @@ static const struct MachineDriver machine_driver_samesame =
 	}
 };
 
-static const struct MachineDriver machine_driver_outzone =
+static struct MachineDriver machine_driver_outzone =
 {
 	/* basic machine hardware */
 	{
@@ -1689,7 +1689,7 @@ static const struct MachineDriver machine_driver_outzone =
 		},
 		{
 			CPU_Z80,
-			28000000/8,		/* 3.5MHz (28MHz Oscillator) */
+			28000000/8,		/* 3.5Mhz (28Mhz Oscillator) */
 			sound_readmem,sound_writemem,outzone_sound_readport,outzone_sound_writeport,
 			ignore_interrupt,0
 		}
@@ -1720,7 +1720,7 @@ static const struct MachineDriver machine_driver_outzone =
 	}
 };
 
-static const struct MachineDriver machine_driver_vimana =
+static struct MachineDriver machine_driver_vimana =
 {
 	/* basic machine hardware */
 	{
@@ -1869,8 +1869,8 @@ ROM_START( demonwld )
 	ROM_LOAD( "rom11",  0x0000, 0x8000, 0x397eca1b )
 
 	ROM_REGION( 0x10000, REGION_CPU3 )	/* Co-Processor TMS320C10 MCU code */
-	ROM_LOAD_EVEN( "dsp_22.bin",  0x8000, 0x0800, 0x79389a71 )
-	ROM_LOAD_ODD ( "dsp_21.bin",  0x8000, 0x0800, 0x2d135376 )
+	ROM_LOAD_EVEN( "dsp_22.bin",  0x0000, 0x0800, 0x79389a71 )
+	ROM_LOAD_ODD ( "dsp_21.bin",  0x0000, 0x0800, 0x2d135376 )
 
 	ROM_REGION( 0x80000, REGION_GFX1 | REGIONFLAG_DISPOSE )
 	ROM_LOAD( "rom05",  0x00000, 0x20000, 0x6506c982 )

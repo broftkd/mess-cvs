@@ -272,7 +272,7 @@ static struct YM3812interface ym3812_interface =
 
 
 
-static const struct MachineDriver machine_driver_speedbal =
+static struct MachineDriver machine_driver_speedbal =
 {
 	/* basic machine hardware */
 	{

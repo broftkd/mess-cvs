@@ -14,6 +14,7 @@ extern unsigned char *sauro_colorram2;
 
 static int scroll1;
 static int scroll2;
+static int flipscreen;
 
 /***************************************************************************
 
@@ -62,9 +63,18 @@ static int scroll2_map_flip[8] = {0, 7, 2, 1, 4, 3, 6, 5};
 
 WRITE_HANDLER( sauro_scroll2_w )
 {
-	int* map = (flip_screen ? scroll2_map_flip : scroll2_map);
+	int* map = (flipscreen ? scroll2_map_flip : scroll2_map);
 
 	scroll2 = (data & 0xf8) | map[data & 7];
+}
+
+WRITE_HANDLER( sauro_flipscreen_w )
+{
+	if (flipscreen != data)
+	{
+		flipscreen = data;
+		memset(dirtybuffer, 1, videoram_size);
+	}
 }
 
 /***************************************************************************
@@ -77,12 +87,6 @@ WRITE_HANDLER( sauro_scroll2_w )
 void sauro_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 {
 	int offs,code,sx,sy,color,flipx;
-
-
-	if (full_refresh)
-	{
-		memset(dirtybuffer,1,videoram_size);
-	}
 
 
 	/* for every character in the backround RAM, check if it has been modified */
@@ -100,7 +104,7 @@ void sauro_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 
 		flipx = colorram[offs] & 0x08;
 
-		if (flip_screen)
+		if (flipscreen)
 		{
 			flipx = !flipx;
 			sx = 248 - sx;
@@ -110,12 +114,12 @@ void sauro_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 		drawgfx(tmpbitmap,Machine->gfx[1],
 				code,
 				color,
-				flipx,flip_screen,
+				flipx,flipscreen,
 				sx,sy,
 				0,TRANSPARENCY_NONE,0);
 	}
 
-	if (!flip_screen)
+	if (!flipscreen)
 	{
 		int scroll = -scroll1;
 		copyscrollbitmap(bitmap,tmpbitmap,1,&scroll ,0,0,&Machine->visible_area,TRANSPARENCY_NONE,0);
@@ -142,7 +146,7 @@ void sauro_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 
 		sx = (sx - scroll2) & 0xff;
 
-		if (flip_screen)
+		if (flipscreen)
 		{
 			flipx = !flipx;
 			sx = 248 - sx;
@@ -152,7 +156,7 @@ void sauro_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 		drawgfx(bitmap,Machine->gfx[0],
 				code,
 				color,
-				flipx,flip_screen,
+				flipx,flipscreen,
 				sx,sy,
 				&Machine->visible_area,TRANSPARENCY_PEN,0);
 	};
@@ -186,7 +190,7 @@ void sauro_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 
 		flipx = spriteram[offs+3] & 0x04;
 
-		if (flip_screen)
+		if (flipscreen)
 		{
 			flipx = !flipx;
 			sx = (235 - sx) & 0xff;  /* The &0xff is not 100% percent correct */
@@ -196,7 +200,7 @@ void sauro_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 		drawgfx(bitmap, Machine->gfx[2],
 				code,
 				color,
-				flipx,flip_screen,
+				flipx,flipscreen,
 				sx,sy,
 				&Machine->visible_area,TRANSPARENCY_PEN,0);
 	}

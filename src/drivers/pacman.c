@@ -186,7 +186,7 @@ static int pacman_interrupt(void)
 
 static WRITE_HANDLER( pacman_leds_w )
 {
-	set_led_status(offset,data & 1);
+	osd_led_w(offset,data);
 }
 
 static WRITE_HANDLER( alibaba_sound_w )
@@ -1174,7 +1174,7 @@ static struct namco_interface namco_interface =
 static struct SN76496interface sn76496_interface =
 {
 	2,
-	{ 1789750, 1789750 },	/* 1.78975 MHz ? */
+	{ 1789750, 1789750 },	/* 1.78975 Mhz ? */
 	{ 75, 75 }
 };
 
@@ -1190,13 +1190,13 @@ static struct AY8910interface dremshpr_ay8910_interface =
 };
 
 
-static const struct MachineDriver machine_driver_pacman =
+static struct MachineDriver machine_driver_pacman =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			readmem,writemem,0,writeport,
 			pacman_interrupt,1
 		}
@@ -1211,7 +1211,7 @@ static const struct MachineDriver machine_driver_pacman =
 	16, 4*32,
 	pacman_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER | VIDEO_SUPPORTS_DIRTY,
 	0,
 	pacman_vh_start,
 	generic_vh_stop,
@@ -1227,13 +1227,13 @@ static const struct MachineDriver machine_driver_pacman =
 	}
 };
 
-static const struct MachineDriver machine_driver_theglob =
+static struct MachineDriver machine_driver_theglob =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			theglob_readmem,writemem,theglob_readport,writeport,
 			pacman_interrupt,1
 		}
@@ -1264,13 +1264,13 @@ static const struct MachineDriver machine_driver_theglob =
 	}
 };
 
-static const struct MachineDriver machine_driver_vanvan =
+static struct MachineDriver machine_driver_vanvan =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			readmem,writemem,0,vanvan_writeport,
 			nmi_interrupt,1
 		}
@@ -1285,7 +1285,7 @@ static const struct MachineDriver machine_driver_vanvan =
 	16, 4*32,
 	pacman_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER | VIDEO_SUPPORTS_DIRTY,
 	0,
 	pacman_vh_start,
 	generic_vh_stop,
@@ -1301,13 +1301,13 @@ static const struct MachineDriver machine_driver_vanvan =
 	}
 };
 
-static const struct MachineDriver machine_driver_dremshpr =
+static struct MachineDriver machine_driver_dremshpr =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			readmem,writemem,0,dremshpr_writeport,
 			nmi_interrupt,1
 		}
@@ -1322,7 +1322,7 @@ static const struct MachineDriver machine_driver_dremshpr =
 	16, 4*32,
 	pacman_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER | VIDEO_SUPPORTS_DIRTY,
 	0,
 	pacman_vh_start,
 	generic_vh_stop,
@@ -1338,13 +1338,13 @@ static const struct MachineDriver machine_driver_dremshpr =
 	}
 };
 
-static const struct MachineDriver machine_driver_alibaba =
+static struct MachineDriver machine_driver_alibaba =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			alibaba_readmem,alibaba_writemem,0,0,
 			interrupt,1
 		}
@@ -1359,7 +1359,7 @@ static const struct MachineDriver machine_driver_alibaba =
 	16, 4*32,
 	pacman_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER | VIDEO_SUPPORTS_DIRTY,
 	0,
 	pacman_vh_start,
 	generic_vh_stop,

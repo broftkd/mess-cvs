@@ -260,7 +260,7 @@ static struct K053260_interface k053260_interface =
 	0
 };
 
-static const struct MachineDriver machine_driver_rollerg =
+static struct MachineDriver machine_driver_rollerg =
 {
 	/* basic machine hardware */
 	{

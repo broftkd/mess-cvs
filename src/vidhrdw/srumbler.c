@@ -7,8 +7,9 @@
 ***************************************************************************/
 
 #include "driver.h"
-#include "vidhrdw/generic.h"
 
+extern unsigned char *spriteram;
+extern size_t spriteram_size;
 
 unsigned char *srumbler_backgroundram,*srumbler_foregroundram;
 static struct tilemap *bg_tilemap,*fg_tilemap;
@@ -140,12 +141,12 @@ static void draw_sprites(struct osd_bitmap *bitmap)
 
 
 		int code,colour,sx,sy,flipy;
-		int attr = buffered_spriteram[offs+1];
-		code = buffered_spriteram[offs];
+		int attr=spriteram[offs+1];
+		code = spriteram[offs];
 		code += ( (attr&0xe0) << 3 );
 		colour = (attr & 0x1c)>>2;
-		sy = buffered_spriteram[offs + 2];
-		sx = buffered_spriteram[offs + 3] + 0x100 * ( attr & 0x01);
+		sy = spriteram[offs + 2];
+		sx = spriteram[offs + 3] + 0x100 * ( attr & 0x01);
 		flipy = attr & 0x02;
 
 		if (flip_screen)
@@ -178,9 +179,4 @@ void srumbler_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 	draw_sprites(bitmap);
 	tilemap_draw(bitmap,bg_tilemap,TILEMAP_FRONT);
 	tilemap_draw(bitmap,fg_tilemap,0);
-}
-
-void srumbler_eof_callback(void)
-{
-	buffer_spriteram_w(0,0);
 }

@@ -2,7 +2,6 @@
 #include "driver.h"
 #include "vidhrdw/vdc.h"
 #include "cpu/h6280/h6280.h"
-#include "includes/pce.h"
 
 /* the largest possible cartridge image, excluding special games */
 #define PCE_ROM_MAXSIZE  (0x2000 * 256 + 512)
@@ -96,7 +95,7 @@ void pce_stop_machine(void)
 
 
 /* todo: how many input ports does the PCE have? */
-WRITE_HANDLER ( pce_joystick_w )
+void pce_joystick_w(int offset, int data)
 {
 
     /* bump counter on a low-to-high transition of bit 1 */
@@ -115,7 +114,7 @@ WRITE_HANDLER ( pce_joystick_w )
     }
 }
 
-READ_HANDLER ( pce_joystick_r )
+int pce_joystick_r(int offset)
 {
     int data = readinputport(0);
     if(joystick_data_select) data >>= 4;

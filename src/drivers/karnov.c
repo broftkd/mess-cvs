@@ -574,13 +574,13 @@ static void karnov_reset_init(void)
 	memset(karnov_ram,0,0x4000); /* Chelnov likes ram clear on reset.. */
 }
 
-static const struct MachineDriver machine_driver_karnov =
+static struct MachineDriver machine_driver_karnov =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M68000,
-			10000000,	/* 10 MHz */
+			10000000,	/* 10 Mhz */
 			karnov_readmem,karnov_writemem,0,0,
 			karnov_interrupt,1
 		},
@@ -622,13 +622,13 @@ static const struct MachineDriver machine_driver_karnov =
 	}
 };
 
-static const struct MachineDriver machine_driver_wndrplnt =
+static struct MachineDriver machine_driver_wndrplnt =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M68000,
-			10000000,	/* 10 MHz */
+			10000000,	/* 10 Mhz */
 			karnov_readmem,karnov_writemem,0,0,
 			karnov_interrupt,1
 		},

@@ -13,7 +13,6 @@
 #include "driver.h"
 #include "vidhrdw/generic.h"
 #include "cpu/z80/z80.h"
-#include "includes/astrocde.h"
 
 #include <math.h> /* for sin() and cos() */
 
@@ -127,12 +126,12 @@ void astrocade_init_palette(unsigned char *palette, unsigned short *colortable,c
 	colortable = fake_colortable;
 }
 
-WRITE_HANDLER ( astrocade_vertical_blank_w )
+void astrocade_vertical_blank_w(int offset, int data)
 {
 	VerticalBlank = data;
 }
 
-READ_HANDLER ( astrocade_intercept_r )
+int astrocade_intercept_r(int offset)
 {
 	int res;
 
@@ -143,7 +142,7 @@ READ_HANDLER ( astrocade_intercept_r )
 }
 
 
-READ_HANDLER ( astrocade_video_retrace_r )
+int astrocade_video_retrace_r(int offset)
 {
 	extern int CurrentScan;
 
@@ -153,7 +152,7 @@ READ_HANDLER ( astrocade_video_retrace_r )
 /* Switches colour registers at this zone - 40 zones */
 /* Also sets the background colors */
 
-WRITE_HANDLER ( astrocade_colour_split_w )
+void astrocade_colour_split_w(int offset, int data)
 {
 	ColourSplit = data&0x3f;
 
@@ -170,12 +169,12 @@ WRITE_HANDLER ( astrocade_colour_split_w )
 /* This selects commercial (high res, arcade) or
                   consumer (low res, astrocade) mode */
 
-WRITE_HANDLER ( astrocade_mode_w )
+void astrocade_mode_w(int offset, int data)
 {
 	astrocade_mode = data & 0x01;
 }
 
-WRITE_HANDLER ( astrocade_colour_register_w )
+void astrocade_colour_register_w(int offset, int data)
 {
 	if(Colour[offset] != data)
     {
@@ -192,7 +191,7 @@ WRITE_HANDLER ( astrocade_colour_register_w )
 #endif
 }
 
-WRITE_HANDLER ( astrocade_colour_block_w )
+void astrocade_colour_block_w(int offset, int data)
 {
 	static int color_reg_num = 7;
 
@@ -212,16 +211,17 @@ WRITE_HANDLER ( astrocade_colour_block_w )
 
 }
 
-WRITE_HANDLER ( astrocade_videoram_w )
+void astrocade_videoram_w(int offset,int data)
 {
 	if ((offset < 0x1000) && (astrocade_videoram[offset] != data))
 	{
 		astrocade_videoram[offset] = data;
+        dirtybuffer[offset / 40] = 1;
     }
 }
 
 
-WRITE_HANDLER ( astrocade_magic_expand_color_w )
+void astrocade_magic_expand_color_w(int offset,int data)
 {
 #ifdef MAME_DEBUG
 //	logerror("%04x: magic_expand_color = %02x\n",cpu_getpc(),data);
@@ -231,7 +231,7 @@ WRITE_HANDLER ( astrocade_magic_expand_color_w )
 }
 
 
-WRITE_HANDLER ( astrocade_magic_control_w )
+void astrocade_magic_control_w(int offset,int data)
 {
 #ifdef MAME_DEBUG
 //	logerror("%04x: magic_control = %02x\n",cpu_getpc(),data);
@@ -242,7 +242,7 @@ WRITE_HANDLER ( astrocade_magic_control_w )
 	magic_control = data;
 }
 
-WRITE_HANDLER ( astrocade_magicram_w )
+void astrocade_magicram_w(int offset,int data)
 {
 	unsigned int data1,shift,bits,bibits,stib,k,old_data;
 
@@ -373,47 +373,94 @@ void astrocade_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 	copybitmap(bitmap,tmpbitmap,0,0,0,0,&Machine->visible_area,TRANSPARENCY_NONE,0);
 }
 
-void astrocade_copy_line(int line)
+void AstrocadeCopyLine(int Line)
 {
 	/* Copy one line to bitmap, using current colour register settings */
 
     int memloc;
     int i,x,num_bytes;
-    int data,color;
+    int data,color/*,mask*/;
+   	int ey;
 
-	if (astrocade_mode == 0)
-	{
-		memloc = line/2 * 40;
-		num_bytes = 40;
-	}
-	else
-	{
-		num_bytes = 80;
-		memloc = line * 80;
-	}
+    /* Redraw line if anything changed */
 
-	LeftLineColour[line]  = LeftColourCheck;
-	RightLineColour[line]  = RightColourCheck;
 
-	for(i=0;i<num_bytes;i++,memloc++)
-	{
-		if (line < VerticalBlank)
-			data = astrocade_videoram[memloc];
-		else
-			data = BackgroundData;
 
-		for(x=i*4+3;x>=i*4;x--)
+	//if (dirtybuffer[Line] || (LeftLineColour[Line] != LeftColourCheck) ||
+	//						   (RightLineColour[Line] != RightColourCheck))
+    //{
+
+		if (astrocade_mode == 0)
 		{
-			color = data & 03;
-
-			if (i<ColourSplit)
-				color += 4;
-
-			plot_pixel(tmpbitmap,x,line,Machine->pens[Colour[color]]);
-
-			data >>= 2;
+			memloc = Line/2 * 40;
+			num_bytes = 40;
+		}
+		else
+		{
+			num_bytes = 80;
+			memloc = Line * 80;
 		}
 
-	}
+		LeftLineColour[Line]  = LeftColourCheck;
+		RightLineColour[Line]  = RightColourCheck;
+        dirtybuffer[Line] = 0;
+
+        /* Handle Line swaps outside of loop */
+
+        if (Machine->orientation & ORIENTATION_SWAP_XY)
+        {
+  		    if (Machine->orientation & ORIENTATION_FLIP_Y)
+  			    ey = Line;
+            else
+                ey = 203 - Line;
+
+        	osd_mark_dirty(ey,0,ey,319,0);
+		}
+        else
+        {
+  		    if (Machine->orientation & ORIENTATION_FLIP_Y)
+                ey = 203 - Line;
+            else
+  			    ey = Line;
+
+	        osd_mark_dirty(0,ey,319,ey,0);
+		}
+
+        for(i=0;i<num_bytes;i++,memloc++)
+        {
+			if (Line < VerticalBlank)
+				data = astrocade_videoram[memloc];
+			else
+				data = BackgroundData;
+
+            for(x=i*4+3;x>=i*4;x--)
+            {
+				color = data & 03;
+
+            	if (i<ColourSplit)
+					color += 4;
+
+                if (Machine->orientation & ORIENTATION_SWAP_XY)
+                {
+					if (Machine->orientation & ORIENTATION_FLIP_X)
+						tmpbitmap->line[x][ey] = Machine->pens[Colour[color]];
+                    else
+	                    tmpbitmap->line[319-x][ey] = Machine->pens[Colour[color]];
+                }
+                else
+                {
+					if (Machine->orientation & ORIENTATION_FLIP_X)
+                        tmpbitmap->line[ey][319-x] = Machine->pens[Colour[color]];
+                    else
+					{
+						tmpbitmap->line[ey][x] = Machine->pens[Colour[color]];
+					}
+                }
+
+                data >>= 2;
+            }
+
+        }
+    //}
 }
 

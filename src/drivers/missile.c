@@ -357,13 +357,13 @@ static struct POKEYinterface pokey_interface =
 
 
 
-static const struct MachineDriver machine_driver_missile =
+static struct MachineDriver machine_driver_missile =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			1000000,	/* 1 MHz ???? */
+			1000000,	/* 1 Mhz ???? */
 			readmem,writemem,0,0,
 			interrupt, 4  /* EEA was 1 */
 		}

@@ -194,6 +194,7 @@ void (* sys16_update_proc)( void );
 
 /* video driver registers */
 extern int sys16_refreshenable;
+extern int sys16_clear_screen;
 extern int sys16_tile_bank0;
 extern int sys16_tile_bank1;
 extern int sys16_bg_scrollx, sys16_bg_scrolly;
@@ -236,6 +237,7 @@ static unsigned char *sys16_extraram;
 static unsigned char *sys16_extraram2;
 static unsigned char *sys16_extraram3;
 static unsigned char *sys16_extraram4;
+static unsigned char *sys16_extraram5;
 
 // 7751 emulation
 WRITE_HANDLER( sys16_7751_audio_8255_w );
@@ -290,10 +292,13 @@ void aurail_decode_opcode2(unsigned char *dest,unsigned char *source,int size);
 #define MRA_EXTRAM4		MRA_BANK6
 #define MWA_EXTRAM4		MWA_BANK6,&sys16_extraram4
 
+#define MRA_EXTRAM5		MRA_BANK7
+#define MWA_EXTRAM5		MWA_BANK7,&sys16_extraram5
+
 /***************************************************************************/
 
-#define MACHINE_DRIVER( GAMENAME,READMEM,WRITEMEM,INITMACHINE) \
-static const struct MachineDriver GAMENAME = \
+#define MACHINE_DRIVER( GAMENAME,READMEM,WRITEMEM,INITMACHINE,GFXSIZE) \
+static struct MachineDriver GAMENAME = \
 { \
 	{ \
 		{ \
@@ -313,7 +318,7 @@ static const struct MachineDriver GAMENAME = \
 	1, \
 	INITMACHINE, \
 	40*8, 28*8, { 0*8, 40*8-1, 0*8, 28*8-1 }, \
-	gfxdecodeinfo, \
+	GFXSIZE, \
 	2048*ShadowColorsMultiplier,2048*ShadowColorsMultiplier, \
 	0, \
 	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE, \
@@ -330,8 +335,8 @@ static const struct MachineDriver GAMENAME = \
 	} \
 };
 
-#define MACHINE_DRIVER_7759( GAMENAME,READMEM,WRITEMEM,INITMACHINE, UPD7759INTF ) \
-static const struct MachineDriver GAMENAME = \
+#define MACHINE_DRIVER_7759( GAMENAME,READMEM,WRITEMEM,INITMACHINE,GFXSIZE, UPD7759INTF ) \
+static struct MachineDriver GAMENAME = \
 { \
 	{ \
 		{ \
@@ -351,7 +356,7 @@ static const struct MachineDriver GAMENAME = \
 	1, \
 	INITMACHINE, \
 	40*8, 28*8, { 0*8, 40*8-1, 0*8, 28*8-1 }, \
-	gfxdecodeinfo, \
+	GFXSIZE, \
 	2048*ShadowColorsMultiplier,2048*ShadowColorsMultiplier, \
 	0, \
 	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE, \
@@ -372,8 +377,8 @@ static const struct MachineDriver GAMENAME = \
 };
 
 
-#define MACHINE_DRIVER_7751( GAMENAME,READMEM,WRITEMEM,INITMACHINE ) \
-static const struct MachineDriver GAMENAME = \
+#define MACHINE_DRIVER_7751( GAMENAME,READMEM,WRITEMEM,INITMACHINE,GFXSIZE ) \
+static struct MachineDriver GAMENAME = \
 { \
 	{ \
 		{ \
@@ -390,7 +395,7 @@ static const struct MachineDriver GAMENAME = \
 		}, \
 		{ \
 			CPU_N7751 | CPU_AUDIO_CPU, \
-			6000000/15,        /* 6MHz crystal */ \
+			6000000/15,        /* 6Mhz crystal */ \
 			readmem_7751,writemem_7751,readport_7751,writeport_7751, \
 			ignore_interrupt,1 \
 		} \
@@ -399,7 +404,7 @@ static const struct MachineDriver GAMENAME = \
 	1, \
 	INITMACHINE, \
 	40*8, 28*8, { 0*8, 40*8-1, 0*8, 28*8-1 }, \
-	gfxdecodeinfo, \
+	GFXSIZE, \
 	2048*ShadowColorsMultiplier,2048*ShadowColorsMultiplier, \
 	0, \
 	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE, \
@@ -421,8 +426,8 @@ static const struct MachineDriver GAMENAME = \
 };
 
 
-#define MACHINE_DRIVER_18( GAMENAME,READMEM,WRITEMEM,INITMACHINE) \
-static const struct MachineDriver GAMENAME = \
+#define MACHINE_DRIVER_18( GAMENAME,READMEM,WRITEMEM,INITMACHINE,GFXSIZE) \
+static struct MachineDriver GAMENAME = \
 { \
 	{ \
 		{ \
@@ -442,7 +447,7 @@ static const struct MachineDriver GAMENAME = \
 	1, \
 	INITMACHINE, \
 	40*8, 28*8, { 0*8, 40*8-1, 0*8, 28*8-1 }, \
-	gfxdecodeinfo, \
+	GFXSIZE, \
 	2048*ShadowColorsMultiplier,2048*ShadowColorsMultiplier, \
 	0, \
 	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE, \
@@ -562,39 +567,39 @@ static struct IOWritePort sound_writeport_7751[] =
 
 static struct MemoryReadAddress readmem_7751[] =
 {
-	{ 0x0000, 0x03ff, MRA_ROM },
-	{ -1 }  /* end of table */
+        { 0x0000, 0x03ff, MRA_ROM },
+        { -1 }  /* end of table */
 };
 
 static struct MemoryWriteAddress writemem_7751[] =
 {
-	{ 0x0000, 0x03ff, MWA_ROM },
-	{ -1 }  /* end of table */
+        { 0x0000, 0x03ff, MWA_ROM },
+        { -1 }  /* end of table */
 };
 
 static struct IOReadPort readport_7751[] =
 {
-	{ I8039_t1,  I8039_t1,  sys16_7751_sh_t1_r },
-	{ I8039_p2,  I8039_p2,  sys16_7751_sh_command_r },
-	{ I8039_bus, I8039_bus, sys16_7751_sh_rom_r },
-	{ -1 }  /* end of table */
+        { I8039_t1,  I8039_t1,  sys16_7751_sh_t1_r },
+        { I8039_p2,  I8039_p2,  sys16_7751_sh_command_r },
+        { I8039_bus, I8039_bus, sys16_7751_sh_rom_r },
+        { -1 }  /* end of table */
 };
 
 static struct IOWritePort writeport_7751[] =
 {
-	{ I8039_p1, I8039_p1, sys16_7751_sh_dac_w },
-	{ I8039_p2, I8039_p2, sys16_7751_sh_busy_w },
-	{ I8039_p4, I8039_p4, sys16_7751_sh_offset_a0_a3_w },
-	{ I8039_p5, I8039_p5, sys16_7751_sh_offset_a4_a7_w },
-	{ I8039_p6, I8039_p6, sys16_7751_sh_offset_a8_a11_w },
-	{ I8039_p7, I8039_p7, sys16_7751_sh_rom_select_w },
-	{ -1 }  /* end of table */
+        { I8039_p1, I8039_p1, sys16_7751_sh_dac_w },
+        { I8039_p2, I8039_p2, sys16_7751_sh_busy_w },
+        { I8039_p4, I8039_p4, sys16_7751_sh_offset_a0_a3_w },
+        { I8039_p5, I8039_p5, sys16_7751_sh_offset_a4_a7_w },
+        { I8039_p6, I8039_p6, sys16_7751_sh_offset_a8_a11_w },
+        { I8039_p7, I8039_p7, sys16_7751_sh_rom_select_w },
+        { -1 }  /* end of table */
 };
 
 static struct DACinterface sys16_7751_dac_interface =
 {
-	1,
-	{ 100 }
+        1,
+        { 100 }
 };
 
 
@@ -739,7 +744,7 @@ static struct YM2612interface ym3438_interface =
 static struct YM2203interface ym2203_interface =
 {
 	1,	/* 1 chips */
-	4096000,	/* 3.58 MHz ? */
+	4096000,	/* 3.58 MHZ ? */
 	{ YM2203_VOL(50,50) },
 	{ 0 },
 	{ 0 },
@@ -751,7 +756,7 @@ static struct YM2203interface ym2203_interface =
 static struct YM2203interface ym2203_interface2 =
 {
 	3,	/* 1 chips */
-	4096000,	/* 3.58 MHz ? */
+	4096000,	/* 3.58 MHZ ? */
 	{ YM2203_VOL(50,50),YM2203_VOL(50,50),YM2203_VOL(50,50) },
 	{ 0 },
 	{ 0 },
@@ -816,57 +821,10 @@ static WRITE_HANDLER( sound_command_nmi_w ){
 	cpu_set_nmi_line(1, PULSE_LINE);
 }
 
-
-static UINT16 coinctrl;
-
-static READ_HANDLER( sys16_coinctrl_r )
-{
-	return coinctrl;
-}
-
-static WRITE_HANDLER( sys16_coinctrl_w )
-{
-	coinctrl = COMBINE_WORD(coinctrl,data);
-
-	sys16_refreshenable = coinctrl & 0x20;
-	coin_counter_w(0,coinctrl & 0x01);
-	set_led_status(0,coinctrl & 0x04);
-	set_led_status(1,coinctrl & 0x08);
-	/* bit 6 is also used (1 most of the time; 0 in dduxbl, sdi, wb3;
-	   tturf has it normally 1 but 0 after coin insertion) */
-	/* eswat sets bit 4 */
-}
-
-static WRITE_HANDLER( sys18_refreshenable_w )
-{
-	coinctrl = COMBINE_WORD(coinctrl,data);
-
-	sys16_refreshenable = coinctrl & 0x02;
-	/* bit 2 is also used (0 in shadow dancer) */
-	/* shadow dancer also sets bit 7 */
-}
-
-static WRITE_HANDLER( sys16_3d_coinctrl_w )
-{
-	coinctrl = COMBINE_WORD(coinctrl,data);
-
-	sys16_refreshenable = coinctrl & 0x10;
-	coin_counter_w(0,coinctrl & 0x01);
-	/* bit 6 is also used (0 in fantzone) */
-
-	/* Hang-On, Super Hang-On, Space Harrier, Enduro Racer */
-	set_led_status(0,coinctrl & 0x04);
-
-	/* Space Harrier */
-	set_led_status(1,coinctrl & 0x08);
-}
-
-
-
 static struct YM2151interface ym2151_interface =
 {
 	1,			/* 1 chip */
-	4096000,	/* 3.58 MHz ? */
+	4096000,	/* 3.58 MHZ ? */
 	{ YM3012_VOL(40,MIXER_PAN_LEFT,40,MIXER_PAN_RIGHT) },
 	{ 0 }
 };
@@ -876,24 +834,90 @@ static struct YM2151interface ym2151_interface =
 
 /***************************************************************************/
 
-static struct GfxLayout charlayout =
+static struct GfxLayout charlayout1 =
 {
-	8,8,
-	RGN_FRAC(1,3),
-	3,
-	{ RGN_FRAC(2,3), RGN_FRAC(1,3), RGN_FRAC(0,3) },
-	{ 0, 1, 2, 3, 4, 5, 6, 7 },
+	8,8,	/* 8*8 chars */
+	8192,	/* 8192 chars */
+	3,	/* 3 bits per pixel */
+	{ 0x20000*8, 0x10000*8, 0 },
+		{ 0, 1, 2, 3, 4, 5, 6, 7 },
 	{ 0*8, 1*8, 2*8, 3*8, 4*8, 5*8, 6*8, 7*8 },
-	8*8
+	8*8	/* every sprite takes 8 consecutive bytes */
 };
 
-static struct GfxDecodeInfo gfxdecodeinfo[] =
+static struct GfxLayout charlayout2 =
 {
-	{ REGION_GFX1, 0, &charlayout,	0, 256 },
+	8,8,	/* 8*8 chars */
+	16384,	/* 16384 chars */
+	3,	/* 3 bits per pixel */
+	{ 0x40000*8, 0x20000*8, 0 },
+		{ 0, 1, 2, 3, 4, 5, 6, 7 },
+	{ 0*8, 1*8, 2*8, 3*8, 4*8, 5*8, 6*8, 7*8 },
+	8*8	/* every sprite takes 8 consecutive bytes */
+};
+
+static struct GfxLayout charlayout4 =
+{
+	8,8,	/* 8*8 chars */
+	32768,	/* 32768 chars */
+	3,	/* 3 bits per pixel */
+	{ 0x80000*8, 0x40000*8, 0 },
+		{ 0, 1, 2, 3, 4, 5, 6, 7 },
+	{ 0*8, 1*8, 2*8, 3*8, 4*8, 5*8, 6*8, 7*8 },
+	8*8	/* every sprite takes 8 consecutive bytes */
+};
+
+static struct GfxLayout charlayout8 =
+{
+	8,8,	/* 8*8 chars */
+	4096,	/* 4096 chars */
+	3,	/* 3 bits per pixel */
+	{ 0x10000*8, 0x08000*8, 0 },
+		{ 0, 1, 2, 3, 4, 5, 6, 7 },
+	{ 0*8, 1*8, 2*8, 3*8, 4*8, 5*8, 6*8, 7*8 },
+	8*8	/* every sprite takes 8 consecutive bytes */
+};
+
+static struct GfxDecodeInfo gfx1[] =
+{
+	{ REGION_GFX1, 0x00000, &charlayout1,	0, 256 },
+	{ -1 } /* end of array */
+};
+
+static struct GfxDecodeInfo gfx2[] =
+{
+	{ REGION_GFX1, 0x00000, &charlayout2,	0, 256 },
+	{ -1 } /* end of array */
+};
+
+static struct GfxDecodeInfo gfx4[] =
+{
+	{ REGION_GFX1, 0x00000, &charlayout4,	0, 256 },
+	{ -1 } /* end of array */
+};
+
+static struct GfxDecodeInfo gfx8[] =
+{
+	{ REGION_GFX1, 0x00000, &charlayout8,	0, 256 },
 	{ -1 } /* end of array */
 };
 
 /***************************************************************************/
+
+static void set_refresh( int data ){
+	sys16_refreshenable = data&0x20;
+	sys16_clear_screen  = data&1;
+}
+
+static void set_refresh_18( int data ){
+	sys16_refreshenable = data&0x2;
+//	sys16_clear_screen  = data&4;
+}
+
+static void set_refresh_3d( int data ){
+	sys16_refreshenable = data&0x10;
+}
+
 
 static void set_tile_bank( int data ){
 	sys16_tile_bank1 = data&0xf;
@@ -1380,7 +1404,7 @@ static void patch_z80code( int offset, int data ){
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_COIN1 ) \
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_COIN2 ) \
 	PORT_BITX(0x04, IP_ACTIVE_LOW, IPT_SERVICE, DEF_STR( Service_Mode ), KEYCODE_F2, IP_JOY_NONE ) \
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_SERVICE1 ) \
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_COIN3 ) \
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_START1 ) \
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_START2 ) \
 	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_UNKNOWN ) \
@@ -1391,36 +1415,36 @@ static void patch_z80code( int offset, int data ){
 	PORT_DIPSETTING(    0x07, DEF_STR( 4C_1C ) ) \
 	PORT_DIPSETTING(    0x08, DEF_STR( 3C_1C ) ) \
 	PORT_DIPSETTING(    0x09, DEF_STR( 2C_1C ) ) \
-	PORT_DIPSETTING(    0x05, "2 Coins/1 Credit 5/3 6/4" ) \
-	PORT_DIPSETTING(    0x04, "2 Coins/1 Credit 4/3" ) \
+	PORT_DIPSETTING(    0x05, "2 Coins/1 Credit 5/3 6/4") \
+	PORT_DIPSETTING(    0x04, "2 Coins/1 Credit 4/3") \
 	PORT_DIPSETTING(    0x0f, DEF_STR( 1C_1C ) ) \
-	PORT_DIPSETTING(    0x01, "1 Coin/1 Credit 2/3" ) \
-	PORT_DIPSETTING(    0x02, "1 Coin/1 Credit 4/5" ) \
-	PORT_DIPSETTING(    0x03, "1 Coin/1 Credit 5/6" ) \
+	PORT_DIPSETTING(    0x01, "1 Coin/1 Credit 2/3") \
+	PORT_DIPSETTING(    0x02, "1 Coin/1 Credit 4/5") \
+	PORT_DIPSETTING(    0x03, "1 Coin/1 Credit 5/6") \
 	PORT_DIPSETTING(    0x06, DEF_STR( 2C_3C ) ) \
 	PORT_DIPSETTING(    0x0e, DEF_STR( 1C_2C ) ) \
 	PORT_DIPSETTING(    0x0d, DEF_STR( 1C_3C ) ) \
 	PORT_DIPSETTING(    0x0c, DEF_STR( 1C_4C ) ) \
 	PORT_DIPSETTING(    0x0b, DEF_STR( 1C_5C ) ) \
 	PORT_DIPSETTING(    0x0a, DEF_STR( 1C_6C ) ) \
-	PORT_DIPSETTING(    0x00, "Free Play (if Coin B too) or 1/1" ) \
+	PORT_DIPSETTING(    0x00, "Free Play (if Coin B too) or 1/1") \
 	PORT_DIPNAME( 0xf0, 0xf0, DEF_STR( Coin_B ) ) \
 	PORT_DIPSETTING(    0x70, DEF_STR( 4C_1C ) ) \
 	PORT_DIPSETTING(    0x80, DEF_STR( 3C_1C ) ) \
 	PORT_DIPSETTING(    0x90, DEF_STR( 2C_1C ) ) \
-	PORT_DIPSETTING(    0x50, "2 Coins/1 Credit 5/3 6/4" ) \
-	PORT_DIPSETTING(    0x40, "2 Coins/1 Credit 4/3" ) \
+	PORT_DIPSETTING(    0x50, "2 Coins/1 Credit 5/3 6/4") \
+	PORT_DIPSETTING(    0x40, "2 Coins/1 Credit 4/3") \
 	PORT_DIPSETTING(    0xf0, DEF_STR( 1C_1C ) ) \
-	PORT_DIPSETTING(    0x10, "1 Coin/1 Credit 2/3" ) \
-	PORT_DIPSETTING(    0x20, "1 Coin/1 Credit 4/5" ) \
-	PORT_DIPSETTING(    0x30, "1 Coin/1 Credit 5/6" ) \
+	PORT_DIPSETTING(    0x10, "1 Coin/1 Credit 2/3") \
+	PORT_DIPSETTING(    0x20, "1 Coin/1 Credit 4/5") \
+	PORT_DIPSETTING(    0x30, "1 Coin/1 Credit 5/6") \
 	PORT_DIPSETTING(    0x60, DEF_STR( 2C_3C ) ) \
 	PORT_DIPSETTING(    0xe0, DEF_STR( 1C_2C ) ) \
 	PORT_DIPSETTING(    0xd0, DEF_STR( 1C_3C ) ) \
 	PORT_DIPSETTING(    0xc0, DEF_STR( 1C_4C ) ) \
 	PORT_DIPSETTING(    0xb0, DEF_STR( 1C_5C ) ) \
 	PORT_DIPSETTING(    0xa0, DEF_STR( 1C_6C ) ) \
-	PORT_DIPSETTING(    0x00, "Free Play (if Coin A too) or 1/1" )
+	PORT_DIPSETTING(    0x00, "Free Play (if Coin A too) or 1/1")
 
 
 
@@ -1601,7 +1625,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7751( machine_driver_alexkidd, \
-	alexkidd_readmem,alexkidd_writemem,alexkidd_init_machine )
+	alexkidd_readmem,alexkidd_writemem,alexkidd_init_machine,gfx8 )
 
 /***************************************************************************/
 // sys16B
@@ -1749,6 +1773,7 @@ static struct MemoryReadAddress aliensyn_readmem[] =
 	{ 0xc41000, 0xc41001, io_service_r },
 	{ 0xc42002, 0xc42003, io_dip1_r },
 	{ 0xc42000, 0xc42001, io_dip2_r },
+	{ 0xc40000, 0xc40fff, MRA_EXTRAM },
 	{ 0xffc000, 0xffffff, MRA_WORKINGRAM },
 	{-1}
 };
@@ -1761,7 +1786,7 @@ static struct MemoryWriteAddress aliensyn_writemem[] =
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
 	{ 0xc00006, 0xc00007, sound_command_w },
-	{ 0xc40000, 0xc40001, sys16_coinctrl_w },
+	{ 0xc40000, 0xc40fff, MWA_EXTRAM },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
 };
@@ -1776,6 +1801,8 @@ static void aliensyn_update_proc( void ){
 
 	set_fg_page( READ_WORD( &sys16_textram[0x0e80] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x0e82] ) );
+
+	set_refresh( READ_WORD( &sys16_extraram[0] ) ); // 0xc40001
 }
 
 static void aliensyn_init_machine( void ){
@@ -1845,7 +1872,7 @@ static struct UPD7759_interface aliensyn_upd7759_interface =
 /****************************************************************************/
 
 MACHINE_DRIVER_7759( machine_driver_aliensyn, \
-	aliensyn_readmem,aliensyn_writemem,aliensyn_init_machine, aliensyn_upd7759_interface )
+	aliensyn_readmem,aliensyn_writemem,aliensyn_init_machine, gfx1, aliensyn_upd7759_interface )
 
 /***************************************************************************/
 // sys16B
@@ -1983,6 +2010,7 @@ static struct MemoryReadAddress altbeast_readmem[] =
 	{ 0xc41000, 0xc41001, io_service_r },
 	{ 0xc42002, 0xc42003, io_dip1_r },
 	{ 0xc42000, 0xc42001, io_dip2_r },
+	{ 0xc40000, 0xc40fff, MRA_EXTRAM },
 	{ 0xfff01c, 0xfff01d, altbeast_skip_r },
 	{ 0xffc000, 0xffffff, MRA_WORKINGRAM },
 	{-1}
@@ -1995,7 +2023,7 @@ static struct MemoryWriteAddress altbeast_writemem[] =
 	{ 0x410000, 0x410fff, MWA_TEXTRAM },
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
-	{ 0xc40000, 0xc40001, sys16_coinctrl_w },
+	{ 0xc40000, 0xc40fff, MWA_EXTRAM },
 	{ 0xfe0006, 0xfe0007, sound_command_w },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
@@ -2013,6 +2041,7 @@ static void altbeast_update_proc( void ){
 	set_bg_page( READ_WORD( &sys16_textram[0x0e82] ) );
 
 	set_tile_bank( READ_WORD( &sys16_workingram[0x3094] ) );
+	set_refresh( READ_WORD( &sys16_extraram[0] ) );
 }
 
 static void altbeast_init_machine( void ){
@@ -2043,8 +2072,8 @@ INPUT_PORTS_START( altbeast )
 
 PORT_START	/* DSW1 */
 	PORT_DIPNAME( 0x01, 0x01, "Credits needed" )
-	PORT_DIPSETTING(    0x01, "1 to start, 1 to continue" )
-	PORT_DIPSETTING(    0x00, "2 to start, 1 to continue" )
+	PORT_DIPSETTING(    0x01, "1 to start, 1 to continue")
+	PORT_DIPSETTING(    0x00, "2 to start, 1 to continue")
 	PORT_DIPNAME( 0x02, 0x00, DEF_STR( Demo_Sounds ) )
 	PORT_DIPSETTING(    0x02, DEF_STR( Off ) )
 	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
@@ -2068,10 +2097,10 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7759( machine_driver_altbeast, \
-	altbeast_readmem,altbeast_writemem,altbeast_init_machine,upd7759_interface )
+	altbeast_readmem,altbeast_writemem,altbeast_init_machine, gfx2,upd7759_interface )
 
 MACHINE_DRIVER_7759( machine_driver_altbeas2, \
-	altbeast_readmem,altbeast_writemem,altbeas2_init_machine,upd7759_interface )
+	altbeast_readmem,altbeast_writemem,altbeas2_init_machine, gfx2,upd7759_interface )
 
 /***************************************************************************/
 // sys18
@@ -2180,6 +2209,7 @@ static struct MemoryReadAddress astorm_readmem[] =
 	{ 0xa01000, 0xa01001, io_service_r },
 	{ 0xa00000, 0xa0ffff, MRA_EXTRAM2 },
 	{ 0xc00000, 0xc0ffff, MRA_EXTRAM },
+	{ 0xc40000, 0xc4ffff, MRA_EXTRAM3 },
 	{ 0xffec2c, 0xffec2d, astorm_skip_r },
 	{ 0xffc000, 0xffffff, MRA_WORKINGRAM },
 	{-1}
@@ -2195,7 +2225,7 @@ static struct MemoryWriteAddress astorm_writemem[] =
 	{ 0xa00006, 0xa00007, sound_command_nmi_w },
 	{ 0xa00000, 0xa0ffff, MWA_EXTRAM2 },
 	{ 0xc00000, 0xc0ffff, MWA_EXTRAM },
-	{ 0xc46600, 0xc46601, sys18_refreshenable_w },
+	{ 0xc40000, 0xc4ffff, MWA_EXTRAM3 },
 	{ 0xfe0020, 0xfe003f, MWA_NOP },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
@@ -2249,6 +2279,7 @@ static void astorm_update_proc( void ){
 		sys18_bg2_active=0;
 
 	set_tile_bank18( READ_WORD( &sys16_extraram2[0xe] ) ); // 0xa0000f
+	set_refresh_18( READ_WORD( &sys16_extraram3[0x6600] ) ); // 0xc46601
 }
 
 static void astorm_init_machine( void ){
@@ -2406,7 +2437,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_18( machine_driver_astorm, \
-	astorm_readmem,astorm_writemem,astorm_init_machine )
+	astorm_readmem,astorm_writemem,astorm_init_machine, gfx4 )
 
 /***************************************************************************/
 // sys16B
@@ -2590,7 +2621,7 @@ static struct YM2413interface ym2413_interface=
     { 30 },
 };
 
-static const struct MachineDriver machine_driver_atomicp =
+static struct MachineDriver machine_driver_atomicp =
 {
 	{
 		{
@@ -2604,7 +2635,7 @@ static const struct MachineDriver machine_driver_atomicp =
 	1,
 	atomicp_init_machine,
 	40*8, 28*8, { 0*8, 40*8-1, 0*8, 28*8-1 },
-	gfxdecodeinfo,
+	gfx8,
 	2048*ShadowColorsMultiplier,2048*ShadowColorsMultiplier,
 	0,
 	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE,
@@ -2664,7 +2695,7 @@ ROM_START( aurail )
 	ROM_REGION( 0x50000, REGION_CPU2 ) /* sound CPU */
 	ROM_LOAD( "13448",      0x0000, 0x8000, 0xb5183fb9 )
 	ROM_LOAD( "aurail.a12", 0x10000,0x20000, 0xd3d9aaf9 )
-	ROM_RELOAD(             0x30000,0x20000 )
+	ROM_LOAD( "aurail.a12", 0x30000,0x20000, 0xd3d9aaf9 )
 ROM_END
 
 ROM_START( auraila )
@@ -2705,7 +2736,7 @@ ROM_START( auraila )
 	ROM_REGION( 0x50000, REGION_CPU2 ) /* sound CPU */
 	ROM_LOAD( "13448",      0x0000, 0x8000, 0xb5183fb9 )
 	ROM_LOAD( "aurail.a12", 0x10000,0x20000, 0xd3d9aaf9 )
-	ROM_RELOAD(             0x30000,0x20000 )
+	ROM_LOAD( "aurail.a12", 0x30000,0x20000, 0xd3d9aaf9 )
 ROM_END
 
 
@@ -2731,6 +2762,7 @@ static struct MemoryReadAddress aurail_readmem[] =
 	{ 0xc41000, 0xc41001, io_service_r },
 	{ 0xc42002, 0xc42003, io_dip1_r },
 	{ 0xc42000, 0xc42001, io_dip2_r },
+	{ 0xc40000, 0xc4ffff, MRA_EXTRAM2 },
 	{ 0xfc0000, 0xfc0fff, MRA_EXTRAM3 },
 	{ 0xffe74e, 0xffe74f, aurail_skip_r },
 	{ 0xffc000, 0xffffff, MRA_WORKINGRAM },
@@ -2745,7 +2777,7 @@ static struct MemoryWriteAddress aurail_writemem[] =
 	{ 0x410000, 0x410fff, MWA_TEXTRAM },
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
-	{ 0xc40000, 0xc40001, sys16_coinctrl_w },
+	{ 0xc40000, 0xc4ffff, MWA_EXTRAM2 },
 	{ 0xfc0000, 0xfc0fff, MWA_EXTRAM3 },
 	{ 0xfe0006, 0xfe0007, sound_command_w },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
@@ -2764,6 +2796,7 @@ static void aurail_update_proc (void)
 	set_bg_page( READ_WORD( &sys16_textram[0x0e82] ) );
 
 	set_tile_bank( READ_WORD( &sys16_extraram3[0x0002] ) );
+	set_refresh( READ_WORD( &sys16_extraram2[0] ) );
 }
 
 static void aurail_init_machine( void ){
@@ -2836,7 +2869,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7759( machine_driver_aurail, \
-	aurail_readmem,aurail_writemem,aurail_init_machine,upd7759_interface )
+	aurail_readmem,aurail_writemem,aurail_init_machine, gfx4,upd7759_interface )
 
 /***************************************************************************/
 // sys16B
@@ -2971,6 +3004,8 @@ static struct MemoryReadAddress bayroute_readmem[] =
 	{ 0x901000, 0x901001, io_service_r },
 	{ 0x902002, 0x902003, io_dip1_r },
 	{ 0x902000, 0x902001, io_dip2_r },
+	{ 0x900000, 0x900fff, MRA_EXTRAM2 },
+
 	{-1}
 };
 
@@ -2982,7 +3017,7 @@ static struct MemoryWriteAddress bayroute_writemem[] =
 	{ 0x700000, 0x70ffff, MWA_TILERAM },
 	{ 0x710000, 0x710fff, MWA_TEXTRAM },
 	{ 0x800000, 0x800fff, MWA_PALETTERAM },
-	{ 0x900000, 0x900001, sys16_coinctrl_w },
+	{ 0x900000, 0x900fff, MWA_EXTRAM2 },
 	{ 0xff0006, 0xff0007, sound_command_w },
 
 	{-1}
@@ -2998,6 +3033,8 @@ static void bayroute_update_proc( void ){
 
 	set_fg_page( READ_WORD( &sys16_textram[0x0e80] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x0e82] ) );
+
+	set_refresh( READ_WORD( &sys16_extraram2[0x0] ) );
 }
 
 static void bayroute_init_machine( void ){
@@ -3068,7 +3105,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7759( machine_driver_bayroute, \
-	bayroute_readmem,bayroute_writemem,bayroute_init_machine,upd7759_interface )
+	bayroute_readmem,bayroute_writemem,bayroute_init_machine, gfx1,upd7759_interface )
 
 /***************************************************************************
 
@@ -3170,6 +3207,7 @@ static struct MemoryReadAddress bodyslam_readmem[] =
 	{ 0xc41000, 0xc41001, io_service_r },
 	{ 0xc42000, 0xc42001, io_dip1_r },
 	{ 0xc42002, 0xc42003, io_dip2_r },
+	{ 0xc40000, 0xc400ff, MRA_EXTRAM2 },
 	{ 0xffc000, 0xffffff, MRA_WORKINGRAM },
 	{-1}
 };
@@ -3182,7 +3220,7 @@ static struct MemoryWriteAddress bodyslam_writemem[] =
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
 	{ 0xc40000, 0xc40001, sound_command_nmi_w },
-	{ 0xc40002, 0xc40003, sys16_3d_coinctrl_w },
+	{ 0xc40000, 0xc400ff, MWA_EXTRAM2 },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
 };
@@ -3197,6 +3235,8 @@ static void bodyslam_update_proc (void)
 
 	set_fg_page1( READ_WORD( &sys16_textram[0x0e9e] ) );
 	set_bg_page1( READ_WORD( &sys16_textram[0x0e9c] ) );
+
+	set_refresh_3d( READ_WORD( &sys16_extraram2[2] ) );
 }
 
 
@@ -3316,7 +3356,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7751( machine_driver_bodyslam, \
-	bodyslam_readmem,bodyslam_writemem,bodyslam_init_machine )
+	bodyslam_readmem,bodyslam_writemem,bodyslam_init_machine, gfx8 )
 
 /***************************************************************************/
 // sys16B
@@ -3379,25 +3419,24 @@ static struct MemoryWriteAddress dduxbl_writemem[] =
 	{ 0x410000, 0x410fff, MWA_TEXTRAM },
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
-	{ 0xc40000, 0xc40001, sys16_coinctrl_w },
 	{ 0xc40006, 0xc40007, sound_command_w },
-	{ 0xc46000, 0xc4603f, MWA_EXTRAM2 },
+	{ 0xc40000, 0xc4ffff, MWA_EXTRAM2 },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
 };
 /***************************************************************************/
 
 static void dduxbl_update_proc( void ){
-	sys16_fg_scrollx = (READ_WORD( &sys16_extraram2[0x0018] ) ^ 0xffff) & 0x01ff;
-	sys16_bg_scrollx = (READ_WORD( &sys16_extraram2[0x0008] ) ^ 0xffff) & 0x01ff;
-	sys16_fg_scrolly = READ_WORD( &sys16_extraram2[0x0010] ) & 0x00ff;
-	sys16_bg_scrolly = READ_WORD( &sys16_extraram2[0x0000] );
+	sys16_fg_scrollx = (READ_WORD( &sys16_extraram2[0x6018] ) ^ 0xffff) & 0x01ff;
+	sys16_bg_scrollx = (READ_WORD( &sys16_extraram2[0x6008] ) ^ 0xffff) & 0x01ff;
+	sys16_fg_scrolly = READ_WORD( &sys16_extraram2[0x6010] ) & 0x00ff;
+	sys16_bg_scrolly = READ_WORD( &sys16_extraram2[0x6000] );
 
 	{
-		unsigned char lu = READ_WORD( &sys16_extraram2[0x0020] ) & 0xff;
-		unsigned char ru = READ_WORD( &sys16_extraram2[0x0022] ) & 0xff;
-		unsigned char ld = READ_WORD( &sys16_extraram2[0x0024] ) & 0xff;
-		unsigned char rd = READ_WORD( &sys16_extraram2[0x0026] ) & 0xff;
+		unsigned char lu = READ_WORD( &sys16_extraram2[0x6020] ) & 0xff;
+		unsigned char ru = READ_WORD( &sys16_extraram2[0x6022] ) & 0xff;
+		unsigned char ld = READ_WORD( &sys16_extraram2[0x6024] ) & 0xff;
+		unsigned char rd = READ_WORD( &sys16_extraram2[0x6026] ) & 0xff;
 
 		if (lu==4 && ld==4 && ru==5 && rd==5)
 		{ // fix a bug in chicago round (un-tested in MAME)
@@ -3423,6 +3462,8 @@ static void dduxbl_update_proc( void ){
 		sys16_bg_page[2] = lu>>4;
 		sys16_bg_page[3] = ru>>4;
 	}
+
+	set_refresh( READ_WORD( &sys16_extraram2[0] ) );
 }
 
 static void dduxbl_init_machine( void ){
@@ -3495,7 +3536,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER( machine_driver_dduxbl, \
-	dduxbl_readmem,dduxbl_writemem,dduxbl_init_machine)
+	dduxbl_readmem,dduxbl_writemem,dduxbl_init_machine, gfx1)
 
 /***************************************************************************/
 // sys16B
@@ -3590,7 +3631,7 @@ static struct MemoryWriteAddress eswat_writemem[] =
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
 	{ 0xc42006, 0xc42007, sound_command_w },
-	{ 0xc40000, 0xc40001, sys16_coinctrl_w },
+	{ 0xc40000, 0xc4ffff, MWA_EXTRAM2 },
 	{ 0xc80000, 0xc80001, MWA_NOP },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
@@ -3605,6 +3646,7 @@ static void eswat_update_proc( void ){
 
 	set_fg_page( READ_WORD( &sys16_textram[0x8020] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x8028] ) );
+	set_refresh( READ_WORD( &sys16_extraram2[0] ) );
 
 	sys16_tile_bank1 = (READ_WORD( &sys16_textram[0x8030] ))&0xf;
 	sys16_tile_bank0 = eswat_tilebank0;
@@ -3665,7 +3707,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7759( machine_driver_eswat, \
-	eswat_readmem,eswat_writemem,eswat_init_machine,upd7759_interface )
+	eswat_readmem,eswat_writemem,eswat_init_machine, gfx4,upd7759_interface )
 
 /***************************************************************************/
 // sys16A
@@ -3775,6 +3817,7 @@ static struct MemoryReadAddress fantzone_readmem[] =
 	{ 0xc41000, 0xc41001, io_service_r },
 	{ 0xc42000, 0xc42001, io_dip1_r },
 	{ 0xc42002, 0xc42003, io_dip2_r },
+	{ 0xc40000, 0xc40003, MRA_EXTRAM2 },
 	{ 0xffc22a, 0xffc22b, fantzone_skip_r },
 	{ 0xffc000, 0xffffff, MRA_WORKINGRAM },
 	{-1}
@@ -3788,7 +3831,7 @@ static struct MemoryWriteAddress fantzone_writemem[] =
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
 	{ 0xc40000, 0xc40001, sound_command_nmi_w },
-	{ 0xc40002, 0xc40003, sys16_3d_coinctrl_w },
+	{ 0xc40000, 0xc40003, MWA_EXTRAM2 },
 	{ 0xc60000, 0xc60003, MWA_NOP },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
@@ -3804,6 +3847,8 @@ static void fantzone_update_proc( void ){
 
 	set_fg_page1( READ_WORD( &sys16_textram[0x0e9e] ) );
 	set_bg_page1( READ_WORD( &sys16_textram[0x0e9c] ) );
+
+	set_refresh_3d( READ_WORD( &sys16_extraram2[2] ) );	// c40003
 }
 
 static void fantzono_init_machine( void ){
@@ -3903,9 +3948,9 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER( machine_driver_fantzono, \
-	fantzono_readmem,fantzono_writemem,fantzono_init_machine )
+	fantzono_readmem,fantzono_writemem,fantzono_init_machine, gfx8 )
 MACHINE_DRIVER( machine_driver_fantzone, \
-	fantzone_readmem,fantzone_writemem,fantzone_init_machine )
+	fantzone_readmem,fantzone_writemem,fantzone_init_machine, gfx8 )
 
 /***************************************************************************/
 // sys16B
@@ -4100,7 +4145,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER( machine_driver_fpoint, \
-	fpoint_readmem,fpoint_writemem,fpoint_init_machine)
+	fpoint_readmem,fpoint_writemem,fpoint_init_machine, gfx1)
 
 /***************************************************************************/
 // sys16B
@@ -4226,6 +4271,7 @@ static struct MemoryReadAddress goldnaxe_readmem[] =
 	{ 0xc41000, 0xc41001, io_service_r },
 	{ 0xc42002, 0xc42003, io_dip1_r },
 	{ 0xc42000, 0xc42001, io_dip2_r },
+	{ 0xc40000, 0xc40fff, MRA_EXTRAM2 },
 	{ 0xffecd0, 0xffecd1, ga_io_players_r },
 	{ 0xffec96, 0xffec97, ga_io_service_r },
 	{ 0xffec1c, 0xffec1d, goldnaxe_skip_r },
@@ -4248,7 +4294,7 @@ static struct MemoryWriteAddress goldnaxe_writemem[] =
 	{ 0x140000, 0x140fff, MWA_PALETTERAM },
 	{ 0x1f0000, 0x1f0003, MWA_EXTRAM },
 	{ 0x200000, 0x200fff, MWA_SPRITERAM },
-	{ 0xc40000, 0xc40001, sys16_coinctrl_w },
+	{ 0xc40000, 0xc40fff, MWA_EXTRAM2 },
 	{ 0xc43000, 0xc43001, MWA_NOP },
 	{ 0xffecfc, 0xffecfd, ga_sound_command_w },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
@@ -4265,6 +4311,7 @@ static void goldnaxe_update_proc( void ){
 	set_fg_page( READ_WORD( &sys16_textram[0x0e80] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x0e82] ) );
 	set_tile_bank( READ_WORD( &sys16_workingram[0x2c94] ) );
+	set_refresh( READ_WORD( &sys16_extraram2[0] ) );
 }
 
 static void goldnaxe_init_machine( void ){
@@ -4307,8 +4354,8 @@ INPUT_PORTS_START( goldnaxe )
 
 PORT_START	/* DSW1 */
 	PORT_DIPNAME( 0x01, 0x01, "Credits needed" )
-	PORT_DIPSETTING(    0x01, "1 to start, 1 to continue" )
-	PORT_DIPSETTING(    0x00, "2 to start, 1 to continue" )
+	PORT_DIPSETTING(    0x01, "1 to start, 1 to continue")
+	PORT_DIPSETTING(    0x00, "2 to start, 1 to continue")
 	PORT_DIPNAME( 0x02, 0x00, DEF_STR( Demo_Sounds ) )
 	PORT_DIPSETTING(    0x02, DEF_STR( Off ) )
 	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
@@ -4333,7 +4380,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7759( machine_driver_goldnaxe, \
-	goldnaxe_readmem,goldnaxe_writemem,goldnaxe_init_machine,upd7759_interface )
+	goldnaxe_readmem,goldnaxe_writemem,goldnaxe_init_machine, gfx2,upd7759_interface )
 
 /***************************************************************************/
 // sys16B
@@ -4473,6 +4520,7 @@ static struct MemoryReadAddress goldnaxa_readmem[] =
 	{ 0xc41000, 0xc41001, io_service_r },
 	{ 0xc42002, 0xc42003, io_dip1_r },
 	{ 0xc42000, 0xc42001, io_dip2_r },
+	{ 0xc40000, 0xc40fff, MRA_EXTRAM2 },
 	{ 0xffecd0, 0xffecd1, ga_io_players_r },
 	{ 0xffec96, 0xffec97, ga_io_service_r },
 	{ 0xffec1c, 0xffec1d, goldnaxa_skip_r },
@@ -4491,7 +4539,7 @@ static struct MemoryWriteAddress goldnaxa_writemem[] =
 	{ 0x1f1000, 0x1f1009, ga_hardware_collision_w },
 	{ 0x1f2000, 0x1f2003, MWA_EXTRAM },
 	{ 0x200000, 0x200fff, MWA_SPRITERAM },
-	{ 0xc40000, 0xc40001, sys16_coinctrl_w },
+	{ 0xc40000, 0xc40fff, MWA_EXTRAM2 },
 	{ 0xffecfc, 0xffecfd, ga_sound_command_w },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
@@ -4507,6 +4555,7 @@ static void goldnaxa_update_proc( void ){
 	set_fg_page( READ_WORD( &sys16_textram[0x0e80] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x0e82] ) );
 	set_tile_bank( READ_WORD( &sys16_workingram[0x2c94] ) );
+	set_refresh( READ_WORD( &sys16_extraram2[0] ) );
 }
 
 static void goldnaxa_init_machine( void ){
@@ -4524,7 +4573,7 @@ static void goldnaxa_init_machine( void ){
 /***************************************************************************/
 
 MACHINE_DRIVER_7759( machine_driver_goldnaxa, \
-	goldnaxa_readmem,goldnaxa_writemem,goldnaxa_init_machine,upd7759_interface )
+	goldnaxa_readmem,goldnaxa_writemem,goldnaxa_init_machine, gfx2,upd7759_interface )
 
 /***************************************************************************/
 // sys16B
@@ -4623,30 +4672,6 @@ static READ_HANDLER( hwc_io_handles_r )
 	return ret;
 }
 
-static WRITE_HANDLER( hwc_ctrl1_w )
-{
-	if ((data & 0x00ff0000) == 0)
-	{
-		sys16_refreshenable = data & 0x20;
-		coin_counter_w(0,data & 0x01);
-		set_led_status(0,data & 0x04);
-		/* bit 6 is also used (always 1?) */
-	}
-}
-
-static WRITE_HANDLER( hwc_ctrl2_w )
-{
-	if ((data & 0x00ff0000) == 0)
-	{
-		/* bit 4 is GONG */
-//		if (data & 0x10) usrintf_showmessage("GONG");
-		/* are the following really lamps? */
-//		set_led_status(1,data & 0x20);
-//		set_led_status(2,data & 0x40);
-//		set_led_status(3,data & 0x80);
-	}
-}
-
 static struct MemoryReadAddress hwchamp_readmem[] =
 {
 	{ 0x000000, 0x03ffff, MRA_ROM },
@@ -4655,10 +4680,11 @@ static struct MemoryReadAddress hwchamp_readmem[] =
 	{ 0x410000, 0x410fff, MRA_TEXTRAM },
 	{ 0x440000, 0x440fff, MRA_SPRITERAM },
 	{ 0x840000, 0x840fff, MRA_PALETTERAM },
+	{ 0xc43020, 0xc43025, hwc_io_handles_r },
 	{ 0xc41000, 0xc41001, io_service_r },
 	{ 0xc42002, 0xc42003, io_dip1_r },
 	{ 0xc42000, 0xc42001, io_dip2_r },
-	{ 0xc43020, 0xc43025, hwc_io_handles_r },
+	{ 0xc40000, 0xc43fff, MRA_EXTRAM2 },
 	{ 0xffc000, 0xffffff, MRA_WORKINGRAM },
 	{-1}
 };
@@ -4671,9 +4697,8 @@ static struct MemoryWriteAddress hwchamp_writemem[] =
 	{ 0x410000, 0x410fff, MWA_TEXTRAM },
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
-	{ 0xc40000, 0xc40001, hwc_ctrl1_w },
 	{ 0xc43020, 0xc43025, hwc_io_handles_w },
-	{ 0xc43034, 0xc43035, hwc_ctrl2_w },
+	{ 0xc40000, 0xc43fff, MWA_EXTRAM2 },
 	{ 0xfe0006, 0xfe0007, sound_command_w },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
@@ -4681,6 +4706,7 @@ static struct MemoryWriteAddress hwchamp_writemem[] =
 /***************************************************************************/
 
 static void hwchamp_update_proc( void ){
+	int leds;
 	sys16_fg_scrollx = READ_WORD( &sys16_textram[0x0e98] );
 	sys16_bg_scrollx = READ_WORD( &sys16_textram[0x0e9a] );
 	sys16_fg_scrolly = READ_WORD( &sys16_textram[0x0e90] );
@@ -4691,6 +4717,23 @@ static void hwchamp_update_proc( void ){
 
 	sys16_tile_bank0 = READ_WORD( &sys16_extraram[0x0000] )&0xf;
 	sys16_tile_bank1 = READ_WORD( &sys16_extraram[0x0002] )&0xf;
+
+	set_refresh( READ_WORD( &sys16_extraram2[0] ) );
+
+	leds=READ_WORD( &sys16_extraram2[0x3034] );
+	if(leds & 0x20)
+		osd_led_w(0,1);
+	else
+		osd_led_w(0,0);
+	if(leds & 0x80)
+		osd_led_w(1,1);
+	else
+		osd_led_w(1,0);
+	if(leds & 0x40)
+		osd_led_w(2,1);
+	else
+		osd_led_w(2,0);
+
 }
 
 static void hwchamp_init_machine( void ){
@@ -4756,7 +4799,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7759( machine_driver_hwchamp, \
-	hwchamp_readmem,hwchamp_writemem,hwchamp_init_machine ,upd7759_interface)
+	hwchamp_readmem,hwchamp_writemem,hwchamp_init_machine, gfx4 ,upd7759_interface)
 
 /***************************************************************************/
 // pre16
@@ -4769,10 +4812,13 @@ ROM_START( mjleague )
 	ROM_LOAD_EVEN( "epra7406.11b", 0x020000, 0x8000, 0xbb743639 )
 	ROM_LOAD_ODD ( "epra7403.08b", 0x020000, 0x8000, 0xd86250cf )	// Fails memory test. Bad rom?
 
-	ROM_REGION( 0x18000, REGION_GFX1 | REGIONFLAG_DISPOSE ) /* tiles */
+	ROM_REGION( 0x30000, REGION_GFX1 | REGIONFLAG_DISPOSE ) /* tiles */
 	ROM_LOAD( "epr-7051.09a", 0x00000, 0x08000, 0x10ca255a )
-	ROM_LOAD( "epr-7052.10a", 0x08000, 0x08000, 0x2550db0e )
-	ROM_LOAD( "epr-7053.11a", 0x10000, 0x08000, 0x5bfea038 )
+	ROM_RELOAD(               0x08000, 0x08000 )
+	ROM_LOAD( "epr-7052.10a", 0x10000, 0x08000, 0x2550db0e )
+	ROM_RELOAD(               0x18000, 0x08000 )
+	ROM_LOAD( "epr-7053.11a", 0x20000, 0x08000, 0x5bfea038 )
+	ROM_RELOAD(               0x28000, 0x08000 )
 
 	ROM_REGION( 0x050000*2, REGION_GFX2 ) /* sprites */
 	ROM_LOAD( "epr-7055.05a", 0x000000, 0x008000, 0x1fb860bd )
@@ -4871,7 +4917,7 @@ static struct MemoryReadAddress mjleague_readmem[] =
 	{ 0x440000, 0x440fff, MRA_SPRITERAM },
 	{ 0x840000, 0x840fff, MRA_PALETTERAM },
 
-	{ 0xc40002, 0xc40003, sys16_coinctrl_r },
+	{ 0xc40002, 0xc40007, MRA_EXTRAM2},
 	{ 0xc41000, 0xc41001, mjl_io_service_r },
 	{ 0xc41002, 0xc41003, mjl_io_player1_r },
 	{ 0xc41006, 0xc41007, mjl_io_player2_r },
@@ -4892,7 +4938,7 @@ static struct MemoryWriteAddress mjleague_writemem[] =
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
 	{ 0xc40000, 0xc40001, sound_command_nmi_w },
-	{ 0xc40002, 0xc40003, sys16_3d_coinctrl_w },
+	{ 0xc40002, 0xc40007, MWA_EXTRAM2},
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
 };
@@ -4906,6 +4952,8 @@ static void mjleague_update_proc( void ){
 
 	set_fg_page1( READ_WORD( &sys16_textram[0x0e8e] ) );
 	set_bg_page1( READ_WORD( &sys16_textram[0x0e8c] ) );
+
+	set_refresh_3d( READ_WORD( &sys16_extraram2[0] ) );
 }
 
 static void mjleague_init_machine( void ){
@@ -4949,7 +4997,7 @@ PORT_START  /* Service */
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_COIN1 )
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_COIN2 )
 	PORT_BITX(0x04, IP_ACTIVE_LOW, IPT_SERVICE, DEF_STR( Service_Mode ), KEYCODE_F2, IP_JOY_NONE )
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_SERVICE1 )
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_COIN3 )
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_START1 )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_START2 )
 	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -4999,7 +5047,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7751( machine_driver_mjleague, \
-	mjleague_readmem,mjleague_writemem,mjleague_init_machine)
+	mjleague_readmem,mjleague_writemem,mjleague_init_machine, gfx1)
 
 /***************************************************************************/
 // sys18
@@ -5117,6 +5165,7 @@ static struct MemoryReadAddress moonwalk_readmem[] =
 	{ 0xc41004, 0xc41005, io_player2_r },
 	{ 0xc41006, 0xc41007, io_player3_r },
 	{ 0xc41000, 0xc41001, io_service_r },
+	{ 0xc40000, 0xc4ffff, MRA_EXTRAM3 },
 	{ 0xe40000, 0xe4ffff, MRA_EXTRAM2 },
 	{ 0xfe0000, 0xfeffff, MRA_EXTRAM4 },
 	{ 0xffe02c, 0xffe02d, moonwlkb_skip_r },
@@ -5133,8 +5182,7 @@ static struct MemoryWriteAddress moonwalk_writemem[] =
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
 	{ 0xc00000, 0xc0ffff, MWA_EXTRAM },
 	{ 0xc40006, 0xc40007, sound_command_nmi_w },
-	{ 0xc46600, 0xc46601, sys18_refreshenable_w },
-	{ 0xc46800, 0xc46801, MWA_EXTRAM3 },
+	{ 0xc40000, 0xc4ffff, MWA_EXTRAM3 },
 	{ 0xe40000, 0xe4ffff, MWA_EXTRAM2 },
 	{ 0xfe0000, 0xfeffff, MWA_EXTRAM4 },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
@@ -5168,7 +5216,8 @@ static void moonwalk_update_proc( void ){
 	else
 		sys18_bg2_active=0;
 
-	set_tile_bank18( READ_WORD( &sys16_extraram3[0x0000] ) );
+	set_tile_bank18( READ_WORD( &sys16_extraram3[0x6800] ) );
+	set_refresh_18( READ_WORD( &sys16_extraram3[0x6600] ) ); // 0xc46601
 }
 
 static void moonwalk_init_machine( void ){
@@ -5307,7 +5356,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_18( machine_driver_moonwalk, \
-	moonwalk_readmem,moonwalk_writemem,moonwalk_init_machine )
+	moonwalk_readmem,moonwalk_writemem,moonwalk_init_machine, gfx4 )
 
 /***************************************************************************/
 // sys16B
@@ -5343,7 +5392,7 @@ ROM_START( passht4b )
 	ROM_LOAD_ODD ( "pas4p.4", 0x000000, 0x10000, 0xe759e831 )
 
 	ROM_REGION( 0x30000, REGION_GFX1 | REGIONFLAG_DISPOSE ) /* tiles */
-	ROM_LOAD( "pas4p.11", 0x00000, 0x10000, 0xda20fbc9 )
+	ROM_LOAD( "pas4p.11",  0x00000, 0x10000, 0xda20fbc9 )
 	ROM_LOAD( "pas4p.12", 0x10000, 0x10000, 0xbebb9211 )
 	ROM_LOAD( "pas4p.13", 0x20000, 0x10000, 0xe37506c3 )
 
@@ -5399,6 +5448,7 @@ static struct MemoryReadAddress passsht_readmem[] =
 	{ 0xc41000, 0xc41001, io_service_r },
 	{ 0xc42002, 0xc42003, io_dip1_r },
 	{ 0xc42000, 0xc42001, io_dip2_r },
+	{ 0xc40000, 0xc40fff, MRA_EXTRAM },
 	{ 0xffc000, 0xffffff, MRA_WORKINGRAM },
 	{-1}
 };
@@ -5411,7 +5461,7 @@ static struct MemoryWriteAddress passsht_writemem[] =
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
 	{ 0xc42006, 0xc42007, sound_command_w },
-	{ 0xc40000, 0xc40001, sys16_coinctrl_w },
+	{ 0xc40000, 0xc40fff, MWA_EXTRAM },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
 };
@@ -5480,6 +5530,7 @@ static struct MemoryReadAddress passht4b_readmem[] =
 	{ 0xc43002, 0xc43003, io_player2_r },
 	{ 0xc43004, 0xc43005, io_player3_r },
 	{ 0xc43006, 0xc43007, io_player4_r },
+	{ 0xc4600a, 0xc4600b, MRA_EXTRAM },
 	{ 0xffc000, 0xffffff, MRA_WORKINGRAM },
 	{-1}
 };
@@ -5492,7 +5543,7 @@ static struct MemoryWriteAddress passht4b_writemem[] =
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
 	{ 0xc42006, 0xc42007, sound_command_w },
-	{ 0xc4600a, 0xc4600b, sys16_coinctrl_w },	/* coin counter doesn't work */
+	{ 0xc4600a, 0xc4600b, MWA_EXTRAM },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
 };
@@ -5507,6 +5558,7 @@ static void passsht_update_proc( void ){
 
 	set_fg_page( READ_WORD( &sys16_textram[0x0ff6] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x0ff4] ) );
+	set_refresh( READ_WORD( &sys16_extraram[0] ) );
 }
 
 static void passht4b_update_proc( void ){
@@ -5517,6 +5569,8 @@ static void passht4b_update_proc( void ){
 
 	set_fg_page( READ_WORD( &sys16_textram[0x0ff6] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x0ff4] ) );
+	set_refresh( READ_WORD( &sys16_extraram[0] ) );
+
 }
 
 static void passsht_init_machine( void ){
@@ -5639,7 +5693,7 @@ PORT_START /* service */
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_COIN1 )
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_COIN2 )
 	PORT_BITX(0x04, IP_ACTIVE_LOW, IPT_SERVICE, DEF_STR( Service_Mode ), KEYCODE_F2, IP_JOY_NONE )
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_SERVICE1 )
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_COIN3 )
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_START1 )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_START2 )
 	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_START3 )
@@ -5696,10 +5750,10 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7759( machine_driver_passsht, \
-	passsht_readmem,passsht_writemem,passsht_init_machine ,upd7759_interface)
+	passsht_readmem,passsht_writemem,passsht_init_machine, gfx1 ,upd7759_interface)
 
 MACHINE_DRIVER_7759( machine_driver_passht4b, \
-	passht4b_readmem,passht4b_writemem,passht4b_init_machine ,upd7759_interface)
+	passht4b_readmem,passht4b_writemem,passht4b_init_machine, gfx1 ,upd7759_interface)
 
 /***************************************************************************/
 // pre16
@@ -5805,13 +5859,13 @@ static struct MemoryReadAddress quartet_readmem[] =
 	{ 0x410000, 0x410fff, MRA_TEXTRAM },
 	{ 0x440000, 0x440fff, MRA_SPRITERAM },
 	{ 0x840000, 0x840fff, MRA_PALETTERAM },
-	{ 0xc40002, 0xc40003, sys16_coinctrl_r },
 	{ 0xc41000, 0xc41001, io_quartet_p1_r },
 	{ 0xc41002, 0xc41003, io_quartet_p2_r },
 	{ 0xc41004, 0xc41005, io_quartet_p3_r },
 	{ 0xc41006, 0xc41007, io_quartet_p4_r },
 	{ 0xc42000, 0xc42001, io_quartet_dip1_r },
 	{ 0xc42002, 0xc42003, io_quartet_dip2_r },
+	{ 0xc40000, 0xc4ffff, MRA_EXTRAM },
 	{ 0xffc800, 0xffc801, quartet_skip_r },
 	{ 0xffc000, 0xffffff, MRA_WORKINGRAM },
 	{-1}
@@ -5825,7 +5879,7 @@ static struct MemoryWriteAddress quartet_writemem[] =
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
 	{ 0xc40000, 0xc40001, sound_command_nmi_w },
-	{ 0xc40002, 0xc40003, sys16_3d_coinctrl_w },
+	{ 0xc40000, 0xc4ffff, MWA_EXTRAM },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
 };
@@ -5844,6 +5898,8 @@ static void quartet_update_proc( void ){
 
 	set_fg_page1( READ_WORD( &sys16_workingram[0x0d1c] ) );
 	set_bg_page1( READ_WORD( &sys16_workingram[0x0d1e] ) );
+
+	set_refresh_3d( READ_WORD( &sys16_extraram[2] ) );
 }
 
 static void quartet_init_machine( void ){
@@ -5938,7 +5994,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7751( machine_driver_quartet, \
-	quartet_readmem,quartet_writemem,quartet_init_machine )
+	quartet_readmem,quartet_writemem,quartet_init_machine, gfx8 )
 
 /***************************************************************************/
 // pre16
@@ -5997,12 +6053,12 @@ static struct MemoryReadAddress quartet2_readmem[] =
 	{ 0x410000, 0x410fff, MRA_TEXTRAM },
 	{ 0x440000, 0x440fff, MRA_SPRITERAM },
 	{ 0x840000, 0x840fff, MRA_PALETTERAM },
-	{ 0xc40002, 0xc40003, sys16_coinctrl_r },
 	{ 0xc41002, 0xc41003, io_player1_r },
 	{ 0xc41006, 0xc41007, io_player2_r },
 	{ 0xc41000, 0xc41001, io_service_r },
 	{ 0xc42000, 0xc42001, io_dip1_r },
 	{ 0xc42002, 0xc42003, io_dip2_r },
+	{ 0xc40000, 0xc4ffff, MRA_EXTRAM },
 	{ 0xffc800, 0xffc801, quartet2_skip_r },
 	{ 0xffc000, 0xffffff, MRA_WORKINGRAM },
 	{-1}
@@ -6016,7 +6072,7 @@ static struct MemoryWriteAddress quartet2_writemem[] =
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
 	{ 0xc40000, 0xc40001, sound_command_nmi_w },
-	{ 0xc40002, 0xc40003, sys16_3d_coinctrl_w },
+	{ 0xc40000, 0xc4ffff, MWA_EXTRAM },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
 };
@@ -6035,6 +6091,8 @@ static void quartet2_update_proc( void ){
 
 	set_fg_page1( READ_WORD( &sys16_workingram[0x0d1c] ) );
 	set_bg_page1( READ_WORD( &sys16_workingram[0x0d1e] ) );
+
+	set_refresh_3d( READ_WORD( &sys16_extraram[2] ) );
 }
 
 static void quartet2_init_machine( void ){
@@ -6090,7 +6148,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7751( machine_driver_quartet2, \
-	quartet2_readmem,quartet2_writemem,quartet2_init_machine )
+	quartet2_readmem,quartet2_writemem,quartet2_init_machine, gfx8 )
 
 /***************************************************************************
 
@@ -6148,6 +6206,7 @@ static struct MemoryReadAddress riotcity_readmem[] =
 	{ 0xf81000, 0xf81001, io_service_r },
 	{ 0xf82002, 0xf82003, io_dip1_r },
 	{ 0xf82000, 0xf82001, io_dip2_r },
+	{ 0xf80000, 0xf8ffff, MRA_EXTRAM2 },
 	{ 0xfa0000, 0xfaffff, MRA_TILERAM },
 	{ 0xfb0000, 0xfb0fff, MRA_TEXTRAM },
 	{ 0xffecde, 0xffecdf, riotcity_skip_r },
@@ -6163,7 +6222,7 @@ static struct MemoryWriteAddress riotcity_writemem[] =
 	{ 0xf20000, 0xf20fff, MWA_EXTRAM3 },
 	{ 0xf40000, 0xf40fff, MWA_SPRITERAM },
 	{ 0xf60000, 0xf60fff, MWA_PALETTERAM },
-	{ 0xf80000, 0xf80001, sys16_coinctrl_w },
+	{ 0xf80000, 0xf8ffff, MWA_EXTRAM2 },
 	{ 0xfa0000, 0xfaffff, MWA_TILERAM },
 	{ 0xfb0000, 0xfb0fff, MWA_TEXTRAM },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
@@ -6183,6 +6242,8 @@ static void riotcity_update_proc (void)
 
 	sys16_tile_bank1 = READ_WORD( &sys16_extraram3[0x0002] ) & 0xf;
 	sys16_tile_bank0 = READ_WORD( &sys16_extraram3[0x0000] ) & 0xf;
+
+	set_refresh( READ_WORD( &sys16_extraram2[0] ) );
 }
 
 static void riotcity_init_machine( void ){
@@ -6238,7 +6299,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7759( machine_driver_riotcity, \
-	riotcity_readmem,riotcity_writemem,riotcity_init_machine,upd7759_interface )
+	riotcity_readmem,riotcity_writemem,riotcity_init_machine, gfx4,upd7759_interface )
 
 /***************************************************************************/
 // sys16B
@@ -6319,6 +6380,7 @@ static struct MemoryReadAddress sdi_readmem[] =
 	{ 0x410000, 0x410fff, MRA_TEXTRAM },
 	{ 0x440000, 0x440fff, MRA_SPRITERAM },
 	{ 0x840000, 0x840fff, MRA_PALETTERAM },
+	{ 0xc40000, 0xc40001, MRA_EXTRAM },
 	{ 0xc41004, 0xc41005, io_player1_r },
 	{ 0xc41002, 0xc41003, io_player2_r },
 	{ 0xc41000, 0xc41001, io_service_r },
@@ -6344,7 +6406,7 @@ static struct MemoryWriteAddress sdi_writemem[] =
 	{ 0x410000, 0x410fff, MWA_TEXTRAM },
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
-	{ 0xc40000, 0xc40001, sys16_coinctrl_w },
+	{ 0xc40000, 0xc40001, MWA_EXTRAM },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
 };
@@ -6358,6 +6420,8 @@ static void sdi_update_proc( void ){
 
 	set_fg_page( READ_WORD( &sys16_textram[0x0e80] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x0e82] ) );
+
+	set_refresh( READ_WORD( &sys16_extraram[0] ) );
 }
 
 static void sdi_init_machine( void ){
@@ -6403,7 +6467,7 @@ PORT_START /* Service */
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_COIN1 )
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_COIN2 )
 	PORT_BITX(0x04, IP_ACTIVE_LOW, IPT_SERVICE, DEF_STR( Service_Mode ), KEYCODE_F2, IP_JOY_NONE )
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_SERVICE1 )
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_COIN3 )
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_START1 )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_START2 )
 	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_BUTTON1 )
@@ -6451,7 +6515,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER( machine_driver_sdi, \
-	sdi_readmem,sdi_writemem,sdi_init_machine)
+	sdi_readmem,sdi_writemem,sdi_init_machine, gfx1)
 
 /***************************************************************************/
 // sys18
@@ -6504,6 +6568,7 @@ static struct MemoryReadAddress shdancer_readmem[] =
 	{ 0xe40000, 0xe40001, io_player1_r },
 	{ 0xe40002, 0xe40003, io_player2_r },
 	{ 0xe40008, 0xe40009, io_service_r },
+	{ 0xe40000, 0xe4001f, MRA_EXTRAM2 },
 	{ 0xe43034, 0xe43035, MRA_NOP },
 	{ 0xffc000, 0xffffff, MRA_WORKINGRAM },
 	{-1}
@@ -6517,7 +6582,7 @@ static struct MemoryWriteAddress shdancer_writemem[] =
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
 	{ 0xc00000, 0xc00007, MWA_EXTRAM },
-	{ 0xe4001c, 0xe4001d, sys18_refreshenable_w },
+	{ 0xe40000, 0xe4001f, MWA_EXTRAM2 },
 	{ 0xe43034, 0xe43035, MWA_NOP },
 	{ 0xfe0006, 0xfe0007, sound_command_nmi_w },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
@@ -6551,6 +6616,7 @@ static void shdancer_update_proc( void ){
 		sys18_bg2_active=1;
 
 	set_tile_bank18( READ_WORD( &sys16_extraram[0] ) );
+	set_refresh_18( READ_WORD( &sys16_extraram2[0x1c] ) );
 }
 
 static void shdancer_init_machine( void ){
@@ -6627,7 +6693,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_18( machine_driver_shdancer, \
-	shdancer_readmem,shdancer_writemem,shdancer_init_machine )
+	shdancer_readmem,shdancer_writemem,shdancer_init_machine, gfx4 )
 
 /***************************************************************************/
 
@@ -6716,6 +6782,7 @@ static struct MemoryReadAddress shdancbl_readmem[] =
 	{ 0xc41004, 0xc41005, io_player2_r },
 	{ 0xc41000, 0xc41001, io_service_r },
 //	{ 0xc40000, 0xc4ffff, MRA_EXTRAM3 },
+	{ 0xe40000, 0xe4001f, MRA_EXTRAM2 },
 	{ 0xe43034, 0xe43035, MRA_NOP },
 //	{ 0xffc000, 0xffc001, shdancer_skip_r },
 	{ 0xffc000, 0xffffff, MRA_WORKINGRAM },
@@ -6731,7 +6798,7 @@ static struct MemoryWriteAddress shdancbl_writemem[] =
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
 	{ 0xc00000, 0xc00007, MWA_EXTRAM },
 //	{ 0xc40000, 0xc4ffff, MWA_EXTRAM3 },
-	{ 0xe4001c, 0xe4001d, sys18_refreshenable_w },
+	{ 0xe40000, 0xe4001f, MWA_EXTRAM2 },
 	{ 0xe43034, 0xe43035, MWA_NOP },
 	{ 0xfe0006, 0xfe0007, sound_command_nmi_w },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
@@ -6767,6 +6834,7 @@ static void shdancbl_update_proc( void ){
 		sys18_bg2_active=1;
 
 	set_tile_bank18( READ_WORD( &sys16_extraram[0] ) );
+	set_refresh_18( READ_WORD( &sys16_extraram2[0x1c] ) );
 }
 
 
@@ -6799,7 +6867,7 @@ static void init_shdancbl( void ){
 /***************************************************************************/
 
 MACHINE_DRIVER_18( machine_driver_shdancbl, \
-	shdancbl_readmem,shdancbl_writemem,shdancbl_init_machine )
+	shdancbl_readmem,shdancbl_writemem,shdancbl_init_machine, gfx4 )
 
 /***************************************************************************/
 // sys18
@@ -6860,7 +6928,7 @@ static void init_shdancrj( void ){
 /***************************************************************************/
 
 MACHINE_DRIVER_18( machine_driver_shdancrj, \
-	shdancer_readmem,shdancer_writemem,shdancrj_init_machine )
+	shdancer_readmem,shdancer_writemem,shdancrj_init_machine, gfx4 )
 
 /***************************************************************************/
 // sys16B
@@ -6944,6 +7012,7 @@ static struct MemoryReadAddress shinobi_readmem[] =
 	{ 0xc41000, 0xc41001, io_service_r },
 	{ 0xc42002, 0xc42003, io_dip1_r },
 	{ 0xc42000, 0xc42001, io_dip2_r },
+	{ 0xc40000, 0xc40001, MRA_EXTRAM2 },
 	{ 0xc43000, 0xc43001, MRA_NOP },
 	{ 0xfff01c, 0xfff01d, shinobi_skip_r },
 	{ 0xffc000, 0xffffff, MRA_WORKINGRAM },
@@ -6957,7 +7026,7 @@ static struct MemoryWriteAddress shinobi_writemem[] =
 	{ 0x410000, 0x410fff, MWA_TEXTRAM },
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
-	{ 0xc40000, 0xc40001, sys16_coinctrl_w },
+	{ 0xc40000, 0xc40001, MWA_EXTRAM2 },
 	{ 0xc43000, 0xc43001, MWA_NOP },
 	{ 0xfe0006, 0xfe0007, sound_command_w },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
@@ -6974,6 +7043,8 @@ static void shinobi_update_proc( void ){
 
 	set_fg_page( READ_WORD( &sys16_textram[0x0e80] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x0e82] ) );
+
+	set_refresh( READ_WORD( &sys16_extraram2[0] ) );
 }
 
 static void shinobi_init_machine( void ){
@@ -7026,7 +7097,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7759( machine_driver_shinobi, \
-	shinobi_readmem,shinobi_writemem,shinobi_init_machine,upd7759_interface )
+	shinobi_readmem,shinobi_writemem,shinobi_init_machine, gfx1,upd7759_interface )
 
 /***************************************************************************/
 // sys16A
@@ -7118,6 +7189,7 @@ static struct MemoryReadAddress shinobl_readmem[] =
 	{ 0xc41000, 0xc41001, io_service_r },
 	{ 0xc42000, 0xc42001, io_dip1_r },
 	{ 0xc42002, 0xc42003, io_dip2_r },
+	{ 0xc40000, 0xc40fff, MRA_EXTRAM2 },
 	{ 0xffc000, 0xffffff, MRA_WORKINGRAM },
 	{-1}
 };
@@ -7130,7 +7202,7 @@ static struct MemoryWriteAddress shinobl_writemem[] =
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
 	{ 0xc40000, 0xc40001, sound_command_nmi_w },
-	{ 0xc40002, 0xc40003, sys16_3d_coinctrl_w },
+	{ 0xc40000, 0xc40fff, MWA_EXTRAM2 },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
 };
@@ -7145,6 +7217,8 @@ static void shinobl_update_proc( void ){
 
 	set_fg_page( READ_WORD( &sys16_textram[0x0e9e] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x0e9c] ) );
+
+	set_refresh_3d( READ_WORD( &sys16_extraram2[2] ) );
 
 }
 
@@ -7166,7 +7240,7 @@ static void shinobl_init_machine( void ){
 /***************************************************************************/
 
 MACHINE_DRIVER_7751( machine_driver_shinobl, \
-	shinobl_readmem,shinobl_writemem,shinobl_init_machine)
+	shinobl_readmem,shinobl_writemem,shinobl_init_machine, gfx1)
 
 /***************************************************************************/
 
@@ -7238,6 +7312,7 @@ static struct MemoryReadAddress tetris_readmem[] =
 	{ 0x418000, 0x41803f, MRA_EXTRAM2 },
 	{ 0x440000, 0x440fff, MRA_SPRITERAM },
 	{ 0x840000, 0x840fff, MRA_PALETTERAM },
+	{ 0xc40000, 0xc40001, MRA_EXTRAM },
 	{ 0xc41002, 0xc41003, io_player1_r },
 	{ 0xc41006, 0xc41007, io_player2_r },
 	{ 0xc41000, 0xc41001, io_service_r },
@@ -7256,7 +7331,7 @@ static struct MemoryWriteAddress tetris_writemem[] =
 	{ 0x418000, 0x41803f, MWA_EXTRAM2 },
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
-	{ 0xc40000, 0xc40001, sys16_coinctrl_w },
+	{ 0xc40000, 0xc40001, MWA_EXTRAM },
 	{ 0xc42006, 0xc42007, sound_command_w },
 	{ 0xc43034, 0xc43035, MWA_NOP },
 	{ 0xc80000, 0xc80001, MWA_NOP },
@@ -7273,6 +7348,8 @@ static void tetris_update_proc( void ){
 
 	set_fg_page( READ_WORD( &sys16_extraram2[0x38] ) );
 	set_bg_page( READ_WORD( &sys16_extraram2[0x28] ) );
+
+	set_refresh( READ_WORD( &sys16_extraram[0x0] ) );
 }
 
 static void tetris_init_machine( void ){
@@ -7334,7 +7411,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER( machine_driver_tetris, \
-	tetris_readmem,tetris_writemem,tetris_init_machine )
+	tetris_readmem,tetris_writemem,tetris_init_machine, gfx1 )
 
 /***************************************************************************/
 // sys16B
@@ -7402,7 +7479,7 @@ static struct MemoryWriteAddress timscanr_writemem[] =
 	{ 0x410000, 0x410fff, MWA_TEXTRAM },
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
-	{ 0xc40000, 0xc40001, sys16_coinctrl_w },
+	{ 0xc40000, 0xc40001, MWA_EXTRAM },
 	{ 0xfe0006, 0xfe0007, sound_command_w },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
@@ -7417,6 +7494,8 @@ static void timscanr_update_proc( void ){
 
 	set_fg_page( READ_WORD( &sys16_textram[0x0e80] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x0e82] ) );
+
+	set_refresh( READ_WORD( &sys16_extraram[0x0] ) );
 }
 
 static void timscanr_init_machine( void ){
@@ -7501,7 +7580,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7759( machine_driver_timscanr, \
-	timscanr_readmem,timscanr_writemem,timscanr_init_machine,upd7759_interface )
+	timscanr_readmem,timscanr_writemem,timscanr_init_machine, gfx8,upd7759_interface )
 
 /***************************************************************************/
 
@@ -7543,6 +7622,8 @@ static struct MemoryReadAddress toryumon_readmem[] =
 	{ 0x440000, 0x440fff, MRA_SPRITERAM },
 	{ 0x840000, 0x840fff, MRA_PALETTERAM },
 
+	{ 0xe40000, 0xe40001, MRA_EXTRAM2 },
+
 	{ 0xe41002, 0xe41003, io_player1_r },
 	{ 0xe41004, 0xe41005, MRA_NOP },
 	{ 0xe41006, 0xe41007, io_player2_r },
@@ -7562,7 +7643,7 @@ static struct MemoryWriteAddress toryumon_writemem[] =
 	{ 0x410000, 0x410fff, MWA_TEXTRAM },
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
-	{ 0xe40000, 0xe40001, sys16_coinctrl_w },
+	{ 0xe40000, 0xe40001, MWA_EXTRAM2 },
 	{ 0xfe0006, 0xfe0007, sound_command_w },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
@@ -7580,6 +7661,8 @@ static void toryumon_update_proc( void ){
 
 	sys16_tile_bank0 = READ_WORD( &sys16_extraram[0x0000] )&0xf;
 	sys16_tile_bank1 = READ_WORD( &sys16_extraram[0x0002] )&0xf;
+
+	set_refresh( READ_WORD( &sys16_extraram2[0] ) );
 }
 
 static void toryumon_init_machine( void ){
@@ -7632,7 +7715,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7759( machine_driver_toryumon, \
-	toryumon_readmem,toryumon_writemem,toryumon_init_machine,upd7759_interface )
+	toryumon_readmem,toryumon_writemem,toryumon_init_machine, gfx4,upd7759_interface )
 
 /***************************************************************************/
 
@@ -7726,7 +7809,7 @@ static struct MemoryWriteAddress tturf_writemem[] =
 	{ 0x400000, 0x40ffff, MWA_TILERAM },
 	{ 0x410000, 0x410fff, MWA_TEXTRAM },
 	{ 0x500000, 0x500fff, MWA_PALETTERAM },
-	{ 0x600000, 0x600001, sys16_coinctrl_w },
+	{ 0x600000, 0x600005, MWA_EXTRAM2 },
 //	{ 0x600006, 0x600007, sound_command_w },
 	{-1}
 };
@@ -7739,6 +7822,8 @@ static void tturf_update_proc( void ){
 
 	set_fg_page( READ_WORD( &sys16_textram[0x0e80] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x0e82] ) );
+
+	set_refresh( READ_WORD( &sys16_extraram2[0] ) );
 }
 
 static void tturf_init_machine( void ){
@@ -7797,10 +7882,10 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7759( machine_driver_tturf, \
-	tturf_readmem,tturf_writemem,tturf_init_machine,upd7759_interface )
+	tturf_readmem,tturf_writemem,tturf_init_machine, gfx1,upd7759_interface )
 
 MACHINE_DRIVER_7759( machine_driver_tturfu, \
-	tturf_readmem,tturf_writemem,tturfu_init_machine,upd7759_interface )
+	tturf_readmem,tturf_writemem,tturfu_init_machine, gfx1,upd7759_interface )
 
 /***************************************************************************/
 // sys16B
@@ -7864,7 +7949,7 @@ static struct MemoryWriteAddress tturfbl_writemem[] =
 	{ 0x400000, 0x40ffff, MWA_TILERAM },
 	{ 0x410000, 0x410fff, MWA_TEXTRAM },
 	{ 0x500000, 0x500fff, MWA_PALETTERAM },
-	{ 0x600000, 0x600001, sys16_coinctrl_w },
+	{ 0x600000, 0x600005, MWA_EXTRAM2 },
 	{ 0x600006, 0x600007, sound_command_w },
 	{ 0xc44000, 0xc44001, MWA_NOP },
 	{ 0xc46000, 0xc4601f, MWA_EXTRAM3 },
@@ -7896,6 +7981,9 @@ static void tturfbl_update_proc( void ){
 		sys16_fg_page[0] = (data2>>4)&0xf;
 		sys16_bg_page[0] = data2&0xf;
 	}
+
+
+	set_refresh( READ_WORD( &sys16_extraram2[0] ) );
 }
 
 static void tturfbl_init_machine( void ){
@@ -7922,7 +8010,7 @@ static void init_tturfbl(void)
 /***************************************************************************/
 // sound ??
 MACHINE_DRIVER_7759( machine_driver_tturfbl, \
-	tturfbl_readmem,tturfbl_writemem,tturfbl_init_machine,upd7759_interface )
+	tturfbl_readmem,tturfbl_writemem,tturfbl_init_machine, gfx1,upd7759_interface )
 
 /***************************************************************************/
 // sys16B
@@ -8007,7 +8095,7 @@ static struct MemoryWriteAddress wb3_writemem[] =
 	{ 0x410000, 0x410fff, MWA_TEXTRAM },
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
-	{ 0xc40000, 0xc40001, sys16_coinctrl_w },
+	{ 0xc40000, 0xc40001, MWA_EXTRAM2 },
 	{ 0xffc008, 0xffc009, wb3_sound_command_w },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
 	{-1}
@@ -8022,6 +8110,7 @@ static void wb3_update_proc( void ){
 
 	set_fg_page( READ_WORD( &sys16_textram[0x0e80] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x0e82] ) );
+	set_refresh( READ_WORD( &sys16_extraram2[0] ) );
 }
 
 
@@ -8077,7 +8166,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER( machine_driver_wb3, \
-	wb3_readmem,wb3_writemem,wb3_init_machine )
+	wb3_readmem,wb3_writemem,wb3_init_machine, gfx1 )
 
 /***************************************************************************/
 // sys16B
@@ -8135,7 +8224,7 @@ static struct MemoryWriteAddress wb3bl_writemem[] =
 	{ 0x440000, 0x440fff, MWA_SPRITERAM },
 	{ 0x840000, 0x840fff, MWA_PALETTERAM },
 	{ 0xc42006, 0xc42007, sound_command_w },
-	{ 0xc40000, 0xc40001, sys16_coinctrl_w },
+	{ 0xc40000, 0xc40001, MWA_EXTRAM2 },
 	{ 0xc44000, 0xc44001, MWA_NOP },
 	{ 0xc46000, 0xc4601f, MWA_EXTRAM3 },
 	{ 0xff0000, 0xffffff, MWA_WORKINGRAM },
@@ -8152,6 +8241,7 @@ static void wb3bl_update_proc( void ){
 
 	set_fg_page( READ_WORD( &sys16_textram[0x0ff6] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x0ff4] ) );
+	set_refresh( READ_WORD( &sys16_extraram2[0] ) );
 }
 
 static void wb3bl_init_machine( void ){
@@ -8200,7 +8290,7 @@ static void init_wb3bl(void)
 /***************************************************************************/
 
 MACHINE_DRIVER( machine_driver_wb3bl, \
-	wb3bl_readmem,wb3bl_writemem,wb3bl_init_machine )
+	wb3bl_readmem,wb3bl_writemem,wb3bl_init_machine, gfx1 )
 
 /***************************************************************************/
 // sys16B
@@ -8253,6 +8343,7 @@ static struct MemoryReadAddress wrestwar_readmem[] =
 	{ 0x200000, 0x200fff, MRA_SPRITERAM },
 	{ 0x300000, 0x300fff, MRA_PALETTERAM },
 	{ 0x400000, 0x400003, MRA_EXTRAM },
+	{ 0xc40000, 0xc40001, MRA_EXTRAM2 },
 	{ 0xc41002, 0xc41003, io_player1_r },
 	{ 0xc41006, 0xc41007, io_player2_r },
 	{ 0xc42002, 0xc42003, io_dip1_r },
@@ -8270,7 +8361,7 @@ static struct MemoryWriteAddress wrestwar_writemem[] =
 	{ 0x200000, 0x200fff, MWA_SPRITERAM },
 	{ 0x300000, 0x300fff, MWA_PALETTERAM },
 	{ 0x400000, 0x400003, MWA_EXTRAM },
-	{ 0xc40000, 0xc40001, sys16_coinctrl_w },
+	{ 0xc40000, 0xc40001, MWA_EXTRAM2 },
 	{ 0xc43034, 0xc43035, MWA_NOP },
 	{ 0xffe08e, 0xffe08f, sound_command_w },
 	{ 0xffc000, 0xffffff, MWA_WORKINGRAM },
@@ -8287,6 +8378,7 @@ static void wrestwar_update_proc( void ){
 	set_fg_page( READ_WORD( &sys16_textram[0x0e80] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x0e82] ) );
 	set_tile_bank( READ_WORD( &sys16_extraram[2] ) );
+	set_refresh( READ_WORD( &sys16_extraram2[0] ) );
 }
 
 static void wrestwar_init_machine( void ){
@@ -8346,7 +8438,7 @@ INPUT_PORTS_END
 /***************************************************************************/
 
 MACHINE_DRIVER_7759( machine_driver_wrestwar, \
-	wrestwar_readmem,wrestwar_writemem,wrestwar_init_machine,upd7759_interface )
+	wrestwar_readmem,wrestwar_writemem,wrestwar_init_machine, gfx2,upd7759_interface )
 
 
 /***************************************************************************/
@@ -8459,14 +8551,14 @@ static struct MemoryReadAddress hangon_readmem[] =
 	{ 0xa00000, 0xa00fff, MRA_PALETTERAM },
 	{ 0xc68000, 0xc68fff, MRA_EXTRAM2 },
 	{ 0xc7e000, 0xc7ffff, MRA_EXTRAM3 },
-	{ 0xe00002, 0xe00003, sys16_coinctrl_r },
 	{ 0xe01000, 0xe01001, io_service_r },
 	{ 0xe0100c, 0xe0100d, io_dip2_r },
 	{ 0xe0100a, 0xe0100b, io_dip1_r },
 	{ 0xe03020, 0xe03021, ho_io_highscoreentry_r },
 	{ 0xe03028, 0xe03029, ho_io_x_r },
 	{ 0xe0302a, 0xe0302b, ho_io_y_r },
-	{ -1 }
+	{ 0xe00000, 0xe03fff, MRA_EXTRAM4 },
+	{-1}
 };
 
 static struct MemoryWriteAddress hangon_writemem[] =
@@ -8480,8 +8572,8 @@ static struct MemoryWriteAddress hangon_writemem[] =
 	{ 0xc68000, 0xc68fff, MWA_EXTRAM2 },
 	{ 0xc7e000, 0xc7ffff, MWA_EXTRAM3 },
 	{ 0xe00000, 0xe00001, sound_command_nmi_w },
-	{ 0xe00002, 0xe00003, sys16_3d_coinctrl_w },
-	{ -1 }
+	{ 0xe00000, 0xe03fff, MWA_EXTRAM4 },
+	{-1}
 };
 
 static READ_HANDLER( hangon2_skip_r )
@@ -8546,6 +8638,7 @@ static struct IOWritePort hangon_sound_writeport[] =
 /***************************************************************************/
 
 static void hangon_update_proc( void ){
+	int leds;
 	sys16_fg_scrollx = READ_WORD( &sys16_textram[0x0ff8] ) & 0x01ff;
 	sys16_bg_scrollx = READ_WORD( &sys16_textram[0x0ffa] ) & 0x01ff;
 	sys16_fg_scrolly = READ_WORD( &sys16_textram[0x0f24] ) & 0x00ff;
@@ -8553,6 +8646,22 @@ static void hangon_update_proc( void ){
 
 	set_fg_page1( READ_WORD( &sys16_textram[0x0e9e] ) );
 	set_bg_page1( READ_WORD( &sys16_textram[0x0e9c] ) );
+	set_refresh_3d( READ_WORD( &sys16_extraram4[0x2] ) );
+
+	leds=READ_WORD( &sys16_extraram4[0x2] );
+	if(leds & 4)
+	{
+		osd_led_w(0,1);
+		osd_led_w(1,1);
+		osd_led_w(2,1);
+	}
+	else
+	{
+		osd_led_w(0,0);
+		osd_led_w(1,0);
+		osd_led_w(2,0);
+	}
+
 }
 
 static void hangon_init_machine( void ){
@@ -8648,7 +8757,7 @@ INPUT_PORTS_END
 
 /***************************************************************************/
 
-static const struct MachineDriver machine_driver_hangon =
+static struct MachineDriver machine_driver_hangon =
 {
 	{
 		{
@@ -8675,7 +8784,7 @@ static const struct MachineDriver machine_driver_hangon =
 	1,
 	hangon_init_machine,
 	40*8, 28*8, { 0*8, 40*8-1, 0*8, 28*8-1 },
-	gfxdecodeinfo,
+	gfx8,
 	2048*ShadowColorsMultiplier,2048*ShadowColorsMultiplier,
 	0,
 	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE,
@@ -8791,11 +8900,11 @@ static struct MemoryReadAddress harrier_readmem[] =
 	{ 0x110000, 0x110fff, MRA_PALETTERAM },
 	{ 0x124000, 0x127fff, shared_ram_r },
 	{ 0x130000, 0x130fff, MRA_SPRITERAM },
-	{ 0x140002, 0x140003, sys16_coinctrl_r },
 	{ 0x140010, 0x140011, io_service_r },
 	{ 0x140014, 0x140015, io_dip1_r },
 	{ 0x140016, 0x140017, io_dip2_r },
 	{ 0x140024, 0x140027, sh_motor_status_r },
+	{ 0x140000, 0x140027, MRA_EXTRAM3 },		//io
 	{ 0xc68000, 0xc68fff, MRA_EXTRAM2 },
 
 	{-1}
@@ -8811,7 +8920,7 @@ static struct MemoryWriteAddress harrier_writemem[] =
 	{ 0x124000, 0x127fff, shared_ram_w, &shared_ram },
 	{ 0x130000, 0x130fff, MWA_SPRITERAM },
 	{ 0x140000, 0x140001, sound_command_nmi_w },
-	{ 0x140002, 0x140003, sys16_3d_coinctrl_w },
+	{ 0x140000, 0x140027, MWA_EXTRAM3 },		//io
 	{ 0xc68000, 0xc68fff, MWA_EXTRAM2 },
 
 	{-1}
@@ -8887,6 +8996,25 @@ static void harrier_update_proc( void ){
 	sys16_bg_page[2] = data&0xf;
 
 	WRITE_WORD(&sys16_extraram[0x492],sh_io_joy_r(0));
+
+	data=READ_WORD( &sys16_extraram3[2] );
+	set_refresh_3d( data );
+
+	if(data & 8)
+	{
+		osd_led_w(0,1);
+		osd_led_w(2,1);
+	}
+	else
+	{
+		osd_led_w(0,0);
+		osd_led_w(2,0);
+	}
+	if(data & 4)
+		osd_led_w(1,1);
+	else
+		osd_led_w(1,0);
+
 }
 
 static void harrier_init_machine( void ){
@@ -8968,7 +9096,7 @@ PORT_START
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_COIN1 )
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_COIN2 )
 	PORT_BITX(0x04, IP_ACTIVE_LOW, IPT_SERVICE, DEF_STR( Service_Mode ), KEYCODE_F2, IP_JOY_NONE )
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_SERVICE1 )
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_COIN3 )
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_START1 )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_BUTTON1 )
 	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -9011,7 +9139,7 @@ INPUT_PORTS_END
 
 /***************************************************************************/
 
-static const struct MachineDriver machine_driver_sharrier =
+static struct MachineDriver machine_driver_sharrier =
 {
 	{
 		{
@@ -9038,7 +9166,7 @@ static const struct MachineDriver machine_driver_sharrier =
 	1,
 	harrier_init_machine,
 	40*8, 28*8, { 0*8, 40*8-1, 0*8, 28*8-1 },
-	gfxdecodeinfo,
+	gfx8,
 	2048*ShadowColorsMultiplier,2048*ShadowColorsMultiplier,
 	0,
 	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE,
@@ -9175,7 +9303,7 @@ static struct MemoryReadAddress shangon_readmem[] =
 {
 	{ 0x000000, 0x03ffff, MRA_ROM },
 	{ 0x20c640, 0x20c647, sound_shared_ram_r },
-	{ 0x20c000, 0x20ffff, MRA_EXTRAM2 },
+	{ 0x20c000, 0x20ffff, MRA_EXTRAM5 },
 
 	{ 0x400000, 0x40ffff, MRA_TILERAM },
 	{ 0x410000, 0x410fff, MRA_TEXTRAM },
@@ -9183,12 +9311,12 @@ static struct MemoryReadAddress shangon_readmem[] =
 	{ 0xa00000, 0xa00fff, MRA_PALETTERAM },
 	{ 0xc68000, 0xc68fff, shared_ram_r },
 	{ 0xc7c000, 0xc7ffff, shared_ram2_r },
-	{ 0xe00002, 0xe00003, sys16_coinctrl_r },
 	{ 0xe01000, 0xe01001, io_service_r },
 	{ 0xe0100c, 0xe0100d, io_dip2_r },
 	{ 0xe0100a, 0xe0100b, io_dip1_r },
 	{ 0xe030f8, 0xe030f9, ho_io_x_r },
 	{ 0xe030fa, 0xe030fb, ho_io_y_r },
+	{ 0xe00000, 0xe03fff, MRA_EXTRAM4 },	// io
 	{-1}
 };
 
@@ -9196,14 +9324,14 @@ static struct MemoryWriteAddress shangon_writemem[] =
 {
 	{ 0x000000, 0x03ffff, MWA_ROM },
 	{ 0x20c640, 0x20c647, sound_shared_ram_w },
-	{ 0x20c000, 0x20ffff, MWA_EXTRAM2 },
+	{ 0x20c000, 0x20ffff, MWA_EXTRAM5 },
 	{ 0x400000, 0x40ffff, MWA_TILERAM },
 	{ 0x410000, 0x410fff, MWA_TEXTRAM },
 	{ 0x600000, 0x600fff, MWA_SPRITERAM },
 	{ 0xa00000, 0xa00fff, MWA_PALETTERAM },
 	{ 0xc68000, 0xc68fff, shared_ram_w, &shared_ram },
 	{ 0xc7c000, 0xc7ffff, shared_ram2_w, &shared_ram2 },
-	{ 0xe00002, 0xe00003, sys16_3d_coinctrl_w },
+	{ 0xe00000, 0xe03fff, MWA_EXTRAM4 },	// io
 	{-1}
 };
 
@@ -9248,6 +9376,7 @@ static struct MemoryWriteAddress shangon_sound_writemem[] =
 /***************************************************************************/
 
 static void shangon_update_proc( void ){
+	int leds;
 	sys16_fg_scrollx = READ_WORD( &sys16_textram[0x0ff8] ) & 0x01ff;
 	sys16_bg_scrollx = READ_WORD( &sys16_textram[0x0ffa] ) & 0x01ff;
 	sys16_fg_scrolly = READ_WORD( &sys16_textram[0x0f24] ) & 0x00ff;
@@ -9255,6 +9384,24 @@ static void shangon_update_proc( void ){
 
 	set_fg_page1( READ_WORD( &sys16_textram[0x0e9e] ) );
 	set_bg_page1( READ_WORD( &sys16_textram[0x0e9c] ) );
+
+	set_refresh_3d( READ_WORD( &sys16_extraram4[2] ) );
+
+	leds=READ_WORD( &sys16_extraram4[0x2] );
+
+	if(leds & 4)
+	{
+		osd_led_w(0,1);
+		osd_led_w(1,1);
+		osd_led_w(2,1);
+	}
+	else
+	{
+		osd_led_w(0,0);
+		osd_led_w(1,0);
+		osd_led_w(2,0);
+	}
+
 }
 
 static void shangon_init_machine( void ){
@@ -9335,7 +9482,7 @@ PORT_START
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_COIN1 )
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_COIN2 )
 	PORT_BITX(0x04, IP_ACTIVE_LOW, IPT_SERVICE, DEF_STR( Service_Mode ), KEYCODE_F2, IP_JOY_NONE )
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_SERVICE1 )
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_COIN3 )
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_START1 )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_BUTTON3 )
 	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -9377,7 +9524,7 @@ PORT_START	/* Brake */
 INPUT_PORTS_END
 
 /***************************************************************************/
-static const struct MachineDriver machine_driver_shangon =
+static struct MachineDriver machine_driver_shangon =
 {
 	{
 		{
@@ -9403,7 +9550,7 @@ static const struct MachineDriver machine_driver_shangon =
 	1,
 	shangon_init_machine,
 	40*8, 28*8, { 0*8, 40*8-1, 0*8, 28*8-1 },
-	gfxdecodeinfo,
+	gfx8,
 	2048*ShadowColorsMultiplier,2048*ShadowColorsMultiplier,
 	0,
 	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE,
@@ -9635,28 +9782,6 @@ static READ_HANDLER( or_io_acc_steer_r ){ return (input_port_0_r( offset ) << 8)
 static READ_HANDLER( or_io_brake_r ){ return input_port_5_r( offset ) << 8; }
 #endif
 
-static int selected_analog;
-
-static READ_HANDLER( outrun_analog_r )
-{
-	switch (selected_analog)
-	{
-		default:
-		case 0: return or_io_acc_steer_r(0) >> 8;
-		case 1: return or_io_acc_steer_r(0) & 0xff;
-		case 2: return or_io_brake_r(0) >> 8;
-		case 3: return or_io_brake_r(0) & 0xff;
-	}
-}
-
-static WRITE_HANDLER( outrun_analog_select_w )
-{
-	if ((data & 0x00ff0000) == 0)
-	{
-		selected_analog = (data & 0x0c) >> 2;
-	}
-}
-
 static int or_gear=0;
 
 static READ_HANDLER( or_io_service_r )
@@ -9678,38 +9803,14 @@ static READ_HANDLER( or_reset2_r )
 	return 0;
 }
 
-static WRITE_HANDLER( outrun_sound_write_w )
-{
-	sound_shared_ram[0]=data&0xff;
-}
-
-static WRITE_HANDLER( outrun_ctrl1_w )
-{
-	if ((data & 0x00ff0000) == 0)
-	{
-		sys16_refreshenable = data & 0x20;
-		/* bit 0 always 1? */
-		/* bits 2-3 continuously change: 00-01-10-11; this is the same that
-		   gets written to 140030 so is probably input related */
-	}
-}
-
-static WRITE_HANDLER( outrun_ctrl2_w )
-{
-	if ((data & 0x00ff0000) == 0)
-	{
-		/* bit 0 always 1? */
-		set_led_status(0,data & 0x04);
-		set_led_status(1,data & 0x02);	/* brakes */
-		coin_counter_w(0,data & 0x10);
-	}
-}
 
 static struct MemoryReadAddress outrun_readmem[] =
 {
 	{ 0x000000, 0x03ffff, MRA_ROM },
+	{ 0x060892, 0x060893, or_io_acc_steer_r },
+	{ 0x060894, 0x060895, or_io_brake_r },
 	{ 0x060900, 0x060907, sound_shared_ram_r },		//???
-	{ 0x060000, 0x067fff, MRA_EXTRAM2 },
+	{ 0x060000, 0x067fff, MRA_EXTRAM5 },
 
 	{ 0x100000, 0x10ffff, MRA_TILERAM },
 	{ 0x110000, 0x110fff, MRA_TEXTRAM },
@@ -9720,19 +9821,25 @@ static struct MemoryReadAddress outrun_readmem[] =
 	{ 0x140010, 0x140011, or_io_service_r },
 	{ 0x140014, 0x140015, io_dip1_r },
 	{ 0x140016, 0x140017, io_dip2_r },
-	{ 0x140030, 0x140031, outrun_analog_r },
 
+	{ 0x140000, 0x140071, MRA_EXTRAM3 },		//io
 	{ 0x200000, 0x23ffff, MRA_BANK8 },
 	{ 0x260000, 0x267fff, shared_ram_r },
 	{ 0xe00000, 0xe00001, or_reset2_r },
-	{ -1 }  /* end of table */
+
+	{-1}
 };
+
+static WRITE_HANDLER( outrun_sound_write_w )
+{
+	sound_shared_ram[0]=data&0xff;
+}
 
 static struct MemoryWriteAddress outrun_writemem[] =
 {
 	{ 0x000000, 0x03ffff, MWA_ROM },
 	{ 0x060900, 0x060907, sound_shared_ram_w },		//???
-	{ 0x060000, 0x067fff, MWA_EXTRAM2 },
+	{ 0x060000, 0x067fff, MWA_EXTRAM5 },
 
 	{ 0x100000, 0x10ffff, MWA_TILERAM },
 	{ 0x110000, 0x110fff, MWA_TEXTRAM },
@@ -9740,14 +9847,12 @@ static struct MemoryWriteAddress outrun_writemem[] =
 	{ 0x130000, 0x130fff, MWA_SPRITERAM },
 	{ 0x120000, 0x121fff, MWA_PALETTERAM },
 
-	{ 0x140004, 0x140005, outrun_ctrl1_w },
-	{ 0x140020, 0x140021, outrun_ctrl2_w },
-	{ 0x140030, 0x140031, outrun_analog_select_w },
-
+	{ 0x140000, 0x140071, MWA_EXTRAM3 },		//io
 	{ 0x200000, 0x23ffff, MWA_BANK8 },
 	{ 0x260000, 0x267fff, shared_ram_w, &shared_ram },
 	{ 0xffff06, 0xffff07, outrun_sound_write_w },
-	{ -1 }  /* end of table */
+
+	{-1}
 };
 
 static struct MemoryReadAddress outrun_readmem2[] =
@@ -9755,7 +9860,8 @@ static struct MemoryReadAddress outrun_readmem2[] =
 	{ 0x000000, 0x03ffff, MRA_ROM },
 	{ 0x060000, 0x067fff, shared_ram_r },
 	{ 0x080000, 0x09ffff, MRA_EXTRAM },		// gr
-	{ -1 }  /* end of table */
+
+	{-1}
 };
 
 static struct MemoryWriteAddress outrun_writemem2[] =
@@ -9763,7 +9869,8 @@ static struct MemoryWriteAddress outrun_writemem2[] =
 	{ 0x000000, 0x03ffff, MWA_ROM },
 	{ 0x060000, 0x067fff, shared_ram_w },
 	{ 0x080000, 0x09ffff, MWA_EXTRAM },		// gr
-	{ -1 }  /* end of table */
+
+	{-1}
 };
 
 // Outrun
@@ -9791,12 +9898,32 @@ static struct MemoryWriteAddress outrun_sound_writemem[] =
 /***************************************************************************/
 
 static void outrun_update_proc( void ){
+	int data;
 	sys16_fg_scrollx = READ_WORD( &sys16_textram[0x0e98] );
 	sys16_bg_scrollx = READ_WORD( &sys16_textram[0x0e9a] );
 	sys16_fg_scrolly = READ_WORD( &sys16_textram[0x0e90] );
 	sys16_bg_scrolly = READ_WORD( &sys16_textram[0x0e92] );
 	set_fg_page( READ_WORD( &sys16_textram[0x0e80] ) );
 	set_bg_page( READ_WORD( &sys16_textram[0x0e82] ) );
+
+	set_refresh( READ_WORD( &sys16_extraram5[0xb6e] ) );
+	data=READ_WORD( &sys16_extraram5[0xb6c] );
+
+	if(data & 0x2)
+	{
+		osd_led_w(0,1);
+		osd_led_w(2,1);
+	}
+	else
+	{
+		osd_led_w(0,0);
+		osd_led_w(2,0);
+	}
+
+	if(data & 0x4)
+		osd_led_w(1,1);
+	else
+		osd_led_w(1,0);
 }
 
 static void outrun_init_machine( void ){
@@ -10018,7 +10145,7 @@ PORT_START	/* Accel / Decel */
 PORT_START
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BITX(0x02, IP_ACTIVE_LOW, IPT_SERVICE, DEF_STR( Service_Mode ), KEYCODE_F2, IP_JOY_NONE )
-	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_SERVICE1 )
+	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_COIN3 )
 	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_START1 )
 //	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_BUTTON3 )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -10069,7 +10196,7 @@ static int or_interrupt( void ){
 
 
 #define MACHINE_DRIVER_OUTRUN( GAMENAME,INITMACHINE) \
-static const struct MachineDriver GAMENAME = \
+static struct MachineDriver GAMENAME = \
 { \
 	{ \
 		{ \
@@ -10095,7 +10222,7 @@ static const struct MachineDriver GAMENAME = \
 	4, /* needed to sync processors */ \
 	INITMACHINE, \
 	40*8, 28*8, { 0*8, 40*8-1, 0*8, 28*8-1 }, \
-	gfxdecodeinfo, \
+	gfx1, \
 	4096*ShadowColorsMultiplier,4096*ShadowColorsMultiplier, \
 	0, \
 	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE | VIDEO_UPDATE_AFTER_VBLANK, \
@@ -10391,13 +10518,13 @@ static struct MemoryReadAddress enduror_readmem[] =
 
 	{ 0x130000, 0x130fff, MRA_SPRITERAM },
 
-	{ 0x140002, 0x140003, sys16_coinctrl_r },
 	{ 0x140010, 0x140011, io_service_r },
 	{ 0x140014, 0x140015, io_dip1_r },
 	{ 0x140016, 0x140017, io_dip2_r },
 
 	{ 0x140030, 0x140031, er_io_analog_r },
 
+	{ 0x140000, 0x1400ff, MRA_EXTRAM3 },		//io
 	{ 0xe00000, 0xe00001, er_reset2_r },
 	{-1}
 };
@@ -10412,7 +10539,7 @@ static struct MemoryWriteAddress enduror_writemem[] =
 	{ 0x124000, 0x127fff, shared_ram_w, &shared_ram },
 	{ 0x130000, 0x130fff, MWA_SPRITERAM },
 	{ 0x140000, 0x140001, sound_command_nmi_w },
-	{ 0x140002, 0x140003, sys16_3d_coinctrl_w },
+	{ 0x140000, 0x1400ff, MWA_EXTRAM3 },		//io
 	{-1}
 };
 
@@ -10530,6 +10657,22 @@ static void enduror_update_proc( void ){
 	sys16_bg_page[1] = (data>>8)&0xf;
 	sys16_bg_page[3] = (data>>4)&0xf;
 	sys16_bg_page[2] = data&0xf;
+
+	data = READ_WORD( &sys16_extraram3[2] );
+	set_refresh_3d( data );
+
+	if(data & 4)
+	{
+		osd_led_w(0,1);
+		osd_led_w(1,1);
+		osd_led_w(2,1);
+	}
+	else
+	{
+		osd_led_w(0,0);
+		osd_led_w(1,0);
+		osd_led_w(2,0);
+	}
 }
 
 
@@ -10668,7 +10811,7 @@ PORT_START
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_COIN1 )
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_COIN2 )
 	PORT_BITX(0x04, IP_ACTIVE_LOW, IPT_SERVICE, DEF_STR( Service_Mode ), KEYCODE_F2, IP_JOY_NONE )
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_SERVICE1 )
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_COIN3 )
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_START1 )
@@ -10706,7 +10849,7 @@ INPUT_PORTS_END
 
 /***************************************************************************/
 
-static const struct MachineDriver machine_driver_enduror =
+static struct MachineDriver machine_driver_enduror =
 {
 	{
 		{
@@ -10732,7 +10875,7 @@ static const struct MachineDriver machine_driver_enduror =
 	1,
 	enduror_init_machine,
 	40*8, 28*8, { 0*8, 40*8-1, 0*8, 28*8-1 },
-	gfxdecodeinfo,
+	gfx8,
 	2048*ShadowColorsMultiplier,2048*ShadowColorsMultiplier,
 	0,
 	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE,
@@ -10753,7 +10896,7 @@ static const struct MachineDriver machine_driver_enduror =
 	}
 };
 
-static const struct MachineDriver machine_driver_endurob2 =
+static struct MachineDriver machine_driver_endurob2 =
 {
 	{
 		{
@@ -10779,7 +10922,7 @@ static const struct MachineDriver machine_driver_endurob2 =
 	2,
 	enduror_init_machine,
 	40*8, 28*8, { 0*8, 40*8-1, 0*8, 28*8-1 },
-	gfxdecodeinfo,
+	gfx8,
 	2048*ShadowColorsMultiplier,2048*ShadowColorsMultiplier,
 	0,
 	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE,
@@ -10834,7 +10977,7 @@ INPUT_PORTS_START( s16dummy )
 INPUT_PORTS_END
 
 MACHINE_DRIVER( machine_driver_s16dummy, \
-	sys16_dummy_readmem,sys16_dummy_writemem,sys16_dummy_init_machine)
+	sys16_dummy_readmem,sys16_dummy_writemem,sys16_dummy_init_machine, gfx8)
 
 /*****************************************************************************/
 // Ace Attacker
@@ -11629,106 +11772,106 @@ ROM_END
 
 /***************************************************************************/
 
-GAMEX(1986, alexkidd, 0,        alexkidd, alexkidd, alexkidd, ROT0,         "Sega",    "Alex Kidd (set 1)", GAME_NOT_WORKING )
-GAME( 1986, alexkida, alexkidd, alexkidd, alexkidd, alexkidd, ROT0,         "Sega",    "Alex Kidd (set 2)" )
-GAME( 1987, aliensyn, 0,        aliensyn, aliensyn, aliensyn, ROT0,         "Sega",    "Alien Syndrome (set 1)" )
-GAMEX(1987, aliensya, aliensyn, aliensyn, aliensyn, aliensyn, ROT0,         "Sega",    "Alien Syndrome (set 2)", GAME_NOT_WORKING )
-GAMEX(1987, aliensyj, aliensyn, aliensyn, aliensyn, aliensyn, ROT0,         "Sega",    "Alien Syndrome (Japan)", GAME_NOT_WORKING )
-GAMEX(1987, aliensyb, aliensyn, aliensyn, aliensyn, aliensyn, ROT0,         "Sega",    "Alien Syndrome (set 3)", GAME_NOT_WORKING )
-GAME( 1988, altbeast, 0,        altbeast, altbeast, altbeast, ROT0,         "Sega",    "Altered Beast (Version 1)" )
-GAMEX(1988, jyuohki,  altbeast, altbeast, altbeast, altbeast, ROT0,         "Sega",    "Jyuohki (Japan)",           GAME_NOT_WORKING )
-GAMEX(1988, altbeas2, altbeast, altbeas2, altbeast, altbeast, ROT0,         "Sega",    "Altered Beast (Version 2)", GAME_NO_SOUND )
-GAMEX(1990, astorm,   0,        astorm,   astorm,   astorm,   ROT0_16BIT,   "Sega",    "Alien Storm", GAME_NOT_WORKING )
-GAMEX(1990, astorm2p, astorm,   astorm,   astorm,   astorm,   ROT0_16BIT,   "Sega",    "Alien Storm (2 Player)", GAME_NOT_WORKING )
-GAME( 1990, astormbl, astorm,   astorm,   astorm,   astorm,   ROT0_16BIT,   "bootleg", "Alien Storm (bootleg)" )
-GAMEX(1990, atomicp,  0,        atomicp,  atomicp,  atomicp,  ROT0,         "Philko",  "Atomic Point", GAME_NO_SOUND )
-GAME( 1990, aurail,   0,        aurail,   aurail,   aurail,   ROT0,         "Sega / Westone", "Aurail (set 1)" )
-GAME( 1990, auraila,  aurail,   aurail,   aurail,   auraila,  ROT0,         "Sega / Westone", "Aurail (set 2)" )
-GAME( 1989, bayroute, 0,        bayroute, bayroute, bayroute, ROT0,         "Sunsoft / Sega", "Bay Route (set 1)" )
-GAMEX(1989, bayrouta, bayroute, bayroute, bayroute, bayrouta, ROT0,         "Sunsoft / Sega", "Bay Route (set 2)", GAME_NOT_WORKING )
-GAMEX(1989, bayrtbl1, bayroute, bayroute, bayroute, bayrtbl1, ROT0,         "bootleg", "Bay Route (bootleg set 1)", GAME_NOT_WORKING )
-GAMEX(1989, bayrtbl2, bayroute, bayroute, bayroute, bayrtbl1, ROT0,         "bootleg", "Bay Route (bootleg set 2)", GAME_NOT_WORKING )
-GAME( 1986, bodyslam, 0,        bodyslam, bodyslam, bodyslam, ROT0,         "Sega",    "Body Slam" )
-GAME( 1986, dumpmtmt, bodyslam, bodyslam, bodyslam, bodyslam, ROT0,         "Sega",    "Dump Matsumoto (Japan)" )
-GAME( 1989, dduxbl,   0,        dduxbl,   dduxbl,   dduxbl,   ROT0,         "bootleg", "Dynamite Dux (bootleg)" )
-GAMEX(1989, eswat,    0,        eswat,    eswat,    eswat,    ROT0,         "Sega",    "E-Swat - Cyber Police", GAME_NOT_WORKING )
-GAME( 1989, eswatbl,  eswat,    eswat,    eswat,    eswat,    ROT0,         "bootleg", "E-Swat - Cyber Police (bootleg)" )
-GAME( 1986, fantzone, 0,        fantzone, fantzone, fantzone, ROT0,         "Sega",    "Fantasy Zone (Japan New Ver.)" )
-GAME( 1986, fantzono, fantzone, fantzono, fantzone, fantzone, ROT0,         "Sega",    "Fantasy Zone (Old Ver.)" )
-GAMEX(1989, fpoint,   0,        fpoint,   fpoint,   fpoint,   ROT0,         "Sega",    "Flash Point", GAME_NOT_WORKING )
-GAME( 1989, fpointbl, fpoint,   fpoint,   fpoint,   fpointbl, ROT0,         "bootleg", "Flash Point (bootleg)" )
-GAME( 1989, goldnaxe, 0,        goldnaxe, goldnaxe, goldnaxe, ROT0,         "Sega",    "Golden Axe (Version 1)" )
-GAMEX(1989, goldnaxj, goldnaxe, goldnaxe, goldnaxe, goldnaxe, ROT0,         "Sega",    "Golden Axe (Version 1, Japan)", GAME_NOT_WORKING )
-GAMEX(1989, goldnabl, goldnaxe, goldnaxe, goldnaxe, goldnabl, ROT0,         "bootleg", "Golden Axe (bootleg)", GAME_NOT_WORKING )
-GAME( 1989, goldnaxa, goldnaxe, goldnaxa, goldnaxe, goldnaxe, ROT0,         "Sega",    "Golden Axe (Version 2)" )
-GAMEX(1989, goldnaxb, goldnaxe, goldnaxa, goldnaxe, goldnaxe, ROT0,         "Sega",    "Golden Axe (Version 2 317-0110)", GAME_NOT_WORKING )
-GAMEX(1989, goldnaxc, goldnaxe, goldnaxa, goldnaxe, goldnaxe, ROT0,         "Sega",    "Golden Axe (Version 2 317-0122)", GAME_NOT_WORKING )
-GAME( 1987, hwchamp,  0,        hwchamp,  hwchamp,  hwchamp,  ROT0,         "Sega",    "Heavyweight Champ" )
-GAME( 1985, mjleague, 0,        mjleague, mjleague, mjleague, ROT270,       "Sega",    "Major League" )
-GAMEX(1990, moonwalk, 0,        moonwalk, moonwalk, moonwalk, ROT0,         "Sega",    "Moon Walker (Set 1)", GAME_NOT_WORKING )
-GAMEX(1990, moonwlka, moonwalk, moonwalk, moonwalk, moonwalk, ROT0,         "Sega",    "Moon Walker (Set 2)", GAME_NOT_WORKING )
-GAME( 1990, moonwlkb, moonwalk, moonwalk, moonwalk, moonwalk, ROT0,         "bootleg", "Moon Walker (bootleg)" )
-GAMEX(????, passsht,  0,        passsht,  passsht,  passsht,  ROT270,       "Sega",    "Passing Shot (2 Players)", GAME_NOT_WORKING )
-GAME( ????, passshtb, passsht,  passsht,  passsht,  passsht,  ROT270,       "bootleg", "Passing Shot (2 Players) (bootleg)" )
-GAMEX(????, passht4b, passsht,  passht4b, passht4b, passht4b, ROT270,       "bootleg", "Passing Shot (4 Players) (bootleg)", GAME_NO_SOUND )
-GAME( 1986, quartet,  0,        quartet,  quartet,  quartet,  ROT0,         "Sega",    "Quartet" )
-GAME( 1986, quartetj, quartet,  quartet,  quartet,  quartet,  ROT0,         "Sega",    "Quartet (Japan)" )
-GAME( 1986, quartet2, quartet,  quartet2, quartet2, quartet2, ROT0,         "Sega",    "Quartet II" )
-GAME( 1991, riotcity, 0,        riotcity, riotcity, riotcity, ROT0,         "Sega / Westone", "Riot City" )
-GAME( 1987, sdi,      0,        sdi,      sdi,      sdi,      ROT0,         "Sega",    "SDI - Strategic Defense Initiative" )
-GAMEX(1987, sdioj,    sdi,      sdi,      sdi,      sdi,      ROT0,         "Sega",    "SDI - Strategic Defense Initiative (Japan)", GAME_NOT_WORKING )
-GAME( 1989, shdancer, 0,        shdancer, shdancer, shdancer, ROT0,         "Sega",    "Shadow Dancer (US)" )
-GAMEX(1989, shdancbl, shdancer, shdancbl, shdancer, shdancbl, ROT0,         "bootleg", "Shadow Dancer (bootleg)", GAME_NOT_WORKING )
-GAME( 1989, shdancrj, shdancer, shdancrj, shdancer, shdancrj, ROT0,         "Sega",    "Shadow Dancer (Japan)" )
-GAME( 1987, shinobi,  0,        shinobi,  shinobi,  shinobi,  ROT0,         "Sega",    "Shinobi (set 1)" )
-GAMEX(1987, shinobib, shinobi,  shinobi,  shinobi,  shinobi,  ROT0,         "Sega",    "Shinobi (set 3)", GAME_NOT_WORKING )
-GAMEX(1987, shinobia, shinobi,  shinobl,  shinobi,  shinobi,  ROT0,         "Sega",    "Shinobi (set 2)", GAME_NOT_WORKING )
-GAME( 1987, shinobl,  shinobi,  shinobl,  shinobi,  shinobi,  ROT0,         "bootleg", "Shinobi (bootleg)" )
-GAMEX(1988, tetris,   0,        tetris,   tetris,   tetris,   ROT0,         "Sega",    "Tetris (Sega Set 1)", GAME_NOT_WORKING )
-GAME( 1988, tetrisbl, tetris,   tetris,   tetris,   tetrisbl, ROT0,         "bootleg", "Tetris (Sega bootleg)" )
-GAMEX(1988, tetrisa,  tetris,   tetris,   tetris,   tetrisbl, ROT0,         "Sega",    "Tetris (Sega Set 2)", GAME_NOT_WORKING )
-GAME( 1987, timscanr, 0,        timscanr, timscanr, timscanr, ROT270,       "Sega",    "Time Scanner" )
-GAME (1994, toryumon, 0,        toryumon, toryumon, toryumon, ROT0,         "Sega",    "Toryumon" )
-GAMEX(1989, tturf,    0,        tturf,    tturf,    tturf,    ROT0_16BIT,   "Sega / Sunsoft", "Tough Turf (Japan)", GAME_NO_SOUND )
-GAMEX(1989, tturfu,   tturf,    tturfu,   tturf,    tturf,    ROT0_16BIT,   "Sega / Sunsoft", "Tough Turf (US)", GAME_NO_SOUND )
+GAMEX(1986, alexkidd, 0,        alexkidd, alexkidd, alexkidd, ROT0,         "Sega",    "Alex Kidd (set 1)", GAME_NOT_WORKING)
+GAME( 1986, alexkida, alexkidd, alexkidd, alexkidd, alexkidd, ROT0,         "Sega",    "Alex Kidd (set 2)")
+GAME( 1987, aliensyn, 0,        aliensyn, aliensyn, aliensyn, ROT0,         "Sega",    "Alien Syndrome (set 1)")
+GAMEX(1987, aliensya, aliensyn, aliensyn, aliensyn, aliensyn, ROT0,         "Sega",    "Alien Syndrome (set 2)", GAME_NOT_WORKING)
+GAMEX(1987, aliensyj, aliensyn, aliensyn, aliensyn, aliensyn, ROT0,         "Sega",    "Alien Syndrome (Japan)", GAME_NOT_WORKING)
+GAMEX(1987, aliensyb, aliensyn, aliensyn, aliensyn, aliensyn, ROT0,         "Sega",    "Alien Syndrome (set 3)", GAME_NOT_WORKING)
+GAME( 1988, altbeast, 0,        altbeast, altbeast, altbeast, ROT0,         "Sega",    "Altered Beast (Version 1)")
+GAMEX(1988, jyuohki,  altbeast, altbeast, altbeast, altbeast, ROT0,         "Sega",    "Jyuohki (Japan)",           GAME_NOT_WORKING)
+GAMEX(1988, altbeas2, altbeast, altbeas2, altbeast, altbeast, ROT0,         "Sega",    "Altered Beast (Version 2)", GAME_NO_SOUND)
+GAMEX(1990, astorm,   0,        astorm,   astorm,   astorm,   ROT0_16BIT,   "Sega",    "Alien Storm", GAME_NOT_WORKING)
+GAMEX(1990, astorm2p, astorm,   astorm,   astorm,   astorm,   ROT0_16BIT,   "Sega",    "Alien Storm (2 Player)", GAME_NOT_WORKING)
+GAME( 1990, astormbl, astorm,   astorm,   astorm,   astorm,   ROT0_16BIT,   "bootleg", "Alien Storm (bootleg)")
+GAMEX(1990, atomicp,  0,        atomicp,  atomicp,  atomicp,  ROT0,         "Philko",  "Atomic Point", GAME_NO_SOUND)
+GAME( 1990, aurail,   0,        aurail,   aurail,   aurail,   ROT0,         "Sega / Westone", "Aurail (set 1)")
+GAME( 1990, auraila,  aurail,   aurail,   aurail,   auraila,  ROT0,         "Sega / Westone", "Aurail (set 2)")
+GAME( 1989, bayroute, 0,        bayroute, bayroute, bayroute, ROT0,         "Sunsoft / Sega", "Bay Route (set 1)")
+GAMEX(1989, bayrouta, bayroute, bayroute, bayroute, bayrouta, ROT0,         "Sunsoft / Sega", "Bay Route (set 2)", GAME_NOT_WORKING)
+GAMEX(1989, bayrtbl1, bayroute, bayroute, bayroute, bayrtbl1, ROT0,         "bootleg", "Bay Route (bootleg set 1)", GAME_NOT_WORKING)
+GAMEX(1989, bayrtbl2, bayroute, bayroute, bayroute, bayrtbl1, ROT0,         "bootleg", "Bay Route (bootleg set 2)", GAME_NOT_WORKING)
+GAME( 1986, bodyslam, 0,        bodyslam, bodyslam, bodyslam, ROT0,         "Sega",    "Body Slam")
+GAME( 1986, dumpmtmt, bodyslam, bodyslam, bodyslam, bodyslam, ROT0,         "Sega",    "Dump Matsumoto (Japan)")
+GAME( 1989, dduxbl,   0,        dduxbl,   dduxbl,   dduxbl,   ROT0,         "bootleg", "Dynamite Dux (bootleg)")
+GAMEX(1989, eswat,    0,        eswat,    eswat,    eswat,    ROT0,         "Sega",    "E-Swat", GAME_NOT_WORKING)
+GAME( 1989, eswatbl,  eswat,    eswat,    eswat,    eswat,    ROT0,         "bootleg", "E-Swat (bootleg)")
+GAME( 1986, fantzone, 0,        fantzone, fantzone, fantzone, ROT0,         "Sega",    "Fantasy Zone (Japan New Ver.)")
+GAME( 1986, fantzono, fantzone, fantzono, fantzone, fantzone, ROT0,         "Sega",    "Fantasy Zone (Old Ver.)")
+GAMEX(1989, fpoint,   0,        fpoint,   fpoint,   fpoint,   ROT0,         "Sega",    "Flash Point", GAME_NOT_WORKING)
+GAME( 1989, fpointbl, fpoint,   fpoint,   fpoint,   fpointbl, ROT0,         "bootleg", "Flash Point (bootleg)")
+GAME( 1989, goldnaxe, 0,        goldnaxe, goldnaxe, goldnaxe, ROT0,         "Sega",    "Golden Axe (Version 1)")
+GAMEX(1989, goldnaxj, goldnaxe, goldnaxe, goldnaxe, goldnaxe, ROT0,         "Sega",    "Golden Axe (Version 1, Japan)", GAME_NOT_WORKING)
+GAMEX(1989, goldnabl, goldnaxe, goldnaxe, goldnaxe, goldnabl, ROT0,         "bootleg", "Golden Axe (bootleg)", GAME_NOT_WORKING)
+GAME( 1989, goldnaxa, goldnaxe, goldnaxa, goldnaxe, goldnaxe, ROT0,         "Sega",    "Golden Axe (Version 2)")
+GAMEX(1989, goldnaxb, goldnaxe, goldnaxa, goldnaxe, goldnaxe, ROT0,         "Sega",    "Golden Axe (Version 2 317-0110)", GAME_NOT_WORKING)
+GAMEX(1989, goldnaxc, goldnaxe, goldnaxa, goldnaxe, goldnaxe, ROT0,         "Sega",    "Golden Axe (Version 2 317-0122)", GAME_NOT_WORKING)
+GAME( 1987, hwchamp,  0,        hwchamp,  hwchamp,  hwchamp,  ROT0,         "Sega",    "Heavyweight Champ")
+GAME( 1985, mjleague, 0,        mjleague, mjleague, mjleague, ROT270,       "Sega",    "Major League")
+GAMEX(1990, moonwalk, 0,        moonwalk, moonwalk, moonwalk, ROT0,         "Sega",    "Moon Walker (Set 1)", GAME_NOT_WORKING)
+GAMEX(1990, moonwlka, moonwalk, moonwalk, moonwalk, moonwalk, ROT0,         "Sega",    "Moon Walker (Set 2)", GAME_NOT_WORKING)
+GAME( 1990, moonwlkb, moonwalk, moonwalk, moonwalk, moonwalk, ROT0,         "bootleg", "Moon Walker (bootleg)")
+GAMEX(????, passsht,  0,        passsht,  passsht,  passsht,  ROT270,       "Sega",    "Passing Shot (2 Players)", GAME_NOT_WORKING)
+GAME( ????, passshtb, passsht,  passsht,  passsht,  passsht,  ROT270,       "bootleg", "Passing Shot (2 Players) (bootleg)")
+GAMEX(????, passht4b, passsht,  passht4b, passht4b, passht4b, ROT270,       "bootleg", "Passing Shot (4 Players) (bootleg)", GAME_NO_SOUND)
+GAME( 1986, quartet,  0,        quartet,  quartet,  quartet,  ROT0,         "Sega",    "Quartet")
+GAME( 1986, quartetj, quartet,  quartet,  quartet,  quartet,  ROT0,         "Sega",    "Quartet (Japan)")
+GAME( 1986, quartet2, quartet,  quartet2, quartet2, quartet2, ROT0,         "Sega",    "Quartet II")
+GAME( 1991, riotcity, 0,        riotcity, riotcity, riotcity, ROT0,         "Sega / Westone", "Riot City")
+GAME( 1987, sdi,      0,        sdi,      sdi,      sdi,      ROT0,         "Sega",    "SDI - Strategic Defense Initiative")
+GAMEX(1987, sdioj,    sdi,      sdi,      sdi,      sdi,      ROT0,         "Sega",    "SDI - Strategic Defense Initiative (Japan)", GAME_NOT_WORKING)
+GAME( 1989, shdancer, 0,        shdancer, shdancer, shdancer, ROT0,         "Sega",    "Shadow Dancer (US)")
+GAMEX(1989, shdancbl, shdancer, shdancbl, shdancer, shdancbl, ROT0,         "bootleg", "Shadow Dancer (bootleg)", GAME_NOT_WORKING)
+GAME( 1989, shdancrj, shdancer, shdancrj, shdancer, shdancrj, ROT0,         "Sega",    "Shadow Dancer (Japan)")
+GAME( 1987, shinobi,  0,        shinobi,  shinobi,  shinobi,  ROT0,         "Sega",    "Shinobi (set 1)")
+GAMEX(1987, shinobib, shinobi,  shinobi,  shinobi,  shinobi,  ROT0,         "Sega",    "Shinobi (set 3)", GAME_NOT_WORKING)
+GAMEX(1987, shinobia, shinobi,  shinobl,  shinobi,  shinobi,  ROT0,         "Sega",    "Shinobi (set 2)", GAME_NOT_WORKING)
+GAME( 1987, shinobl,  shinobi,  shinobl,  shinobi,  shinobi,  ROT0,         "bootleg", "Shinobi (bootleg)")
+GAMEX(1988, tetris,   0,        tetris,   tetris,   tetris,   ROT0,         "Sega",    "Tetris (Sega Set 1)", GAME_NOT_WORKING)
+GAME( 1988, tetrisbl, tetris,   tetris,   tetris,   tetrisbl, ROT0,         "bootleg", "Tetris (Sega bootleg)")
+GAMEX(1988, tetrisa,  tetris,   tetris,   tetris,   tetrisbl, ROT0,         "Sega",    "Tetris (Sega Set 2)", GAME_NOT_WORKING)
+GAME( 1987, timscanr, 0,        timscanr, timscanr, timscanr, ROT270,       "Sega",    "Time Scanner")
+GAME (1994, toryumon, 0,        toryumon, toryumon, toryumon, ROT0,         "Sega",    "Toryumon")
+GAMEX(1989, tturf,    0,        tturf,    tturf,    tturf,    ROT0_16BIT,   "Sega / Sunsoft", "Tough Turf (Japan)", GAME_NO_SOUND)
+GAMEX(1989, tturfu,   tturf,    tturfu,   tturf,    tturf,    ROT0_16BIT,   "Sega / Sunsoft", "Tough Turf (US)", GAME_NO_SOUND)
 GAMEX(1989, tturfbl,  tturf,    tturfbl,  tturf,    tturfbl,  ROT0_16BIT,   "bootleg", "Tough Turf (bootleg)", GAME_IMPERFECT_SOUND)
-GAME( 1988, wb3,      0,        wb3,      wb3,      wb3,      ROT0,         "Sega / Westone", "Wonder Boy III - Monster Lair (set 1)" )
-GAMEX(1988, wb3a,     wb3,      wb3,      wb3,      wb3,      ROT0,         "Sega / Westone", "Wonder Boy III - Monster Lair (set 2)", GAME_NOT_WORKING )
-GAME( 1988, wb3bl,    wb3,      wb3bl,    wb3,      wb3bl,    ROT0,         "bootleg", "Wonder Boy III - Monster Lair (bootleg)" )
-GAME( 1989, wrestwar, 0,        wrestwar, wrestwar, wrestwar, ROT270_16BIT, "Sega",    "Wrestle War" )
+GAME( 1988, wb3,      0,        wb3,      wb3,      wb3,      ROT0,         "Sega / Westone", "Wonder Boy III - Monster Lair (set 1)")
+GAMEX(1988, wb3a,     wb3,      wb3,      wb3,      wb3,      ROT0,         "Sega / Westone", "Wonder Boy III - Monster Lair (set 2)", GAME_NOT_WORKING)
+GAME( 1988, wb3bl,    wb3,      wb3bl,    wb3,      wb3bl,    ROT0,         "bootleg", "Wonder Boy III - Monster Lair (bootleg)")
+GAME( 1989, wrestwar, 0,        wrestwar, wrestwar, wrestwar, ROT270_16BIT, "Sega",    "Wrestle War")
 
-GAME( 1985, hangon,   0,        hangon,   hangon,   hangon,   ROT0,         "Sega",    "Hang-On" )
-GAME( 1985, sharrier, 0,        sharrier, sharrier, sharrier, ROT0_16BIT,   "Sega",    "Space Harrier" )
-GAMEX(1992, shangon,  0,        shangon,  shangon,  shangon,  ROT0,         "Sega",    "Super Hang-On", GAME_NOT_WORKING )
-GAME( 1992, shangonb, shangon,  shangon,  shangon,  shangonb, ROT0,         "bootleg", "Super Hang-On (bootleg)" )
-GAME( 1986, outrun,   0,        outrun,   outrun,   outrun,   ROT0,         "Sega",    "Out Run (set 1)" )
-GAME( 1986, outruna,  outrun,   outruna,  outrun,   outrun,   ROT0,         "Sega",    "Out Run (set 2)" )
-GAME( 1986, outrunb,  outrun,   outruna,  outrun,   outrunb,  ROT0,         "Sega",    "Out Run (set 3)" )
-GAMEX(1985, enduror,  0,        enduror,  enduror,  enduror,  ROT0,         "Sega",    "Enduro Racer", GAME_NOT_WORKING )
-GAME( 1985, endurobl, enduror,  enduror,  enduror,  endurobl, ROT0,         "bootleg", "Enduro Racer (bootleg set 1)" )
-GAME( 1985, endurob2, enduror,  endurob2, enduror,  endurob2, ROT0,         "bootleg", "Enduro Racer (bootleg set 2)" )
+GAME( 1985, hangon,   0,        hangon,   hangon,   hangon,   ROT0,         "Sega",    "Hang-On")
+GAME( 1985, sharrier, 0,        sharrier, sharrier, sharrier, ROT0_16BIT,   "Sega",    "Space Harrier")
+GAMEX(1992, shangon,  0,        shangon,  shangon,  shangon,  ROT0,         "Sega",    "Super Hang-On", GAME_NOT_WORKING)
+GAME( 1992, shangonb, shangon,  shangon,  shangon,  shangonb, ROT0,         "bootleg", "Super Hang-On (bootleg)")
+GAME( 1986, outrun,   0,        outrun,   outrun,   outrun,   ROT0,         "Sega",    "Out Run (set 1)")
+GAME( 1986, outruna,  outrun,   outruna,  outrun,   outrun,   ROT0,         "Sega",    "Out Run (set 2)")
+GAME( 1986, outrunb,  outrun,   outruna,  outrun,   outrunb,  ROT0,         "Sega",    "Out Run (set 3)")
+GAMEX(1985, enduror,  0,        enduror,  enduror,  enduror,  ROT0,         "Sega",    "Enduro Racer", GAME_NOT_WORKING)
+GAME( 1985, endurobl, enduror,  enduror,  enduror,  endurobl, ROT0,         "bootleg", "Enduro Racer (bootleg set 1)")
+GAME( 1985, endurob2, enduror,  endurob2, enduror,  endurob2, ROT0,         "bootleg", "Enduro Racer (bootleg set 2)")
 
 
 
-GAMEX(????, aceattac, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Ace Attacker", GAME_NOT_WORKING )
-GAMEX(????, aburner,  0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "After Burner (Japan)", GAME_NOT_WORKING )
-GAMEX(????, aburner2, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "After Burner II", GAME_NOT_WORKING )
-GAMEX(????, bloxeed,  0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Bloxeed", GAME_NOT_WORKING )
-GAMEX(????, cltchitr, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Clutch Hitter", GAME_NOT_WORKING )
-GAMEX(????, cotton,   0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Cotton (Japan)", GAME_NOT_WORKING )
-GAMEX(????, cottona,  cotton,   s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Cotton", GAME_NOT_WORKING )
-GAMEX(????, ddcrew,   0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "DD Crew", GAME_NOT_WORKING )
-GAMEX(????, dunkshot, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Dunk Shot", GAME_NOT_WORKING )
-GAMEX(????, lghost,   0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Laser Ghost", GAME_NOT_WORKING )
-GAMEX(????, loffire,  0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Line of Fire", GAME_NOT_WORKING )
-GAMEX(????, mvp,      0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "MVP", GAME_NOT_WORKING )
-GAMEX(????, thndrbld, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Thunder Blade", GAME_NOT_WORKING )
-GAMEX(????, thndrbdj, thndrbld, s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Thunder Blade (Japan)", GAME_NOT_WORKING )
-GAMEX(????, toutrun,  0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Turbo Outrun (set 1)", GAME_NOT_WORKING )
-GAMEX(????, toutruna, toutrun,  s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Turbo Outrun (set 2)", GAME_NOT_WORKING )
-GAMEX(????, exctleag, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Excite League", GAME_NOT_WORKING )
-GAMEX(????, suprleag, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Super League", GAME_NOT_WORKING )
-GAMEX(????, afighter, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Action Fighter", GAME_NOT_WORKING )
-GAMEX(????, ryukyu  , 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Ryukyu", GAME_NOT_WORKING )
+GAMEX(????, aceattac, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Ace Attacker", GAME_NOT_WORKING)
+GAMEX(????, aburner,  0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "After Burner (Japan)", GAME_NOT_WORKING)
+GAMEX(????, aburner2, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "After Burner II", GAME_NOT_WORKING)
+GAMEX(????, bloxeed,  0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Bloxeed", GAME_NOT_WORKING)
+GAMEX(????, cltchitr, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Clutch Hitter", GAME_NOT_WORKING)
+GAMEX(????, cotton,   0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Cotton (Japan)", GAME_NOT_WORKING)
+GAMEX(????, cottona,  cotton,   s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Cotton", GAME_NOT_WORKING)
+GAMEX(????, ddcrew,   0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "DD Crew", GAME_NOT_WORKING)
+GAMEX(????, dunkshot, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Dunk Shot", GAME_NOT_WORKING)
+GAMEX(????, lghost,   0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Laser Ghost", GAME_NOT_WORKING)
+GAMEX(????, loffire,  0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Line of Fire", GAME_NOT_WORKING)
+GAMEX(????, mvp,      0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "MVP", GAME_NOT_WORKING)
+GAMEX(????, thndrbld, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Thunder Blade", GAME_NOT_WORKING)
+GAMEX(????, thndrbdj, thndrbld, s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Thunder Blade (Japan)", GAME_NOT_WORKING)
+GAMEX(????, toutrun,  0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Turbo Outrun (set 1)", GAME_NOT_WORKING)
+GAMEX(????, toutruna, toutrun,  s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Turbo Outrun (set 2)", GAME_NOT_WORKING)
+GAMEX(????, exctleag, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Excite League", GAME_NOT_WORKING)
+GAMEX(????, suprleag, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Super League", GAME_NOT_WORKING)
+GAMEX(????, afighter, 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Action Fighter", GAME_NOT_WORKING)
+GAMEX(????, ryukyu  , 0,        s16dummy, s16dummy, s16dummy, ROT0,         "Sega", "Ryukyu", GAME_NOT_WORKING)
 
 

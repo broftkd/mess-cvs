@@ -366,16 +366,16 @@ static struct GfxDecodeInfo gfxdecodeinfo[] =
 static struct OKIM6295interface okim6295_interface =
 {
 	2,              /* 2 chips */
-	{ 32220000/32/132, 32220000/16/132 },/* Frequency */
-	{ REGION_SOUND1, REGION_SOUND2 },
-	{ 75, 60 } /* Note!  Keep chip 1 (voices) louder than chip 2 */
+	{ 7757, 15514 },/* Frequency */
+	{ REGION_SOUND1, REGION_SOUND2 },  /* memory regions 3 & 4 */
+	{ 50, 25 }		/* Note!  Keep chip 1 (voices) louder than chip 2 */
 };
 
 static struct YM2203interface ym2203_interface =
 {
 	1,
-	32220000/8, /* Accurate, audio section crystal is 32.220 MHz */
-	{ YM2203_VOL(60,60) },
+	32220000/8,	/* Accurate, audio section crystal is 32.220 MHz */
+	{ YM2203_VOL(40,40) },
 	{ 0 },
 	{ 0 },
 	{ 0 },
@@ -395,9 +395,7 @@ static struct YM2151interface ym2151_interface =
 	{ sound_irq }
 };
 
-
-
-static const struct MachineDriver machine_driver_twocrude =
+static struct MachineDriver machine_driver_twocrude =
 {
 	/* basic machine hardware */
 	{
@@ -486,9 +484,6 @@ ROM_START( cbuster )
 
 	ROM_REGION( 0x20000, REGION_SOUND2 )	/* ADPCM samples */
 	ROM_LOAD( "fu13-.rom",     0x00000, 0x20000, 0xb8525622 )
-
-	ROM_REGION( 0x0100, REGION_PROMS )
-	ROM_LOAD( "mb7114h.18e",   0x0000, 0x0100, 0x3645b70f )	/* timing? (not used) */
 ROM_END
 
 ROM_START( cbusterw )
@@ -526,9 +521,6 @@ ROM_START( cbusterw )
 
 	ROM_REGION( 0x20000, REGION_SOUND2 )	/* ADPCM samples */
 	ROM_LOAD( "fu13-.rom",     0x00000, 0x20000, 0xb8525622 )
-
-	ROM_REGION( 0x0100, REGION_PROMS )
-	ROM_LOAD( "mb7114h.18e",   0x0000, 0x0100, 0x3645b70f )	/* timing? (not used) */
 ROM_END
 
 ROM_START( cbusterj )
@@ -566,9 +558,6 @@ ROM_START( cbusterj )
 
 	ROM_REGION( 0x20000, REGION_SOUND2 )	/* ADPCM samples */
 	ROM_LOAD( "fu13-.rom",     0x00000, 0x20000, 0xb8525622 )
-
-	ROM_REGION( 0x0100, REGION_PROMS )
-	ROM_LOAD( "mb7114h.18e",   0x0000, 0x0100, 0x3645b70f )	/* timing? (not used) */
 ROM_END
 
 ROM_START( twocrude )
@@ -606,9 +595,6 @@ ROM_START( twocrude )
 
 	ROM_REGION( 0x20000, REGION_SOUND2 )	/* ADPCM samples */
 	ROM_LOAD( "fu13-.rom",     0x00000, 0x20000, 0xb8525622 )
-
-	ROM_REGION( 0x0100, REGION_PROMS )
-	ROM_LOAD( "mb7114h.18e",   0x0000, 0x0100, 0x3645b70f )	/* timing? (not used) */
 ROM_END
 
 /******************************************************************************/

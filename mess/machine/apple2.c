@@ -17,8 +17,17 @@
 #include "vidhrdw/generic.h"
 #include "cpu/m6502/m6502.h"
 #include "includes/apple2.h"
-#include "machine/ay3600.h"
 
+/* machine/ay3600.c */
+extern void AY3600_init(void);
+extern void AY3600_interrupt(void);
+extern int  AY3600_anykey_clearstrobe_r(void);
+extern int  AY3600_keydata_strobe_r(void);
+
+/* machine/ap_disk2.c */
+extern void apple2_slot6_init(void);
+
+/* local */
 UINT8 *apple2_slot_rom;
 UINT8 *apple2_slot1;
 UINT8 *apple2_slot2;
@@ -28,19 +37,17 @@ UINT8 *apple2_slot5;
 UINT8 *apple2_slot6;
 UINT8 *apple2_slot7;
 
-/*UINT8 *apple2_rom;*/
+UINT8 *apple2_rom;
 
 APPLE2_STRUCT a2;
-
-/* local */
 
 static int a2_speaker_state;
 
 static void mockingboard_init (int slot);
 static int mockingboard_r (int offset);
 static void mockingboard_w (int offset, int data);
-static WRITE_HANDLER ( apple2_mainram_w );
-static WRITE_HANDLER ( apple2_auxram_w );
+WRITE_HANDLER ( apple2_mainram_w );
+WRITE_HANDLER ( apple2_auxram_w );
 
 /***************************************************************************
   apple2_init_machine
@@ -80,13 +87,6 @@ void apple2e_init_machine(void)
 /***************************************************************************
   apple2_id_rom
 ***************************************************************************/
-#if 1
-/* R Nabet : the proto does not match the function at all !!! */
-int  apple2_id_rom(const char *name, const char * gamename)
-{
-	return 0;
-}
-#else
 int apple2_id_rom (int id)
 {
 	FILE *romfile;
@@ -104,7 +104,6 @@ int apple2_id_rom (int id)
 	osd_fclose (romfile);
 	return retval;
 }
-#endif
 
 /***************************************************************************
   apple2e_load_rom
@@ -221,7 +220,7 @@ void apple2_slotrom_disable (int offset, int data)
 /***************************************************************************
   apple2_c00x_r
 ***************************************************************************/
-READ_HANDLER ( apple2_c00x_r )
+int apple2_c00x_r(int offset)
 {
 	/* Read the keyboard data and strobe */
 	return AY3600_keydata_strobe_r();
@@ -230,7 +229,7 @@ READ_HANDLER ( apple2_c00x_r )
 /***************************************************************************
   apple2_c00x_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_c00x_w )
+void apple2_c00x_w(int offset, int data)
 {
 	unsigned char *RAM = memory_region(REGION_CPU1);
 
@@ -326,7 +325,7 @@ WRITE_HANDLER ( apple2_c00x_w )
 /***************************************************************************
   apple2_c01x_r
 ***************************************************************************/
-READ_HANDLER ( apple2_c01x_r )
+int apple2_c01x_r(int offset)
 {
 //	logerror("a2 softswitch_r: %04x\n", offset + 0xc010);
 	switch (offset)
@@ -355,7 +354,7 @@ READ_HANDLER ( apple2_c01x_r )
 /***************************************************************************
   apple2_c01x_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_c01x_w )
+void apple2_c01x_w(int offset, int data)
 {
 	/* Clear the keyboard strobe - ignore the returned results */
 	AY3600_anykey_clearstrobe_r();
@@ -364,7 +363,7 @@ WRITE_HANDLER ( apple2_c01x_w )
 /***************************************************************************
   apple2_c02x_r
 ***************************************************************************/
-READ_HANDLER ( apple2_c02x_r )
+int apple2_c02x_r(int offset)
 {
 	switch (offset)
 	{
@@ -408,7 +407,7 @@ READ_HANDLER ( apple2_c02x_r )
 /***************************************************************************
   apple2_c02x_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_c02x_w )
+void apple2_c02x_w(int offset, int data)
 {
 	switch (offset)
 	{
@@ -450,7 +449,7 @@ WRITE_HANDLER ( apple2_c02x_w )
 /***************************************************************************
   apple2_c03x_r
 ***************************************************************************/
-READ_HANDLER ( apple2_c03x_r )
+int apple2_c03x_r(int offset)
 {
 	switch (offset)
 	{
@@ -505,7 +504,7 @@ READ_HANDLER ( apple2_c03x_r )
 /***************************************************************************
   apple2_c03x_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_c03x_w )
+void apple2_c03x_w(int offset, int data)
 {
 	switch (offset)
 	{
@@ -567,7 +566,7 @@ WRITE_HANDLER ( apple2_c03x_w )
 /***************************************************************************
   apple2_c04x_r
 ***************************************************************************/
-READ_HANDLER ( apple2_c04x_r )
+int apple2_c04x_r(int offset)
 {
 	switch (offset)
 	{
@@ -611,7 +610,7 @@ READ_HANDLER ( apple2_c04x_r )
 /***************************************************************************
   apple2_c04x_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_c04x_w )
+void apple2_c04x_w(int offset, int data)
 {
 	switch (offset)
 	{
@@ -653,7 +652,7 @@ WRITE_HANDLER ( apple2_c04x_w )
 /***************************************************************************
   apple2_c05x_r
 ***************************************************************************/
-READ_HANDLER ( apple2_c05x_r )
+int apple2_c05x_r(int offset)
 {
 	switch (offset)
 	{
@@ -682,7 +681,7 @@ READ_HANDLER ( apple2_c05x_r )
 /***************************************************************************
   apple2_c05x_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_c05x_w )
+void apple2_c05x_w(int offset, int data)
 {
 	switch (offset)
 	{
@@ -716,7 +715,7 @@ WRITE_HANDLER ( apple2_c05x_w )
 /***************************************************************************
   apple2_c06x_r
 ***************************************************************************/
-READ_HANDLER ( apple2_c06x_r )
+int apple2_c06x_r(int offset)
 {
 	switch (offset)
 	{
@@ -772,7 +771,7 @@ READ_HANDLER ( apple2_c06x_r )
 /***************************************************************************
   apple2_c06x_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_c06x_w )
+void apple2_c06x_w(int offset, int data)
 {
 	switch (offset)
 	{
@@ -814,7 +813,7 @@ WRITE_HANDLER ( apple2_c06x_w )
 /***************************************************************************
   apple2_c07x_r
 ***************************************************************************/
-READ_HANDLER ( apple2_c07x_r )
+int apple2_c07x_r(int offset)
 {
 	switch (offset)
 	{
@@ -858,7 +857,7 @@ READ_HANDLER ( apple2_c07x_r )
 /***************************************************************************
   apple2_c07x_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_c07x_w )
+void apple2_c07x_w(int offset, int data)
 {
 	switch (offset)
 	{
@@ -900,7 +899,7 @@ WRITE_HANDLER ( apple2_c07x_w )
 /***************************************************************************
   apple2_c08x_r
 ***************************************************************************/
-READ_HANDLER ( apple2_c08x_r )
+int apple2_c08x_r(int offset)
 {
 	unsigned char *RAM = memory_region(REGION_CPU1);
 	/* If the aux switch is set, use the aux language card bank as well */
@@ -956,7 +955,7 @@ READ_HANDLER ( apple2_c08x_r )
 /***************************************************************************
   apple2_c08x_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_c08x_w )
+void apple2_c08x_w(int offset, int data)
 {
 	/* same as reading */
 	logerror("write -- ");
@@ -966,7 +965,7 @@ WRITE_HANDLER ( apple2_c08x_w )
 /***************************************************************************
   apple2_c0xx_slot1_r
 ***************************************************************************/
-READ_HANDLER ( apple2_c0xx_slot1_r )
+int apple2_c0xx_slot1_r(int offset)
 {
 	return 0;
 }
@@ -974,7 +973,7 @@ READ_HANDLER ( apple2_c0xx_slot1_r )
 /***************************************************************************
   apple2_c0xx_slot2_r
 ***************************************************************************/
-READ_HANDLER ( apple2_c0xx_slot2_r )
+int apple2_c0xx_slot2_r(int offset)
 {
 	return 0;
 }
@@ -982,7 +981,7 @@ READ_HANDLER ( apple2_c0xx_slot2_r )
 /***************************************************************************
   apple2_c0xx_slot3_r
 ***************************************************************************/
-READ_HANDLER ( apple2_c0xx_slot3_r )
+int apple2_c0xx_slot3_r(int offset)
 {
 	return 0;
 }
@@ -990,7 +989,7 @@ READ_HANDLER ( apple2_c0xx_slot3_r )
 /***************************************************************************
   apple2_c0xx_slot4_r
 ***************************************************************************/
-READ_HANDLER ( apple2_c0xx_slot4_r )
+int apple2_c0xx_slot4_r(int offset)
 {
 	return 0;
 }
@@ -998,7 +997,7 @@ READ_HANDLER ( apple2_c0xx_slot4_r )
 /***************************************************************************
   apple2_c0xx_slot5_r
 ***************************************************************************/
-READ_HANDLER ( apple2_c0xx_slot5_r )
+int apple2_c0xx_slot5_r(int offset)
 {
 	return 0;
 }
@@ -1006,7 +1005,7 @@ READ_HANDLER ( apple2_c0xx_slot5_r )
 /***************************************************************************
   apple2_c0xx_slot7_r
 ***************************************************************************/
-READ_HANDLER ( apple2_c0xx_slot7_r )
+int apple2_c0xx_slot7_r(int offset)
 {
 	return 0;
 }
@@ -1014,7 +1013,7 @@ READ_HANDLER ( apple2_c0xx_slot7_r )
 /***************************************************************************
   apple2_c0xx_slot1_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_c0xx_slot1_w )
+void apple2_c0xx_slot1_w(int offset, int data)
 {
 	return;
 }
@@ -1022,7 +1021,7 @@ WRITE_HANDLER ( apple2_c0xx_slot1_w )
 /***************************************************************************
   apple2_c0xx_slot2_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_c0xx_slot2_w )
+void apple2_c0xx_slot2_w(int offset, int data)
 {
 	return;
 }
@@ -1030,7 +1029,7 @@ WRITE_HANDLER ( apple2_c0xx_slot2_w )
 /***************************************************************************
   apple2_c0xx_slot3_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_c0xx_slot3_w )
+void apple2_c0xx_slot3_w(int offset, int data)
 {
 	return;
 }
@@ -1038,7 +1037,7 @@ WRITE_HANDLER ( apple2_c0xx_slot3_w )
 /***************************************************************************
   apple2_c0xx_slot4_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_c0xx_slot4_w )
+void apple2_c0xx_slot4_w(int offset, int data)
 {
 	return;
 }
@@ -1046,7 +1045,7 @@ WRITE_HANDLER ( apple2_c0xx_slot4_w )
 /***************************************************************************
   apple2_c0xx_slot5_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_c0xx_slot5_w )
+void apple2_c0xx_slot5_w(int offset, int data)
 {
 	return;
 }
@@ -1054,7 +1053,7 @@ WRITE_HANDLER ( apple2_c0xx_slot5_w )
 /***************************************************************************
   apple2_c0xx_slot7_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_c0xx_slot7_w )
+void apple2_c0xx_slot7_w(int offset, int data)
 {
 	return;
 }
@@ -1062,7 +1061,7 @@ WRITE_HANDLER ( apple2_c0xx_slot7_w )
 /***************************************************************************
   apple2_slot1_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_slot1_w )
+void apple2_slot1_w(int offset, int data)
 {
 	return;
 }
@@ -1070,7 +1069,7 @@ WRITE_HANDLER ( apple2_slot1_w )
 /***************************************************************************
   apple2_slot2_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_slot2_w )
+void apple2_slot2_w(int offset, int data)
 {
 	return;
 }
@@ -1078,7 +1077,7 @@ WRITE_HANDLER ( apple2_slot2_w )
 /***************************************************************************
   apple2_slot3_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_slot3_w )
+void apple2_slot3_w(int offset, int data)
 {
 	return;
 }
@@ -1086,7 +1085,7 @@ WRITE_HANDLER ( apple2_slot3_w )
 /***************************************************************************
   apple2_slot4_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_slot4_w )
+void apple2_slot4_w(int offset, int data)
 {
 	mockingboard_w (offset, data);
 }
@@ -1094,7 +1093,7 @@ WRITE_HANDLER ( apple2_slot4_w )
 /***************************************************************************
   apple2_slot5_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_slot5_w )
+void apple2_slot5_w(int offset, int data)
 {
 	return;
 }
@@ -1102,12 +1101,12 @@ WRITE_HANDLER ( apple2_slot5_w )
 /***************************************************************************
   apple2_slot7_w
 ***************************************************************************/
-WRITE_HANDLER ( apple2_slot7_w )
+void apple2_slot7_w(int offset, int data)
 {
 	return;
 }
 
-READ_HANDLER ( apple2_slot4_r )
+int apple2_slot4_r (int offset)
 {
 	unsigned char *RAM = memory_region(REGION_CPU1);
 

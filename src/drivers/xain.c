@@ -34,12 +34,12 @@ WRITE_HANDLER( xain_flipscreen_w );
 extern unsigned char *xain_charram, *xain_bgram0, *xain_bgram1;
 
 
-static READ_HANDLER( xain_sharedram_r )
+READ_HANDLER( xain_sharedram_r )
 {
 	return xain_sharedram[offset];
 }
 
-static WRITE_HANDLER( xain_sharedram_w )
+WRITE_HANDLER( xain_sharedram_w )
 {
 	/* locations 003d and 003e are used as a semaphores between CPU A and B, */
 	/* so let's resync every time they are changed to avoid deadlocks */
@@ -49,7 +49,7 @@ static WRITE_HANDLER( xain_sharedram_w )
 	xain_sharedram[offset] = data;
 }
 
-static WRITE_HANDLER( xainCPUA_bankswitch_w )
+WRITE_HANDLER( xainCPUA_bankswitch_w )
 {
 	unsigned char *RAM = memory_region(REGION_CPU1);
 
@@ -57,7 +57,7 @@ static WRITE_HANDLER( xainCPUA_bankswitch_w )
 	else {cpu_setbank(1,&RAM[0x4000]);}
 }
 
-static WRITE_HANDLER( xainCPUB_bankswitch_w )
+WRITE_HANDLER( xainCPUB_bankswitch_w )
 {
 	unsigned char *RAM = memory_region(REGION_CPU2);
 
@@ -65,7 +65,7 @@ static WRITE_HANDLER( xainCPUB_bankswitch_w )
 	else {cpu_setbank(2,&RAM[0x4000]);}
 }
 
-static WRITE_HANDLER( xain_sound_command_w )
+WRITE_HANDLER( xain_sound_command_w )
 {
 	soundlatch_w(offset,data);
 	cpu_cause_interrupt(2,M6809_INT_IRQ);
@@ -334,12 +334,12 @@ static struct YM2203interface ym2203_interface =
 
 
 
-static const struct MachineDriver machine_driver_xsleena =
+static struct MachineDriver machine_driver_xsleena =
 {
 	{
 		{
 			CPU_M6809,
-			2000000,	/* 2 MHz ??? */
+			2000000,	/* 2 Mhz ??? */
 			readmem,writemem,0,0,
 			xainA_interrupt,4	/* wrong, this is just a hack */
 								/* IRQs are caused by CPU B */
@@ -350,13 +350,13 @@ static const struct MachineDriver machine_driver_xsleena =
 		},
 		{
 			CPU_M6809,
-			2000000,	/* 2 MHz ??? */
+			2000000,	/* 2 Mhz ??? */
 			readmemB,writememB,0,0,
 			ignore_interrupt,0	/* IRQs are caused by CPU A */
 		},
 		{
 			CPU_M6809 | CPU_AUDIO_CPU,
-			2000000,	/* 2 MHz ??? */
+			2000000,	/* 2 Mhz ??? */
 			sound_readmem,sound_writemem,0,0,
 			ignore_interrupt,0	/* IRQs are caused by CPU A */
 								/* FIRQs are caused by the YM2203 */

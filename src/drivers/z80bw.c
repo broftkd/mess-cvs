@@ -171,13 +171,13 @@ INPUT_PORTS_START( kamikaze )
 	PORT_BIT( 0xfe, IP_ACTIVE_HIGH, IPT_UNUSED )
 INPUT_PORTS_END
 
-static const struct MachineDriver machine_driver_astinvad =
+static struct MachineDriver machine_driver_astinvad = /* LT */
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			astinvad_readmem,astinvad_writemem,astinvad_readport,astinvad_writeport,
 			interrupt,1    /* two interrupts per frame */
 		}
@@ -315,13 +315,13 @@ INPUT_PORTS_START( spaceint )
 INPUT_PORTS_END
 
 
-static const struct MachineDriver machine_driver_spaceint =
+static struct MachineDriver machine_driver_spaceint = /* 20-12-1998 LT */
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			2000000,        /* 2 MHz? */
+			2000000,        /* 2 Mhz? */
 			spaceint_readmem,spaceint_writemem,spaceint_readport,spaceint_writeport,
 			spaceint_interrupt,1
 		}

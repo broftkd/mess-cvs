@@ -1,6 +1,3 @@
-#include <assert.h>
-#include <string.h>
-
 #include "mame32.h"
 #include "mess/mess.h"
 
@@ -17,6 +14,7 @@ int GetMessSoftwarePathCount(void);
 static int requested_device_type(char *tchar);
 static void MessSetupCrc(int game_index);
 
+#ifdef MESS_PICKER
 typedef struct tagImageData {
 	struct tagImageData *next;
 	const char *name;
@@ -37,7 +35,6 @@ static int  messRealColumn[MESS_COLUMN_MAX];
 static BOOL mess_idle_work;
 static UINT nIdleImageNum;
 static int nTheCurrentGame;
-static int *mess_icon_index;
 
 static void OnMessIdle(void);
 
@@ -49,12 +46,9 @@ static void InitMessPicker(void);
 static void DrawMessItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
 static BOOL MessPickerNotify(NMHDR *nm);
 static void MessUpdateSoftwareList(void);
-static void MessSetPickerDefaults(void);
-static void MessRetrievePickerDefaults(void);
-static void MessOpenOtherSoftware(void);
-static BOOL CreateMessIcons(void);
-
-#define MAME32HELP "mess32.hlp"
+#else
+static void MessImageConfig(HWND hMain, char *last_directory, int image);
+#endif /* MESS_PICKER */
 
 #include "win32ui.c"
 
@@ -141,30 +135,24 @@ static void SetupImageTypes(mess_image_type *types, int count, BOOL bZip)
 	types[num_extensions].ext = NULL;
 }
 
-static int MessDiscoverImageType(const char *filename, mess_image_type *imagetypes, BOOL bReadZip)
+static int MessDiscoverImageType(const char *filename, mess_image_type *imagetypes)
 {
 	int type, i;
 	char *lpExt;
 	ZIP *pZip = NULL;
 	
 	lpExt = strrchr(filename, '.');
-	type = IO_COUNT;
+	type = IO_CARTSLOT;
 
 	if (lpExt) {
 		/* Are we a ZIP file? */
 		if (!stricmp(lpExt, ".ZIP")) {
-			if (bReadZip) {
-				pZip = openzip(filename);
-				if (pZip) {
-					struct zipent *pZipEnt = readzip(pZip);
-					if (pZipEnt) {
-						lpExt = strrchr(pZipEnt->name, '.');
-					}
+			pZip = openzip(filename);
+			if (pZip) {
+				struct zipent *pZipEnt = readzip(pZip);
+				if (pZipEnt) {
+					lpExt = strrchr(pZipEnt->name, '.');
 				}
-			}
-			else {
-				/* IO_ALIAS represents uncalculated zips */
-				type = IO_ALIAS;
 			}
 		}
 
@@ -218,11 +206,10 @@ static void MessAddImage(int imagenum)
 
 	SetupImageTypes(imagetypes, sizeof(imagetypes) / sizeof(imagetypes[0]), TRUE);
 
-	options.image_files[options.image_count].type = MessDiscoverImageType(filename, imagetypes, TRUE);
+	options.image_files[options.image_count].type = MessDiscoverImageType(filename, imagetypes);
 	options.image_files[options.image_count].name = filename;
 	mess_image_nums[options.image_count++] = imagenum;
 }
-
 
 static BOOL MessIsImageSelected(int imagenum)
 {
@@ -238,9 +225,11 @@ static BOOL MessIsImageSelected(int imagenum)
 /* UI                                                                       */
 /* ************************************************************************ */
 
+#ifdef MESS_PICKER
+
 /* List view Column text */
 static char *mess_column_names[MESS_COLUMN_MAX] = {
-    "Software",
+    "Image",
     "Manufacturer",
     "Year",
     "Playable"
@@ -315,9 +304,6 @@ static void ResetMessColumnDisplay(BOOL firstime)
         ListView_SetTextColor(hwndSoftware, RGB(240,240,240));
     else
         ListView_SetTextColor(hwndSoftware, GetListFontColor());
-
-	// Set the default software
-	MessRetrievePickerDefaults();
 }
 
 static void InitMessPicker()
@@ -352,67 +338,6 @@ static void InitMessPicker()
 	bListReady = TRUE;
 }
 
-static BOOL CreateMessIcons(void)
-{
-	int i;
-
-	if (!mess_icon_index) {
-		mess_icon_index = malloc(sizeof(int) * game_count * IO_COUNT);
-		if (!mess_icon_index)
-			return FALSE;
-	}
-
-	for (i = 0; i < (game_count * IO_COUNT); i++)
-		mess_icon_index[i] = 0;
-
-	return TRUE;
-}
-
-static int GetMessIcon(int nGame, int nSoftwareType)
-{
-	int index;
-	int nIconPos = 0;
-	HICON hIcon;
-	const struct GameDriver *drv;
-	char buffer[32];
-
-	static const char *iconnames[IO_COUNT] = {
-		NULL,	/* IO_END */
-		"cart",	/* IO_CARTSLOT */
-		"flop",	/* IO_FLOPPY */
-		"hard",	/* IO_HARDDISK */
-		"cass",	/* IO_CASSETTE */
-		"prin",	/* IO_PRINTER */
-		"serl",	/* IO_SERIAL */
-		"snap",	/* IO_SNAPSHOT */
-		"quik",	/* IO_QUICKLOAD */
-		NULL,	/* IO_ALIAS */
-	};
-
-	if ((nSoftwareType < IO_COUNT) && iconnames[nSoftwareType]) {
-		index = (nGame * IO_COUNT) + nSoftwareType;
-
-		nIconPos = mess_icon_index[index];
-		if (!nIconPos) {
-			for (drv = drivers[nGame]; drv; drv = drv->clone_of) {
-				sprintf(buffer, "%s/%s", drv->name, iconnames[nSoftwareType]);
-				hIcon = LoadIconFromFile(buffer);
-				if (hIcon)
-					break;
-			}
-
-			if (hIcon) {
-				nIconPos = ImageList_AddIcon(hSmall, hIcon);
-				ImageList_AddIcon(hLarge, hIcon);
-				if (nIconPos != -1)
-					mess_icon_index[index] = nIconPos;
-			}
-		}
-	}
-	return nIconPos;
-}
-
-
 static int WhichMessIcon(int nItem)
 {
 	static const int nMessImageIcons[] = {
@@ -426,21 +351,14 @@ static int WhichMessIcon(int nItem)
 		7, /* IO_SNAPSHOT */
 		7, /* IO_QUICKLOAD */
 		2, /* IO_ALIAS (actually, unknowns) */
-		3  /* IO_COUNT (actually, bad files) */
+		1  /* IO_COUNT */
 	};
 
-	int nType;
-	int nIcon;
+	int type = mess_images_index[nItem]->type;
+	if (type > (sizeof(nMessImageIcons) / sizeof(nMessImageIcons[0])))
+		type = IO_END;
 
-	nType = mess_images_index[nItem]->type;
-	
-	nIcon = GetMessIcon(nTheCurrentGame, nType);
-	if (!nIcon) {
-		if (nType > (sizeof(nMessImageIcons) / sizeof(nMessImageIcons[0])))
-			nType = IO_END;
-		nIcon = nMessImageIcons[nType];
-	}
-	return nIcon;
+	return nMessImageIcons[type];
 }
 
 static BOOL MessPickerNotify(NMHDR *nm)
@@ -535,38 +453,9 @@ int DECL_SPEC CmpImageDataPtr(const void *elem1, const void *elem2)
 	return stricmp(img1->name, img2->name);
 }
 
-static BOOL AppendNewImage(const char *fullname, BOOL bReadZip, ImageData ***listend, mess_image_type *imagetypes)
-{
-	int type;
-	char *separator_pos;
-	ImageData *newimg;
-
-	type = MessDiscoverImageType(fullname, imagetypes, bReadZip);
-	if (type == IO_COUNT)
-		return FALSE; /* Unknown type of software */
-
-	newimg = malloc(sizeof(ImageData));
-	if (!newimg)
-		return FALSE;
-
-	newimg->fullname = strdup(fullname);
-	if (!newimg) {
-		free(newimg);
-		return FALSE;
-	}
-
-	separator_pos = strrchr(newimg->fullname, '\\');
-
-	newimg->name = separator_pos ? (separator_pos+1) : newimg->fullname;
-	newimg->next = NULL;
-	newimg->type = type;
-	**listend = newimg;
-	*listend = &newimg->next;
-	return TRUE;
-}
-
 static void AddImagesFromDirectory(const char *dir, BOOL bRecurse, char *buffer, size_t buffersz, ImageData ***listend)
 {
+	ImageData *newimg;
 	void *d;
 	int is_dir;
 	size_t pathlen;
@@ -584,8 +473,18 @@ static void AddImagesFromDirectory(const char *dir, BOOL bRecurse, char *buffer,
 		while(osd_dir_get_entry(d, buffer + pathlen, buffersz - pathlen, &is_dir)) {
 			if (!is_dir) {
 				/* Not a directory */
-				if (AppendNewImage(buffer, FALSE, listend, imagetypes))
-					mess_images_count++;
+				newimg = malloc(sizeof(ImageData));
+				if (newimg && (newimg->fullname = strdup(buffer))) {
+					newimg->name = newimg->fullname + pathlen;
+					newimg->next = NULL;
+					newimg->type = IO_ALIAS; /* We are using IO_ALIAS for unknowns */
+					**listend = newimg;
+					*listend = &newimg->next;
+				}
+				else if (newimg)
+					free(newimg);
+
+				mess_images_count++;
 			}
 			else if (bRecurse && strcmp(buffer + pathlen, ".") && strcmp(buffer + pathlen, "..")) {
 				AddImagesFromDirectory(buffer + pathlen, bRecurse, buffer, buffersz, listend);
@@ -599,23 +498,9 @@ static void AddImagesFromDirectory(const char *dir, BOOL bRecurse, char *buffer,
 	}
 }
 
-static void MessInsertPickerItem(int i)
-{
-	LV_ITEM lvi;
-
-	lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM; 
-	lvi.stateMask = 0;
-	lvi.iItem    = i;
-	lvi.iSubItem = 0; 
-	lvi.lParam   = i;
-	// Do not set listview to LVS_SORTASCENDING or LVS_SORTDESCENDING
-	lvi.pszText  = LPSTR_TEXTCALLBACK;
-	lvi.iImage   = I_IMAGECALLBACK;
-	ListView_InsertItem(hwndSoftware,&lvi);
-}
-
 static void FillSoftwareList(int nGame)
 {
+	LV_ITEM lvi;
 	int i;
 	ImageData *imgd;
 	ImageData **pimgd;
@@ -648,16 +533,19 @@ static void FillSoftwareList(int nGame)
 	pimgd = &mess_images;
 	olddir = strdup(osd_get_cwd());
 	if (olddir) {
+		const struct GameDriver *drv = drivers[nGame];
+
 		for (i = 0; i < GetMessSoftwarePathCount(); i++) {
 			const char *dir = GetMessSoftwarePath(i);
-			const struct GameDriver *drv = drivers[nGame];
 
-			while(drv) {
-				osd_change_directory(dir);
-				AddImagesFromDirectory(drv->name, TRUE, buffer, sizeof(buffer), &pimgd);
+			osd_change_directory(dir);
+			AddImagesFromDirectory(drv->name, TRUE, buffer, sizeof(buffer), &pimgd);
+			if (drv->clone_of) {
 				osd_change_directory(olddir);
-				drv = drv->clone_of;
+				osd_change_directory(dir);
+				AddImagesFromDirectory(drv->clone_of->name, TRUE, buffer, sizeof(buffer), &pimgd);
 			}
+			osd_change_directory(olddir);
 		}
 		free(olddir);
 	}
@@ -682,8 +570,16 @@ static void FillSoftwareList(int nGame)
 	ListView_DeleteAllItems(hwndSoftware);
 	ListView_SetItemCount(hwndSoftware, mess_images_count);
 
+	lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM; 
+	lvi.stateMask = 0;
 	for (i = 0; i < mess_images_count; i++) {
-		MessInsertPickerItem(i);
+		lvi.iItem    = i;
+		lvi.iSubItem = 0; 
+		lvi.lParam   = i;
+		// Do not set listview to LVS_SORTASCENDING or LVS_SORTDESCENDING
+		lvi.pszText  = LPSTR_TEXTCALLBACK;
+		lvi.iImage   = I_IMAGECALLBACK;
+		ListView_InsertItem(hwndSoftware,&lvi);
 	}
 	mess_idle_work = TRUE;
 	nIdleImageNum = 0;
@@ -693,83 +589,6 @@ static void FillSoftwareList(int nGame)
 static void MessUpdateSoftwareList(void)
 {
 	FillSoftwareList(nTheCurrentGame);
-}
-
-static int MessLookupByFilename(const char *filename)
-{
-	int i;
-
-	for (i = 0; i < mess_images_count; i++) {
-		if (!strcmp(filename, mess_images_index[i]->fullname))
-			return i;
-	}
-	return -1;
-}
-
-static void MessSetPickerDefaults(void)
-{
-	int i;
-	size_t nDefaultSize = 0;
-	char *default_software = NULL;
-	char *s;
-
-	for (i = 0; i < options.image_count; i++)
-		nDefaultSize += strlen(options.image_files[i].name) + 1;
-	
-	if (nDefaultSize) {
-		default_software = malloc(nDefaultSize);
-		if (default_software) {
-			s = NULL;
-			for (i = 0; i < options.image_count; i++) {
-				if (s)
-					*(s++) = '|';
-				else
-					s = default_software;
-				strcpy(s, options.image_files[i].name);
-				s += strlen(s);
-			}
-		}
-	}
-
-	SetDefaultSoftware(default_software);
-
-	if (default_software)
-		free(default_software);
-}
-
-static void MessRetrievePickerDefaults(void)
-{
-	char *default_software = strdup(GetDefaultSoftware());
-	char *this_software;
-	char *s;
-	int i;
-
-	if (!default_software)
-		return;
-
-	this_software = default_software;
-	while(this_software && *this_software) {
-		s = strchr(this_software, '|');
-		if (s)
-			*(s++) = '\0';
-		else
-			s = NULL;
-
-		i = MessLookupByFilename(this_software);
-		if (i >= 0) {
-			if (this_software == default_software) {
-				ListView_SetItemState(hwndSoftware, i, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
-				ListView_EnsureVisible(hwndSoftware, i, FALSE);
-			}
-			else {
-				ListView_SetItemState(hwndSoftware, i, LVIS_SELECTED, LVIS_SELECTED);
-			}
-		}
-
-		this_software = s;
-	}
-
-	free(default_software);
 }
 
 static void DrawMessItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
@@ -1065,7 +884,7 @@ static void OnMessIdle()
 		pImageData = mess_images_index[nIdleImageNum];
 
 		if (pImageData->type == IO_ALIAS) {
-			pImageData->type = MessDiscoverImageType(pImageData->fullname, imagetypes, TRUE);
+			pImageData->type = MessDiscoverImageType(pImageData->fullname, imagetypes);
 			ListView_RedrawItems(hwndSoftware,nIdleImageNum,nIdleImageNum);
 		}
 		nIdleImageNum++;
@@ -1077,7 +896,9 @@ static void OnMessIdle()
 	}
 }
 
-static BOOL CommonFileImageDialog(char *last_directory, common_file_dialog_proc cfd, char *filename, mess_image_type *imagetypes)
+#else /* !MESS_PICKER */
+
+static BOOL CommonFileImageDialog(HWND hMain, char *last_directory, common_file_dialog_proc cfd, char *filename, mess_image_type *imagetypes)
 {
     BOOL success;
     OPENFILENAME of;
@@ -1153,56 +974,59 @@ static BOOL CommonFileImageDialog(char *last_directory, common_file_dialog_proc 
     return success;
 }
 
-static void MessOpenOtherSoftware(void)
+void MessImageConfig(HWND hMain, char *last_directory, int image)
 {
+    INP_HEADER inpHeader;
     char filename[MAX_PATH];
     LPTREEFOLDER lpOldFolder = GetCurrentFolder();
     LPTREEFOLDER lpNewFolder = GetFolder(00);
     DWORD        dwOldFilters = 0;
     int          nOldPick = GetSelectedPickItem();
 
+	MENUITEMINFO	im_mmi;
+	int im;
     HMENU           hMenu = GetMenu(hMain);
+	char buf[200];
 	mess_image_type imagetypes[64];
-	ImageData       **pLastImageNext;
-	ImageData       **pOldLastImageNext;
-	ImageData		**pNewIndex;
-	int i;
 
 	SetupImageTypes(imagetypes, sizeof(imagetypes) / sizeof(imagetypes[0]), TRUE);
 
     *filename = 0;
+    memset(&inpHeader,'\0', sizeof(INP_HEADER));
 
-    if (!CommonFileImageDialog(last_directory, GetOpenFileName, filename, imagetypes))
-		return;
+    if (CommonFileImageDialog(hMain, last_directory, GetOpenFileName, filename, imagetypes))
+    {
+		options.image_files[image].type = MessDiscoverImageType(filename, imagetypes);
+		options.image_files[image].name = strdup(filename);
+		if (options.image_count <= image)
+			options.image_count = image + 1;
+    }
 
-	pLastImageNext = &mess_images;
-	while(*pLastImageNext)
-		pLastImageNext = &(*pLastImageNext)->next;
-	pOldLastImageNext = pLastImageNext;
+	sprintf(buf,"Image %d: %s", image, filename);
+	im_mmi.cbSize = sizeof(im_mmi);
+	im_mmi.fMask = MIIM_TYPE;
+	im_mmi.fType = MFT_STRING;
+	im_mmi.dwTypeData = buf;
+	im_mmi.cch = strlen(im_mmi.dwTypeData);
 
-	if (!AppendNewImage(filename, TRUE, &pLastImageNext, imagetypes))
-		goto unknownsoftware;
+	switch(image) {
+	case 0:
+		im=ID_IMAGE0_CONFIG;
+		break;
+	case 1:
+		im=ID_IMAGE1_CONFIG;
+		break;
+	case 2:
+		im=ID_IMAGE2_CONFIG;
+		break;
+	case 3:
+		im=ID_IMAGE3_CONFIG;
+		break;
+	}
+	SetMenuItemInfo(hMenu,im,FALSE,&im_mmi);
 
-	pNewIndex = (ImageData **) realloc(mess_images_index, (mess_images_count+1) * sizeof(ImageData *));
-	if (!pNewIndex)
-		goto outofmemory;
-	i = mess_images_count++;
-	pNewIndex[i] = (*pOldLastImageNext);
-	mess_images_index = pNewIndex;
-
-	MessInsertPickerItem(i);
-	ListView_SetItemState(hwndSoftware, i, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
-	ListView_EnsureVisible(hwndSoftware, i, FALSE);
-
-	return;
-
-unknownsoftware:
-	MessageBoxA(NULL, "Unknown type of software", MAME32NAME, MB_OK);
-	return;
-
-outofmemory:
-	MessageBoxA(NULL, "Out of memory", MAME32NAME, MB_OK);
-	return;
+	EnableMenuItem(hMenu, im, MF_ENABLED);
 }
 
+#endif /* MESS_PICKER */
 

@@ -261,7 +261,7 @@ static struct GfxDecodeInfo gfxdecodeinfo[] =
 static struct AY8910interface ay8910_interface =
 {
 	1,	/* 1 chip */
-	1500000,	/* 1.5 MHz?????? */
+	1500000,	/* 1.5 MHZ?????? */
 	{ 50 },
 	{ 0 },
 	{ 0 },
@@ -271,19 +271,19 @@ static struct AY8910interface ay8910_interface =
 
 
 
-static const struct MachineDriver machine_driver_espial =
+static struct MachineDriver machine_driver_espial =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3072000,	/* 3.072 MHz */
+			3072000,	/* 3.072 Mhz */
 			readmem,writemem,0,0,
 			zodiac_master_interrupt,2
 		},
 		{
 			CPU_Z80,
-			3072000,	/* 2 MHz?????? */
+			3072000,	/* 2 Mhz?????? */
 			sound_readmem,sound_writemem,0,sound_writeport,
 			nmi_interrupt,4
 		}

@@ -15,11 +15,18 @@ ernesto@imagina.com
 #define LOG_CIA					0
 #define OLD_INTERRUPT_SYSTEM	0
 
+/* from vidhrdw */
+extern void copper_setpc( unsigned long pc );
+extern void copper_enable( void );
+
 /***************************************************************************
 
 	General routines and registers
 
 ***************************************************************************/
+
+/* required prototype */
+void amiga_custom_w( int offs, int data );
 
 custom_regs_def custom_regs;
 
@@ -978,10 +985,10 @@ static void stop_rev_timer( int drive ) {
 static void fdc_setup_leds( int drive ) {
 
 	if ( drive == 0 )
-		set_led_status( 1, fdc_status[drive].motor_on ); /* update internal drive led */
+		osd_led_w( 1, fdc_status[drive].motor_on ); /* update internal drive led */
 
 	if ( drive == 1 )
-		set_led_status( 2, fdc_status[drive].motor_on ); /* update external drive led */
+		osd_led_w( 2, fdc_status[drive].motor_on ); /* update external drive led */
 }
 
 static void fdc_stepdrive( int drive ) {
@@ -1273,7 +1280,7 @@ static int cia_0_portB_r( void ) {
 
 static void cia_0_portA_w( int data ) {
 	/* bit 1 = overlay (data & 1 ) */
-	set_led_status( 0, ( data & 2 ) ? 0 : 1 ); /* bit 2 = Power Led on Amiga*/
+	osd_led_w( 0, ( data & 2 ) ? 0 : 1 ); /* bit 2 = Power Led on Amiga*/
 }
 
 static void cia_0_portB_w( int data ) {
@@ -1338,13 +1345,13 @@ static void cia_init( void ) {
 	}
 }
 
-READ_HANDLER ( amiga_cia_r ) {
+int amiga_cia_r( int offs ) {
 	int cia_sel = 1, mask, data;
 
-	if ( offset >= 0x1000 )
+	if ( offs >= 0x1000 )
 		cia_sel = 0;
 
-	switch ( offset & 0xffe ) {
+	switch ( offs & 0xffe ) {
 		case 0x000:
 			data = (*cia_8520[cia_sel].portA_read)();
 			mask = ~( cia_8520[cia_sel].ddra );
@@ -1432,17 +1439,17 @@ READ_HANDLER ( amiga_cia_r ) {
 	return 0;
 }
 
-WRITE_HANDLER ( amiga_cia_w ) {
+void amiga_cia_w( int offs, int data ) {
 	int cia_sel = 1, mask;
 
-	if ( offset >= 0x1000 )
+	if ( offs >= 0x1000 )
 		cia_sel = 0;
 	else
 		data >>= 8;
 
 	data &= 0xff;
 
-	switch ( offset & 0xffe ) {
+	switch ( offs & 0xffe ) {
 		case 0x000:
 			mask = cia_8520[cia_sel].ddra;
 			cia_8520[cia_sel].data_latchA = data;
@@ -1583,11 +1590,11 @@ static void amiga_custom_init( void ) {
 	custom_regs.DDFSTOP = 0xd8;
 }
 
-READ_HANDLER ( amiga_custom_r ) {
+int amiga_custom_r( int offs ) {
 
-	offset &= 0xfff;
+	offs &= 0xfff;
 
-	switch ( offset ) {
+	switch ( offs ) {
 		case 0x0002: /* DMACON */
 			return custom_regs.DMACON;
 		break;
@@ -1692,7 +1699,7 @@ READ_HANDLER ( amiga_custom_r ) {
 
 		default:
 #if LOG_CUSTOM
-			logerror("PC = %06x - Read from Custom %04x\n", cpu_getpc(), offset );
+			logerror("PC = %06x - Read from Custom %04x\n", cpu_getpc(), offs );
 #endif
 		break;
 	}
@@ -1706,11 +1713,11 @@ READ_HANDLER ( amiga_custom_r ) {
 	else \
 		reg &= ~( data & 0x7fff ); }
 
-WRITE_HANDLER ( amiga_custom_w ) {
+void amiga_custom_w( int offs, int data ) {
 
-	offset &= 0xfff;
+	offs &= 0xfff;
 
-	switch ( offset ) {
+	switch ( offs ) {
 		case 0x0020: /* DSKPTH */
 			custom_regs.DSKPTH = data;
 		break;
@@ -1760,8 +1767,8 @@ WRITE_HANDLER ( amiga_custom_w ) {
 		case 0x0054: /* BLTDPTH */
 		case 0x0056: /* BLTDPTL */
 			{
-				int lo = ( offset & 2 );
-				int loc = ( offset - 0x48 ) >> 2;
+				int lo = ( offs & 2 );
+				int loc = ( offs - 0x48 ) >> 2;
 				int order[4] = { 2, 1, 0, 3 };
 
 				if ( lo )
@@ -1781,7 +1788,7 @@ WRITE_HANDLER ( amiga_custom_w ) {
 		case 0x0064: /* BLTAMOD */
 		case 0x0066: /* BLTDMOD */
 			{
-				int loc = ( offset >> 1 ) & 3;
+				int loc = ( offs >> 1 ) & 3;
 				int order[4] = { 2, 1, 0, 3 };
 
 				custom_regs.BLTxMOD[order[loc]] = ( signed short )( data & ~1 ); /* strip off lsb */
@@ -1792,7 +1799,7 @@ WRITE_HANDLER ( amiga_custom_w ) {
 		case 0x0072: /* BLTBDAT */
 		case 0x0074: /* BLTADAT */
 			{
-				int loc = ( offset >> 1 ) & 3;
+				int loc = ( offs >> 1 ) & 3;
 				int order[3] = { 2, 1, 0 };
 
 				custom_regs.BLTxDAT[order[loc]] = data;
@@ -1808,8 +1815,8 @@ WRITE_HANDLER ( amiga_custom_w ) {
 		case 0x0084: /* COP2LCH */
 		case 0x0086: /* COP1LCL */
 			{
-				int lo = ( offset & 2 );
-				int loc = ( offset >> 2 ) & 1;
+				int lo = ( offs & 2 );
+				int loc = ( offs >> 2 ) & 1;
 
 				if ( lo )
 					custom_regs.COPLCL[loc] = ( data & ~1 ); /* should be word aligned, we make sure it is */
@@ -1890,8 +1897,8 @@ WRITE_HANDLER ( amiga_custom_w ) {
 		case 0x00f4: /* BPL6PTH */
 		case 0x00f6: /* BPL6PTL */
 			{
-				int lo = ( offset & 2 );
-				int plane = ( offset >> 2 ) & 0x07;
+				int lo = ( offs & 2 );
+				int plane = ( offs >> 2 ) & 0x07;
 
 				if ( lo ) {
 					custom_regs.BPLPTR[plane] &= 0x001f0000;
@@ -1955,8 +1962,8 @@ WRITE_HANDLER ( amiga_custom_w ) {
 		case 0x013c: /* SPR7PTH */
 		case 0x013e: /* SPR7PTL */
 			{
-				int lo = ( offset & 2 );
-				int num = ( offset >> 2 ) & 0x07;
+				int lo = ( offs & 2 );
+				int num = ( offs >> 2 ) & 0x07;
 
 				if ( lo ) {
 					custom_regs.SPRxPT[num] &= 0x001f0000;
@@ -2002,7 +2009,7 @@ WRITE_HANDLER ( amiga_custom_w ) {
 		case 0x1bc: /* COLOR30 */
 		case 0x1be: /* COLOR31 */
 			{
-				int color = ( offset - 0x180 ) >> 1;
+				int color = ( offs - 0x180 ) >> 1;
 
 				custom_regs.COLOR[color] = data;
 			}
@@ -2010,7 +2017,7 @@ WRITE_HANDLER ( amiga_custom_w ) {
 
 		default:
 #if LOG_CUSTOM
-		logerror("PC = %06x - Wrote to Custom %04x (%04x)\n", cpu_getpc(), offset, data );
+		logerror("PC = %06x - Wrote to Custom %04x (%04x)\n", cpu_getpc(), offs, data );
 #endif
 		break;
 	}

@@ -51,9 +51,7 @@
 #define IDI_NONWORKING                  137
 #define IDI_YEAR                        138
 #define IDI_SOUND                       139
-#ifndef MESS
 #define IDI_NEOGEO                      140
-#endif
 #define IDR_CONTEXT_HEADER              151
 #define IDD_PROP_GAME                   152
 #define IDD_PROP_AUDIT                  153
@@ -193,9 +191,7 @@
 #define IDC_FILTER_UNAVAILABLE          1176
 #define IDC_FILTER_NONWORKING           1177
 #define IDC_FILTER_CLONES               1178
-#ifndef NEOFREE
 #define IDC_FILTER_NEOGEO               1179
-#endif
 #define IDC_RESET_GAMES                 1181
 #define IDC_RESET_UI                    1182
 #define IDC_RESET_FILTERS               1183
@@ -238,7 +234,6 @@
 #define IDC_LANGUAGECHECK               1233
 #define IDC_LANGUAGEBROWSE              1234
 #define IDC_LANGUAGEEDIT                1236
-#define IDC_FILTER_EDIT                 1237
 #define ID_FILE_EXIT                    40001
 #define ID_ABOUT                        40003
 #define ID_FILE_PLAY                    40004
@@ -292,16 +287,18 @@
 #ifdef MESS
 #define IDC_SPLITTER3				    2000
 #define IDC_LIST2                       2001
-#define IDC_FILTER_COMPUTER             2002
-#define IDC_FILTER_CONSOLE              2003
-#define IDC_FILTER_MODIFIED             2004
-#define IDI_WIN_FLOP                    2100
-#define IDI_WIN_CASS                    2101
-#define IDI_WIN_SERL                    2102
-#define IDI_WIN_SNAP                    2103
-#define IDI_WIN_PRIN                    2104
-#define IDI_WIN_HARD                    2105
-#define ID_MESS_OPEN_SOFTWARE           50000
+#define IDI_WIN_FLOP                    2002
+#define IDI_WIN_CASS                    2003
+#define IDI_WIN_SERL                    2004
+#define IDI_WIN_SNAP                    2005
+#define IDI_WIN_PRIN                    2006
+#define IDI_WIN_HARD                    2007
+#if 0
+#define ID_IMAGE0_CONFIG                50000
+#define ID_IMAGE1_CONFIG                50001
+#define ID_IMAGE2_CONFIG                50002
+#define ID_IMAGE3_CONFIG                50003
+#endif
 #endif
 
 // Next default values for new objects

@@ -16,6 +16,8 @@ extern unsigned char *blockout_videoram;
 extern unsigned char *blockout_frontvideoram;
 extern unsigned char *blockout_frontcolor;
 
+static unsigned char *ram_blockout; /* used by high scores */
+
 WRITE_HANDLER( blockout_videoram_w );
 READ_HANDLER( blockout_videoram_r );
 WRITE_HANDLER( blockout_frontvideoram_w );
@@ -27,7 +29,7 @@ void blockout_vh_stop(void);
 void blockout_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh);
 
 
-static int blockout_interrupt(void)
+int blockout_interrupt(void)
 {
 	/* interrupt 6 is vblank */
 	/* interrupt 5 reads coin inputs - might have to be triggered only */
@@ -35,7 +37,7 @@ static int blockout_interrupt(void)
 	return 6 - cpu_getiloops();
 }
 
-static READ_HANDLER( blockout_input_r )
+READ_HANDLER( blockout_input_r )
 {
 	switch (offset)
 	{
@@ -55,7 +57,7 @@ logerror("PC %06x - read input port %06x\n",cpu_get_pc(),0x100000+offset);
 	}
 }
 
-static WRITE_HANDLER( blockout_sound_command_w )
+WRITE_HANDLER( blockout_sound_command_w )
 {
 	switch (offset)
 	{
@@ -88,7 +90,7 @@ static struct MemoryWriteAddress writemem[] =
 	{ 0x000000, 0x03ffff, MWA_ROM },
 	{ 0x100014, 0x100017, blockout_sound_command_w },
 	{ 0x180000, 0x1bffff, blockout_videoram_w, &blockout_videoram },
-	{ 0x1d4000, 0x1dffff, MWA_BANK1 },	/* work RAM */
+	{ 0x1d4000, 0x1dffff, MWA_BANK1, &ram_blockout },	/* work RAM */
 	{ 0x1f4000, 0x1fffff, MWA_BANK2 },	/* work RAM */
 	{ 0x200000, 0x207fff, blockout_frontvideoram_w, &blockout_frontvideoram },
 	{ 0x208000, 0x21ffff, MWA_BANK3 },	/* ??? */
@@ -206,7 +208,7 @@ static void blockout_irq_handler(int irq)
 static struct YM2151interface ym2151_interface =
 {
 	1,			/* 1 chip */
-	3579545,	/* 3.579545 MHz (?) */
+	3579545,	/* 3.579545 Mhz (?) */
 	{ YM3012_VOL(60,MIXER_PAN_LEFT,60,MIXER_PAN_RIGHT) },
 	{ blockout_irq_handler }
 };
@@ -221,7 +223,7 @@ static struct OKIM6295interface okim6295_interface =
 
 
 
-static const struct MachineDriver machine_driver_blockout =
+static struct MachineDriver machine_driver_blockout =
 {
 	/* basic machine hardware */
 	{
@@ -233,7 +235,7 @@ static const struct MachineDriver machine_driver_blockout =
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			3579545,	/* 3.579545 MHz (?) */
+			3579545,	/* 3.579545 Mhz (?) */
 			sound_readmem,sound_writemem,0,0,
 			ignore_interrupt,1	/* NMIs are triggered by the main CPU, IRQs by the YM2151 */
 		}

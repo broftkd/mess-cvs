@@ -330,7 +330,7 @@ static int xmen_interrupt(void)
 	else return m68_level3_irq();
 }
 
-static const struct MachineDriver machine_driver_xmen =
+static struct MachineDriver machine_driver_xmen =
 {
 	/* basic machine hardware */
 	{

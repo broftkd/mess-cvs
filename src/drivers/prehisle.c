@@ -234,7 +234,7 @@ static void irqhandler(int irq)
 static struct YM3812interface ym3812_interface =
 {
 	1,			/* 1 chip */
-	4000000,	/* 4 MHz */
+	4000000,	/* 4 Mhz */
 	{ 50 },
 	{ irqhandler },
 };
@@ -251,7 +251,7 @@ static struct UPD7759_interface upd7759_interface =
 
 /******************************************************************************/
 
-static const struct MachineDriver machine_driver_prehisle =
+static struct MachineDriver machine_driver_prehisle =
 {
 	/* basic machine hardware */
 	{

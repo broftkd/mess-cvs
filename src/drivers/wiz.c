@@ -464,12 +464,12 @@ static struct AY8910interface stinger_ay8910_interface =
 
 
 #define MACHINE_DRIVER(NAME)									\
-static const struct MachineDriver machine_driver_##NAME =				\
+static struct MachineDriver machine_driver_##NAME =				\
 {																\
 	{															\
 		{														\
 			CPU_Z80,											\
-			18432000/6,     /* 3.072 MHz ??? */					\
+			18432000/6,     /* 3.072 Mhz ??? */					\
 			readmem,writemem,0,0,								\
 			nmi_interrupt,1										\
 		},														\

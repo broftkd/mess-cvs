@@ -519,13 +519,13 @@ static struct GfxDecodeInfo gfxdecodeinfo[] =
  *
  *************************************/
 
-static const struct MachineDriver machine_driver_mcr2 =
+static struct MachineDriver machine_driver_mcr2 =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			2500000,	/* 2.5 MHz */
+			2500000,	/* 2.5 Mhz */
 			readmem,writemem,readport,writeport,
 			mcr_interrupt,1,
 			0,0,mcr_daisy_chain
@@ -542,7 +542,7 @@ static const struct MachineDriver machine_driver_mcr2 =
 	64,64,
 	0,
 
-	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE | VIDEO_UPDATE_BEFORE_VBLANK,
+	VIDEO_TYPE_RASTER | VIDEO_SUPPORTS_DIRTY | VIDEO_MODIFIES_PALETTE | VIDEO_UPDATE_BEFORE_VBLANK,
 	0,
 	mcr12_vh_start,
 	mcr12_vh_stop,
@@ -557,13 +557,13 @@ static const struct MachineDriver machine_driver_mcr2 =
 };
 
 
-static const struct MachineDriver machine_driver_journey =
+static struct MachineDriver machine_driver_journey =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			7500000,	/* Looks like it runs at 7.5 MHz rather than 5 or 2.5 */
+			7500000,	/* Looks like it runs at 7.5 Mhz rather than 5 or 2.5 */
 			readmem,writemem,readport,writeport,
 			mcr_interrupt,1,
 			0,0,mcr_daisy_chain
@@ -580,7 +580,7 @@ static const struct MachineDriver machine_driver_journey =
 	64,64,
 	0,
 
-	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE | VIDEO_UPDATE_BEFORE_VBLANK,
+	VIDEO_TYPE_RASTER | VIDEO_SUPPORTS_DIRTY | VIDEO_MODIFIES_PALETTE | VIDEO_UPDATE_BEFORE_VBLANK,
 	0,
 	generic_vh_start,
 	generic_vh_stop,

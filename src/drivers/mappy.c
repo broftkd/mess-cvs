@@ -622,19 +622,19 @@ static struct namco_interface namco_interface =
 
 
 /* the machine driver: 2 6809s running at 1MHz */
-static const struct MachineDriver machine_driver_mappy =
+static struct MachineDriver machine_driver_mappy =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6809,
-			1100000,                        /* 1.1 MHz */
+			1100000,                        /* 1.1 Mhz */
 			mappy_readmem_cpu1,writemem_cpu1,0,0,
 			mappy_interrupt_1,1
 		},
 		{
 			CPU_M6809,
-			1100000,                        /* 1.1 MHz */
+			1100000,                        /* 1.1 Mhz */
 			mappy_readmem_cpu2,writemem_cpu2,0,0,
 			mappy_interrupt_2,1
 		}
@@ -666,19 +666,19 @@ static const struct MachineDriver machine_driver_mappy =
 	}
 };
 
-static const struct MachineDriver machine_driver_digdug2 =
+static struct MachineDriver machine_driver_digdug2 =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6809,
-			1600000,                        /* 1.6 MHz */
+			1600000,                        /* 1.6 Mhz */
 			digdug2_readmem_cpu1,writemem_cpu1,0,0,
 			mappy_interrupt_1,1
 		},
 		{
 			CPU_M6809,
-			1600000,                        /* 1.6 MHz */
+			1600000,                        /* 1.6 Mhz */
 			digdug2_readmem_cpu2,writemem_cpu2,0,0,
 			mappy_interrupt_2,1
 		}
@@ -710,19 +710,19 @@ static const struct MachineDriver machine_driver_digdug2 =
 	}
 };
 
-static const struct MachineDriver machine_driver_motos =
+static struct MachineDriver machine_driver_motos =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6809,
-			1600000,                        /* 1.6 MHz */
+			1600000,                        /* 1.6 Mhz */
 			motos_readmem_cpu1,writemem_cpu1,0,0,
 			mappy_interrupt_1,1
 		},
 		{
 			CPU_M6809,
-			1600000,                        /* 1.6 MHz */
+			1600000,                        /* 1.6 Mhz */
 			motos_readmem_cpu2,writemem_cpu2,0,0,
 			mappy_interrupt_2,1
 		}
@@ -754,19 +754,19 @@ static const struct MachineDriver machine_driver_motos =
 	}
 };
 
-static const struct MachineDriver machine_driver_todruaga =
+static struct MachineDriver machine_driver_todruaga =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6809,
-			1600000,                        /* 1.6 MHz */
+			1600000,                        /* 1.6 Mhz */
 			todruaga_readmem_cpu1,writemem_cpu1,0,0,
 			mappy_interrupt_1,1
 		},
 		{
 			CPU_M6809,
-			1600000,                        /* 1.6 MHz */
+			1600000,                        /* 1.6 Mhz */
 			todruaga_readmem_cpu2,writemem_cpu2,0,0,
 			mappy_interrupt_2,1
 		}

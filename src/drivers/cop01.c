@@ -41,13 +41,13 @@ extern size_t cop01_videoram_size;
 
 
 
-static WRITE_HANDLER( cop01_sound_command_w )
+WRITE_HANDLER( cop01_sound_command_w )
 {
 	soundlatch_w(offset,data);
 	cpu_cause_interrupt(1,0xff);
 }
 
-static READ_HANDLER( cop01_sound_command_r )
+READ_HANDLER( cop01_sound_command_r )
 {
 	int res;
 	static int pulse;
@@ -278,19 +278,19 @@ static struct AY8910interface ay8910_interface =
 
 
 
-static const struct MachineDriver machine_driver_cop01 =
+static struct MachineDriver machine_driver_cop01 =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3500000,        /* 3.5 MHz (?) */
+			3500000,        /* 3.5 Mhz (?) */
 			readmem,writemem,readport,writeport,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			3000000,        /* 3.0 MHz (?) */
+			3000000,        /* 3.0 Mhz (?) */
 			sound_readmem,sound_writemem,sound_readport,sound_writeport,
 			ignore_interrupt,0	/* IRQs are caused by the main CPU */
 		},

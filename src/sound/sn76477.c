@@ -35,7 +35,7 @@
 #define LOG(n,x)
 #endif
 
-#ifdef MAME_DEBUG
+#if MAME_DEBUG
 #define CHECK_CHIP_NUM						\
 	if( chip >= intf->num ) 				\
 	{										\

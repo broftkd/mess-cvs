@@ -180,13 +180,13 @@ static struct AY8910interface ay8910_interface =
 };
 
 
-static const struct MachineDriver machine_driver_hanaawas =
+static struct MachineDriver machine_driver_hanaawas =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz ??? */
+			18432000/6,	/* 3.072 Mhz ??? */
 			readmem,writemem,readport,writeport,
 			interrupt,1
 		}

@@ -171,13 +171,13 @@ static struct GfxDecodeInfo troangel_gfxdecodeinfo[] =
 
 
 
-static const struct MachineDriver machine_driver_troangel =
+static struct MachineDriver machine_driver_troangel =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3000000,	/* 3 MHz ??? */
+			3000000,	/* 3 Mhz ??? */
 			troangel_readmem,troangel_writemem,
 			0,0,
 			interrupt,1

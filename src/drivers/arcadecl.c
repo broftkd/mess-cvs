@@ -183,7 +183,7 @@ static WRITE_HANDLER( latch_w )
 static struct MemoryReadAddress readmem[] =
 {
 	{ 0x000000, 0x0fffff, MRA_ROM },
-	{ 0x200000, 0x21ffff, MRA_BANK1 },
+	{ 0x200000, 0x21fffe, MRA_BANK1 },
 	{ 0x3c0000, 0x3c07ff, MRA_BANK2 },
 	{ 0x3e0000, 0x3effff, MRA_BANK3 },
 	{ 0x640000, 0x640001, input_port_0_r },
@@ -203,7 +203,7 @@ static struct MemoryReadAddress readmem[] =
 static struct MemoryWriteAddress writemem[] =
 {
 	{ 0x000000, 0x0fffff, MWA_ROM },
-	{ 0x200000, 0x21ffff, arcadecl_playfieldram_w, &atarigen_playfieldram },
+	{ 0x200000, 0x21fffe, arcadecl_playfieldram_w, &atarigen_playfieldram },
 	{ 0x3c0000, 0x3c07ff, atarigen_expanded_666_paletteram_w, &paletteram },
 	{ 0x3e0000, 0x3effff, MWA_BANK3, &atarigen_spriteram },
 	{ 0x640040, 0x64004f, latch_w },
@@ -382,7 +382,7 @@ static struct OKIM6295interface okim6295_interface =
  *
  *************************************/
 
-static const struct MachineDriver machine_driver_arcadecl =
+static struct MachineDriver machine_driver_arcadecl =
 {
 	/* basic machine hardware */
 	{
@@ -403,7 +403,7 @@ static const struct MachineDriver machine_driver_arcadecl =
 	512,512,
 	0,
 
-	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE | VIDEO_UPDATE_BEFORE_VBLANK,
+	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE | VIDEO_UPDATE_BEFORE_VBLANK | VIDEO_SUPPORTS_DIRTY,
 	0,
 	arcadecl_vh_start,
 	arcadecl_vh_stop,

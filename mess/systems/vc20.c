@@ -4,9 +4,9 @@
 	Peter Trauner
 	(peter.trauner@jk.uni-linz.ac.at)
 
-	documentation
-	 Marko.Makela@HUT.FI (vic6560)
-	 www.funet.fi
+    documentation
+     Marko.Makela@HUT.FI (vic6560)
+     www.funet.fi
 
 ***************************************************************************/
 
@@ -187,7 +187,7 @@ static struct MemoryReadAddress vc20_readmem[] =
 	{0xa000, 0xbfff, MRA_RAM},		   /* or nothing */
 #endif
 	{0xc000, 0xffff, MRA_ROM},
-	MEMORY_TABLE_END
+	{-1}							   /* end of table */
 };
 
 static struct MemoryWriteAddress vc20_writemem[] =
@@ -203,7 +203,7 @@ static struct MemoryWriteAddress vc20_writemem[] =
 	{0x9400, 0x97ff, vc20_write_9400, &vc20_memory_9400},
 	{0x9800, 0x9fff, MWA_NOP},
 	{0xc000, 0xffff, MWA_NOP},		   /* MWA_ROM }, but logfile */
-	MEMORY_TABLE_END
+	{-1}							   /* end of table */
 };
 
 static struct MemoryReadAddress vc20i_readmem[] =
@@ -228,7 +228,7 @@ static struct MemoryReadAddress vc20i_readmem[] =
 	{0x9810, 0x981f, via_5_r},
 	{0xa000, 0xbfff, MRA_ROM},
 	{0xc000, 0xffff, MRA_ROM},
-	MEMORY_TABLE_END
+	{-1}							   /* end of table */
 };
 
 static struct MemoryWriteAddress vc20i_writemem[] =
@@ -245,7 +245,7 @@ static struct MemoryWriteAddress vc20i_writemem[] =
 	{0x9810, 0x981f, via_5_w},
 	{0xa000, 0xbfff, MWA_ROM},
 	{0xc000, 0xffff, MWA_NOP},		   /* MWA_ROM }, but logfile */
-	MEMORY_TABLE_END
+	{-1}							   /* end of table */
 };
 
 #define DIPS_HELPER(bit, name, keycode) \
@@ -272,10 +272,10 @@ static struct MemoryWriteAddress vc20i_writemem[] =
 	PORT_BIT ( 0x0f, IP_ACTIVE_LOW, IPT_UNUSED )\
 	PORT_START \
 	PORT_ANALOGX(0xff,128,IPT_PADDLE|IPF_REVERSE,\
-			 30,20,0,255,KEYCODE_HOME,KEYCODE_PGUP,JOYCODE_NONE,JOYCODE_NONE)\
+		     30,20,0,255,KEYCODE_HOME,KEYCODE_PGUP,JOYCODE_NONE,JOYCODE_NONE)\
 	PORT_START \
 	PORT_ANALOGX(0xff,128,IPT_PADDLE|IPF_PLAYER2|IPF_REVERSE,\
-			 30,20,0,255,KEYCODE_END,KEYCODE_PGDN,JOYCODE_NONE,JOYCODE_NONE)\
+		     30,20,0,255,KEYCODE_END,KEYCODE_PGDN,JOYCODE_NONE,JOYCODE_NONE)\
 	PORT_START \
 	DIPS_HELPER( 0x80, "DEL INST",          KEYCODE_BACKSPACE)\
 	DIPS_HELPER( 0x40, "Pound",             KEYCODE_MINUS)\
@@ -515,7 +515,7 @@ static void vc20_init_palette (unsigned char *sys_palette,
 							   const unsigned char *color_prom)
 {
 	memcpy (sys_palette, vic6560_palette, sizeof (vic6560_palette));
-/*	memcpy(sys_colortable,colortable,sizeof(colortable)); */
+/*  memcpy(sys_colortable,colortable,sizeof(colortable)); */
 }
 
 #if 0
@@ -529,7 +529,7 @@ static void vc20_init_palette (unsigned char *sys_palette,
 	ROM_LOAD ("901486.07", 0xe000, 0x2000, 0x4be07cb4)
 
 	/* patched pal system for swedish/finish keyboard and chars */
-	/* but in rom? (maybe patched means in this case nec version) */
+    /* but in rom? (maybe patched means in this case nec version) */
 	ROM_LOAD ("nec22101.207", 0x8000, 0x1000, 0xd808551d)
 	ROM_LOAD ("nec22081.206", 0xe000, 0x2000, 0xb2a60662)
 
@@ -810,7 +810,7 @@ static const struct IODevice io_vc20[] =
 		IO_CARTSLOT,				   /* type */
 		2,							   /* normal 1 *//* count */
 		"a0\00020\00040\00060\0rom\0bin\0",/* file extensions */
-		IO_RESET_ALL,				   /* reset if file changed */
+		NULL,						   /* private */
 		vc20_rom_id,				   /* id */
 		vc20_rom_load,				   /* init */
 		NULL,						   /* exit */
@@ -836,7 +836,7 @@ static const struct IODevice io_vc20v[] =
 		IO_CARTSLOT,				   /* type */
 		2,							   /* normal 1 *//* count */
 		"a0\00020\00040\00060\0rom\0bin\0",/* file extensions */
-		IO_RESET_ALL,				   /* reset if file changed */
+		NULL,						   /* private */
 		vc20_rom_id,				   /* id */
 		vc20_rom_load,				   /* init */
 		NULL,						   /* exit */
@@ -863,7 +863,7 @@ static const struct IODevice io_vc20i[] =
 		IO_CARTSLOT,				   /* type */
 		2,							   /* normal 1 *//* count */
 		"a0\00020\00040\00060\0rom\0bin\0",/* file extensions */
-		IO_RESET_ALL,				   /* reset if file changed */
+		NULL,						   /* private */
 		vc20_rom_id,				   /* id */
 		vc20_rom_load,				   /* init */
 		NULL,						   /* exit */
@@ -885,20 +885,19 @@ static const struct IODevice io_vc20i[] =
 
 #define init_vc20		vc20_driver_init
 #define init_vic20		vic20_driver_init
-#define init_vic20i 	vic20ieee_driver_init
+#define init_vic20i     vic20ieee_driver_init
 #define io_vic20		io_vc20
-#define io_vic20swe 	io_vc20
+#define io_vic20swe		io_vc20
 #define io_vic20v		io_vc20v
-/*#define io_vic20i 	io_vc20i */
+/*#define io_vic20i		io_vc20i */
 #define io_vic20i		io_vc20
 
-/*		YEAR	NAME		PARENT	MACHINE INPUT		INIT	COMPANY 							FULLNAME */
+/*		YEAR	NAME		PARENT	MACHINE	INPUT		INIT	COMPANY								FULLNAME */
 
-COMPX ( 1981,	vic20,		0,		vic20,	vic20,		vic20,	"Commodore Business Machines Co.",  "VIC20 (NTSC)", GAME_IMPERFECT_SOUND)
-COMPX ( 1981,	vic20i, 	vic20,	vic20i, vic20i, 	vic20i, "Commodore Business Machines Co.",  "VIC20 (NTSC), IEEE488 Interface (SYS45065)",   GAME_IMPERFECT_SOUND)
-COMPX ( 1981,	vc20,		vic20,	vc20,	vc20,		vc20,	"Commodore Business Machines Co.",  "VC20 (PAL)",       GAME_IMPERFECT_SOUND)
-COMPX ( 1981,	vic20swe,	vic20,	vc20,	vc20,		vc20,	"Commodore Business Machines Co.",  "VIC20 PAL, Swedish Expansion Kit", GAME_IMPERFECT_SOUND)
+COMPX (	1981,	vic20,		0,		vic20,	vic20,		vic20,	"Commodore Business Machines Co.",	"VIC20 (NTSC)",	GAME_IMPERFECT_SOUND)
+COMPX (	1981,	vic20i,		vic20,	vic20i,	vic20i,		vic20i,	"Commodore Business Machines Co.",	"VIC20 (NTSC), IEEE488 Interface (SYS45065)",	GAME_IMPERFECT_SOUND)
+COMPX (	1981,	vc20,		vic20,	vc20,	vc20,		vc20,	"Commodore Business Machines Co.", 	"VC20 (PAL)",		GAME_IMPERFECT_SOUND)
+COMPX (	1981,	vic20swe,	vic20,	vc20,	vc20,		vc20,	"Commodore Business Machines Co.",	"VIC20 PAL, Swedish Expansion Kit", GAME_IMPERFECT_SOUND)
 // please leave the following as testdriver only
-COMPX ( 1981,	vic20v, 	vic20,	vic20v, vic20,		vic20,	"Commodore Business Machines Co.",  "VIC20 (NTSC), VC1540", GAME_IMPERFECT_SOUND)
-COMPX ( 1981,	vc20v,		vic20,	vc20v,	vic20,		vc20,	"Commodore Business Machines Co.",  "VC20 (PAL), VC1541", GAME_IMPERFECT_SOUND)
-
+COMPX (	1981,	vic20v,		vic20,	vic20v,	vic20,		vic20,	"Commodore Business Machines Co.",	"VIC20 (NTSC), VC1540", GAME_IMPERFECT_SOUND)
+COMPX (	1981,	vc20v,		vic20,	vc20v,	vic20,		vc20,	"Commodore Business Machines Co.",	"VC20 (PAL), VC1541", GAME_IMPERFECT_SOUND)

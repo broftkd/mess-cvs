@@ -1186,7 +1186,7 @@ static struct GfxDecodeInfo calipso_gfxdecodeinfo[] =
 static struct AY8910interface ay8910_interface =
 {
 	2,	/* 2 chips */
-	14318000/8,	/* 1.78975 MHz */
+	14318000/8,	/* 1.78975 Mhz */
 	/* Ant Eater clips if the volume is set higher than this */
 	{ MIXERG(16,MIXER_GAIN_2x,MIXER_PAN_CENTER), MIXERG(16,MIXER_GAIN_2x,MIXER_PAN_CENTER) },
 	{ 0, soundlatch_r },
@@ -1198,7 +1198,7 @@ static struct AY8910interface ay8910_interface =
 static struct AY8910interface hustler_ay8910_interface =
 {
 	1,	/* 1 chip */
-	14318000/8,	/* 1.78975 MHz */
+	14318000/8,	/* 1.78975 Mhz */
 	{ 80 },
 	{ soundlatch_r },
 	{ frogger_portB_r },
@@ -1208,19 +1208,19 @@ static struct AY8910interface hustler_ay8910_interface =
 
 
 
-static const struct MachineDriver machine_driver_type1 =
+static struct MachineDriver machine_driver_type1 =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			type1_readmem,type1_writemem,0,0,
 			scramble_vh_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			14318000/8,	/* 1.78975 MHz */
+			14318000/8,	/* 1.78975 Mhz */
 			sound_readmem,sound_writemem,sound_readport,sound_writeport,
 			ignore_interrupt,1	/* interrupts are triggered by the main CPU */
 		}
@@ -1252,19 +1252,19 @@ static const struct MachineDriver machine_driver_type1 =
 };
 
 /* same as the above, the only difference is in gfxdecodeinfo to have long bullets */
-static const struct MachineDriver machine_driver_armorcar =
+static struct MachineDriver machine_driver_armorcar =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			type1_readmem,type1_writemem,0,0,
 			scramble_vh_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			14318000/8,	/* 1.78975 MHz */
+			14318000/8,	/* 1.78975 Mhz */
 			sound_readmem,sound_writemem,sound_readport,sound_writeport,
 			ignore_interrupt,1	/* interrupts are triggered by the main CPU */
 		}
@@ -1297,19 +1297,19 @@ static const struct MachineDriver machine_driver_armorcar =
 
 /* Rescue, Minefield and Strategy X have extra colours, and custom video initialise */
 /* routines to set up the graduated colour backgound they use */
-static const struct MachineDriver machine_driver_rescue =
+static struct MachineDriver machine_driver_rescue =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			type1_readmem,type1_writemem,0,0,
 			scramble_vh_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			14318000/8,	/* 1.78975 MHz */
+			14318000/8,	/* 1.78975 Mhz */
 			sound_readmem,sound_writemem,sound_readport,sound_writeport,
 			ignore_interrupt,1	/* interrupts are triggered by the main CPU */
 		}
@@ -1340,19 +1340,19 @@ static const struct MachineDriver machine_driver_rescue =
 	}
 };
 
-static const struct MachineDriver machine_driver_minefld =
+static struct MachineDriver machine_driver_minefld =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			type1_readmem,type1_writemem,0,0,
 			scramble_vh_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			14318000/8,	/* 1.78975 MHz */
+			14318000/8,	/* 1.78975 Mhz */
 			sound_readmem,sound_writemem,sound_readport,sound_writeport,
 			ignore_interrupt,1	/* interrupts are triggered by the main CPU */
 		}
@@ -1383,19 +1383,19 @@ static const struct MachineDriver machine_driver_minefld =
 	}
 };
 
-static const struct MachineDriver machine_driver_stratgyx =
+static struct MachineDriver machine_driver_stratgyx =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			type2_readmem,type2_writemem,0,0,
 			scramble_vh_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			14318000/8,	/* 1.78975 MHz */
+			14318000/8,	/* 1.78975 Mhz */
 			sound_readmem,sound_writemem,sound_readport,sound_writeport,
 			ignore_interrupt,1	/* interrupts are triggered by the main CPU */
 		}
@@ -1426,19 +1426,19 @@ static const struct MachineDriver machine_driver_stratgyx =
 	}
 };
 
-static const struct MachineDriver machine_driver_type2 =
+static struct MachineDriver machine_driver_type2 =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			type2_readmem,type2_writemem,0,0,
 			scramble_vh_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			14318000/8,	/* 1.78975 MHz */
+			14318000/8,	/* 1.78975 Mhz */
 			sound_readmem,sound_writemem,sound_readport,sound_writeport,
 			ignore_interrupt,1	/* interrupts are triggered by the main CPU */
 		}
@@ -1469,19 +1469,19 @@ static const struct MachineDriver machine_driver_type2 =
 	}
 };
 
-static const struct MachineDriver machine_driver_hustler =
+static struct MachineDriver machine_driver_hustler =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			hustler_readmem,hustler_writemem,0,0,
 			scramble_vh_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			14318000/8,	/* 1.78975 MHz */
+			14318000/8,	/* 1.78975 Mhz */
 			hustler_sound_readmem,hustler_sound_writemem,hustler_sound_readport,hustler_sound_writeport,
 			ignore_interrupt,1	/* interrupts are triggered by the main CPU */
 		}
@@ -1512,19 +1512,19 @@ static const struct MachineDriver machine_driver_hustler =
 	}
 };
 
-static const struct MachineDriver machine_driver_hustlerb =
+static struct MachineDriver machine_driver_hustlerb =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			hustlerb_readmem,hustlerb_writemem,0,0,
 			scramble_vh_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			14318000/8,	/* 1.78975 MHz */
+			14318000/8,	/* 1.78975 Mhz */
 			sound_readmem,sound_writemem,hustlerb_sound_readport,hustlerb_sound_writeport,
 			ignore_interrupt,1	/* interrupts are triggered by the main CPU */
 		}
@@ -1555,19 +1555,19 @@ static const struct MachineDriver machine_driver_hustlerb =
 	}
 };
 
-static const struct MachineDriver machine_driver_calipso =
+static struct MachineDriver machine_driver_calipso =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			18432000/6,	/* 3.072 MHz */
+			18432000/6,	/* 3.072 Mhz */
 			type1_readmem,type1_writemem,0,0,
 			scramble_vh_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			14318000/8,	/* 1.78975 MHz */
+			14318000/8,	/* 1.78975 Mhz */
 			sound_readmem,sound_writemem,sound_readport,sound_writeport,
 			ignore_interrupt,1	/* interrupts are triggered by the main CPU */
 		}

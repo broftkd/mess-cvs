@@ -488,7 +488,7 @@ static struct YM2151interface ym2151_interface =
  *
  *************************************/
 
-static const struct MachineDriver machine_driver_badlands =
+static struct MachineDriver machine_driver_badlands =
 {
 	/* basic machine hardware */
 	{
@@ -515,7 +515,8 @@ static const struct MachineDriver machine_driver_badlands =
 	256,256,
 	0,
 
-	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE | VIDEO_UPDATE_BEFORE_VBLANK,
+	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE | VIDEO_UPDATE_BEFORE_VBLANK |
+			VIDEO_SUPPORTS_DIRTY,
 	0,
 	badlands_vh_start,
 	badlands_vh_stop,

@@ -360,7 +360,7 @@ static int m107_raster_interrupt(void)
 	return 0;
 }
 
-static const struct MachineDriver machine_driver_firebarr =
+static struct MachineDriver machine_driver_firebarr =
 {
 	/* basic machine hardware */
 	{
@@ -373,7 +373,7 @@ static const struct MachineDriver machine_driver_firebarr =
 #if 0
 		{
 			CPU_V33 | CPU_AUDIO_CPU,
-			14318000,	/* 14.318 MHz */
+			14318000,	/* 14.318 Mhz */
 			sound_readmem,sound_writemem,0,0,
 			ignore_interrupt,0
 		}
@@ -400,7 +400,7 @@ static const struct MachineDriver machine_driver_firebarr =
 	SOUND_SUPPORTS_STEREO,0,0,0,
 };
 
-static const struct MachineDriver machine_driver_dsoccr94 =
+static struct MachineDriver machine_driver_dsoccr94 =
 {
 	/* basic machine hardware */
 	{
@@ -413,7 +413,7 @@ static const struct MachineDriver machine_driver_dsoccr94 =
 #if 0
 		{
 			CPU_V33 | CPU_AUDIO_CPU,
-			14318000,	/* 14.318 MHz */
+			14318000,	/* 14.318 Mhz */
 			sound_readmem,sound_writemem,0,0,
 			ignore_interrupt,0
 		}

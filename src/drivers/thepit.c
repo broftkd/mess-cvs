@@ -440,8 +440,8 @@ INPUT_PORTS_START( portman )
 	PORT_DIPSETTING(    0x08, "4" )
 	PORT_DIPSETTING(    0x0c, "5" )
 	PORT_DIPNAME( 0x10, 0x00, DEF_STR( Bonus_Life ) )
-	PORT_DIPSETTING(    0x00, "10000" )
-	PORT_DIPSETTING(    0x10, "30000" )
+	PORT_DIPSETTING(    0x00, "100000" )
+	PORT_DIPSETTING(    0x10, "300000" )
 	PORT_DIPNAME( 0x20, 0x00, DEF_STR( Cabinet ) )
 	PORT_DIPSETTING(    0x00, DEF_STR( Upright ) )
 	PORT_DIPSETTING(    0x20, DEF_STR( Cocktail ) )
@@ -605,7 +605,7 @@ static struct GfxDecodeInfo suprmous_gfxdecodeinfo[] =
 static struct AY8910interface ay8910_interface =
 {
 	2,      /* 1 or 2 chips */
-	18432000/12,     /* 1.536MHz */
+	18432000/12,     /* 1.536Mhz */
 	{ 25, 25 },
 	{ soundlatch_r, 0 },
 	{ 0, 0 },
@@ -615,19 +615,19 @@ static struct AY8910interface ay8910_interface =
 
 
 #define MACHINE_DRIVER(GAMENAME, COLORS)		            \
-static const struct MachineDriver machine_driver_##GAMENAME =		\
+static struct MachineDriver machine_driver_##GAMENAME =		\
 {									  			            \
 	/* basic machine hardware */							\
 	{														\
 		{													\
 			CPU_Z80,										\
-			18432000/6,     /* 3.072 MHz */					\
+			18432000/6,     /* 3.072 Mhz */					\
 			GAMENAME##_readmem,GAMENAME##_writemem,0,0,		\
 			nmi_interrupt,1									\
 		},													\
 		{													\
 			CPU_Z80 | CPU_AUDIO_CPU,						\
-			10000000/4,     /* 2.5 MHz */					\
+			10000000/4,     /* 2.5 Mhz */					\
 			sound_readmem,sound_writemem,					\
 			sound_readport,sound_writeport,					\
 			interrupt,1										\

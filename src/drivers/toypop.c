@@ -243,25 +243,25 @@ static struct namco_interface namco_interface =
 	REGION_SOUND1	/* memory region */
 };
 
-static const struct MachineDriver machine_driver_toypop =
+static struct MachineDriver machine_driver_toypop =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6809,
-			1600000,	/* 1.6 MHz (?) */
+			1600000,	/* 1.6 Mhz (?) */
 			toypop_readmem_I_6809,toypop_writemem_I_6809,0,0,
 			interrupt,1
 		},
 		{
 			CPU_M6809 | CPU_AUDIO_CPU,
-			1600000,	/* 1.6 MHz (?) */
+			1600000,	/* 1.6 Mhz (?) */
 			toypop_readmem_II_6809,toypop_writemem_II_6809,0,0,
 			interrupt,1
 		},
 		{
 			CPU_M68000,
-			8000000,	/* 8 MHz (?) */
+			8000000,	/* 8 Mhz (?) */
 			toypop_readmem_68k,toypop_writemem_68k,0,0,
 			toypop_interrupt,1
 		}

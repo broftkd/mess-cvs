@@ -303,13 +303,13 @@ static struct AY8910interface ay8910_interface =
 };
 
 
-static const struct MachineDriver machine_driver_royalmah =
+static struct MachineDriver machine_driver_royalmah =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3000000,        /* 3.00 MHz ? */
+			3000000,        /* 3.00 Mhz ? */
 			readmem,writemem,readport,writeport,
 			interrupt,1
 		}

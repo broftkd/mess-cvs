@@ -326,7 +326,7 @@ int amstrad_snapshot_id(int id)
 	int valid;
 	unsigned char *snapshot_data;
 
-	valid = ID_FAILED;
+	valid = 0;
 
 	/* load snapshot */
 	if (amstrad_load(IO_SNAPSHOT, id, &snapshot_data))
@@ -335,7 +335,7 @@ int amstrad_snapshot_id(int id)
 
 		if (memcmp(snapshot_data, "MV - SNA", 8)==0)
 		{
-			valid = ID_OK;
+			valid = 1;
 		}
 
 		/* free the file */

@@ -263,6 +263,7 @@ extern void cbmb_frame_interrupt (int param);
 
 void cbmb_rom_load(void);
 
-void cbmb_state(PRASTER *This);
+void cbmb_state(PRASTER *this);
+
 
 #endif

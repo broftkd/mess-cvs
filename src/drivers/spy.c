@@ -289,7 +289,7 @@ static struct YM3812interface ym3812_interface =
 
 
 
-static const struct MachineDriver machine_driver_spy =
+static struct MachineDriver machine_driver_spy =
 {
 	{
 		{

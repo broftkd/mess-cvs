@@ -62,9 +62,6 @@ OUT:
 
 extern unsigned char *wow_videoram;
 
-extern const char *wow_sample_names[];
-extern const char *gorf_sample_names[];
-
 void astrocde_init_palette(unsigned char *game_palette, unsigned short *game_colortable,const unsigned char *color_prom);
 READ_HANDLER( wow_intercept_r );
 WRITE_HANDLER( wow_videoram_w );
@@ -339,9 +336,9 @@ INPUT_PORTS_START( ebases )
 	PORT_DIPNAME( 0x08, 0x00, DEF_STR( Unknown ) )
 	PORT_DIPSETTING(    0x00, DEF_STR( Off ) )
 	PORT_DIPSETTING(    0x08, DEF_STR( On ) )
-	PORT_DIPNAME( 0x10, 0x00, "Monitor" )
-	PORT_DIPSETTING(    0x00, "Color" )
-	PORT_DIPSETTING(    0x10, "B/W" )
+	PORT_DIPNAME( 0x10, 0x00, DEF_STR( Cabinet ) )
+	PORT_DIPSETTING(    0x10, DEF_STR( Upright ) )	/* The colors are screwed up if selected */
+	PORT_DIPSETTING(    0x00, DEF_STR( Cocktail ) )
 	PORT_DIPNAME( 0x20, 0x00, DEF_STR( Unknown ) )
 	PORT_DIPSETTING(    0x00, DEF_STR( Off ) )
 	PORT_DIPSETTING(    0x20, DEF_STR( On ) )
@@ -567,18 +564,10 @@ INPUT_PORTS_END
 
 
 
-static struct Samplesinterface wow_samples_interface =
+static struct Samplesinterface samples_interface =
 {
 	8,	/* 8 channels */
-	25,	/* volume */
-	wow_sample_names
-};
-
-static struct Samplesinterface gorf_samples_interface =
-{
-	8,	/* 8 channels */
-	25,	/* volume */
-	gorf_sample_names
+	25	/* volume */
 };
 
 static struct astrocade_interface astrocade_2chip_interface =
@@ -612,13 +601,13 @@ static struct CustomSound_interface wow_custom_interface =
 
 
 
-static const struct MachineDriver machine_driver_seawolf2 =
+static struct MachineDriver machine_driver_seawolf2 =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			1789773,	/* 1.789 MHz */
+			1789773,	/* 1.789 Mhz */
 			seawolf2_readmem,seawolf2_writemem,readport,seawolf2_writeport,
 			wow_interrupt,256
 		}
@@ -643,13 +632,13 @@ static const struct MachineDriver machine_driver_seawolf2 =
 	0,0,0,0,
 };
 
-static const struct MachineDriver machine_driver_spacezap =
+static struct MachineDriver machine_driver_spacezap =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			1789773,	/* 1.789 MHz */
+			1789773,	/* 1.789 Mhz */
 			readmem,writemem,readport,writeport,
 			wow_interrupt,256
 		}
@@ -680,13 +669,13 @@ static const struct MachineDriver machine_driver_spacezap =
 	}
 };
 
-static const struct MachineDriver machine_driver_ebases =
+static struct MachineDriver machine_driver_ebases =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			1789773,	/* 1.789 MHz */
+			1789773,	/* 1.789 Mhz */
 			readmem,writemem,readport,writeport,
 			wow_interrupt,256
 		}
@@ -717,13 +706,13 @@ static const struct MachineDriver machine_driver_ebases =
 	}
 };
 
-static const struct MachineDriver machine_driver_wow =
+static struct MachineDriver machine_driver_wow =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			1789773,	/* 1.789 MHz */
+			1789773,	/* 1.789 Mhz */
 			readmem,writemem,readport,writeport,
 			wow_interrupt,256
 		}
@@ -753,7 +742,7 @@ static const struct MachineDriver machine_driver_wow =
 		},
 		{
 			SOUND_SAMPLES,
-			&wow_samples_interface
+			&samples_interface
 		},
 		{
 			SOUND_CUSTOM,	/* actually plays the samples */
@@ -762,13 +751,13 @@ static const struct MachineDriver machine_driver_wow =
  	}
 };
 
-static const struct MachineDriver machine_driver_gorf =
+static struct MachineDriver machine_driver_gorf =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			1789773,	/* 1.789 MHz */
+			1789773,	/* 1.789 Mhz */
 			readmem,writemem,readport,writeport,
 			gorf_interrupt,256
 		}
@@ -801,7 +790,7 @@ static const struct MachineDriver machine_driver_gorf =
 		},
 		{
 			SOUND_SAMPLES,
-			&gorf_samples_interface
+			&samples_interface
 		},
 		{
 			SOUND_CUSTOM,	/* actually plays the samples */
@@ -810,13 +799,13 @@ static const struct MachineDriver machine_driver_gorf =
 	}
 };
 
-static const struct MachineDriver machine_driver_robby =
+static struct MachineDriver machine_driver_robby =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			1789773,	/* 1.789 MHz */
+			1789773,	/* 1.789 Mhz */
 			robby_readmem,robby_writemem,readport,writeport,
 			wow_interrupt,256
 		}
@@ -847,13 +836,13 @@ static const struct MachineDriver machine_driver_robby =
 	}
 };
 
-static const struct MachineDriver machine_driver_profpac =
+static struct MachineDriver machine_driver_profpac =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			1789773,	/* 1.789 MHz */
+			1789773,	/* 1.789 Mhz */
 			profpac_readmem,profpac_writemem,readport,writeport,
 			wow_interrupt,256
 		}

@@ -125,12 +125,10 @@ serial;
 /* G64 or D64 image
  implementation as writeback system
  */
-typedef enum { TypeVC1541, TypeC1551, Type2031 } CBM_Drive_Emu_type;
-
 typedef struct
 {
 	int cpunumber;
-	CBM_Drive_Emu_type type;
+	enum { TypeVC1541, TypeC1551, Type2031 } type;
 	union {
 		struct {
 			int deviceid;
@@ -322,7 +320,7 @@ struct MemoryReadAddress vc1541_readmem[] =
 	{0x1c00, 0x1c0f, via_3_r},
 	{0x1c10, 0x1c9f, MRA_NOP}, /* for debugger */
 	{0xc000, 0xffff, MRA_ROM},
-	MEMORY_TABLE_END
+	{-1}							   /* end of table */
 };
 
 struct MemoryWriteAddress vc1541_writemem[] =
@@ -331,7 +329,7 @@ struct MemoryWriteAddress vc1541_writemem[] =
 	{0x1800, 0x180f, via_2_w},
 	{0x1c00, 0x1c0f, via_3_w},
 	{0xc000, 0xffff, MWA_ROM},
-	MEMORY_TABLE_END
+	{-1}							   /* end of table */
 };
 
 struct MemoryReadAddress dolphin_readmem[] =
@@ -341,7 +339,7 @@ struct MemoryReadAddress dolphin_readmem[] =
 	{0x1c00, 0x1c0f, via_3_r},
 	{0x8000, 0x9fff, MRA_RAM},
 	{0xa000, 0xffff, MRA_ROM},
-	MEMORY_TABLE_END
+	{-1}							   /* end of table */
 };
 
 struct MemoryWriteAddress dolphin_writemem[] =
@@ -351,7 +349,7 @@ struct MemoryWriteAddress dolphin_writemem[] =
 	{0x1c00, 0x1c0f, via_3_w},
 	{0x8000, 0x9fff, MWA_RAM},
 	{0xa000, 0xffff, MWA_ROM},
-	MEMORY_TABLE_END
+	{-1}							   /* end of table */
 };
 
 #if 0
@@ -382,7 +380,7 @@ static void vc1541_timer(int param)
 			d64_sectors_per_track[(int)vc1541->track-1]) {
 			vc1541->d64.sector=0;
 		}
-		vc1541_sector_to_gcr((int)vc1541->track,vc1541->d64.sector);
+		vc1541_sector_to_gcr(vc1541->track,vc1541->d64.sector);
 		vc1541->d64.pos=0;
 	}
 	vc1541->head.ready=1;
@@ -593,15 +591,15 @@ static void vc1541_via1_write_portb (int offset, int data)
 			if (vc1541->track>35) vc1541->track=35;
 		}
 		if ( (vc1541->motor!=(data&4))||(vc1541->frequency!=(data&0x60)) ) {
-			double tme;
+			double time;
 			vc1541->motor = data & 4;
 			vc1541->frequency = data & 0x60;
-			tme=vc1541_times[vc1541->frequency>>5]*8*2;
+			time=vc1541_times[vc1541->frequency>>5]*8*2;
 			if (vc1541->motor) {
 				if (vc1541->timer!=NULL) {
-					timer_reset(vc1541->timer, tme);
+					timer_reset(vc1541->timer, time);
 				} else {
-					vc1541->timer=timer_pulse(tme, 0, vc1541_timer);
+					vc1541->timer=timer_pulse(time, 0, vc1541_timer);
 				}
 			} else {
 				if (vc1541->timer!=NULL)
@@ -648,12 +646,12 @@ int vc1541_init (int id)
 	int size;
 
 	/*memset (&(drive->d64), 0, sizeof (drive->d64)); */
-	in = (FILE*)image_fopen (IO_FLOPPY, id, OSD_FILETYPE_IMAGE_R, 0);
+	in = image_fopen (IO_FLOPPY, id, OSD_FILETYPE_IMAGE_R, 0);
 	if (!in)
 		return INIT_FAILED;
 
 	size = osd_fsize (in);
-	if (!(vc1541->d64.data = (UINT8*)malloc (size)))
+	if (!(vc1541->d64.data = malloc (size)))
 	{
 		osd_fclose (in);
 		return INIT_FAILED;
@@ -902,15 +900,15 @@ static WRITE_HANDLER ( c1551_port_w )
 				if (vc1541->track>35) vc1541->track=35;
 			}
 			if ( (vc1541->motor!=(data&4))||(vc1541->frequency!=(data&0x60)) ) {
-				double tme;
+				double time;
 				vc1541->motor = data & 4;
 				vc1541->frequency = data & 0x60;
-				tme=vc1541_times[vc1541->frequency>>5]*8*2;
+				time=vc1541_times[vc1541->frequency>>5]*8*2;
 				if (vc1541->motor) {
 					if (vc1541->timer!=NULL) {
-						timer_reset(vc1541->timer, tme);
+						timer_reset(vc1541->timer, time);
 					} else {
-						vc1541->timer=timer_pulse(tme, 0, vc1541_timer);
+						vc1541->timer=timer_pulse(time, 0, vc1541_timer);
 					}
 				} else {
 					if (vc1541->timer!=NULL)
@@ -1002,7 +1000,7 @@ struct MemoryReadAddress c1551_readmem[] =
 	{0x0002, 0x07ff, MRA_RAM},
     {0x4000, 0x4007, tpi6525_0_port_r},
 	{0xc000, 0xffff, MRA_ROM},
-	MEMORY_TABLE_END
+	{-1}							   /* end of table */
 };
 
 struct MemoryWriteAddress c1551_writemem[] =
@@ -1011,10 +1009,10 @@ struct MemoryWriteAddress c1551_writemem[] =
 	{0x0002, 0x07ff, MWA_RAM},
     {0x4000, 0x4007, tpi6525_0_port_w},
 	{0xc000, 0xffff, MWA_ROM},
-	MEMORY_TABLE_END
+	{-1}							   /* end of table */
 };
 
-void c1551x_write_data (TPI6525 *This, int data)
+void c1551x_write_data (TPI6525 *this, int data)
 {
 	DBG_LOG(1, "c1551 cpu", ("%d write data %.2x\n",
 						 cpu_getactivecpu (), data));
@@ -1024,7 +1022,7 @@ void c1551x_write_data (TPI6525 *This, int data)
 	tpi6525_0_port_a_w(0,data);
 }
 
-int c1551x_read_data (TPI6525 *This)
+int c1551x_read_data (TPI6525 *this)
 {
 	int data=0xff;
 #ifdef CPU_SYNC
@@ -1036,7 +1034,7 @@ int c1551x_read_data (TPI6525 *This)
 	return data;
 }
 
-void c1551x_write_handshake (TPI6525 *This, int data)
+void c1551x_write_handshake (TPI6525 *this, int data)
 {
 	DBG_LOG(1, "c1551 cpu",("%d write handshake %.2x\n",
 						 cpu_getactivecpu (), data));
@@ -1046,7 +1044,7 @@ void c1551x_write_handshake (TPI6525 *This, int data)
 	tpi6525_0_port_c_w(0,data&0x40?0xff:0x7f);
 }
 
-int c1551x_read_handshake (TPI6525 *This)
+int c1551x_read_handshake (TPI6525 *this)
 {
 	int data=0xff;
 #ifdef CPU_SYNC
@@ -1058,7 +1056,7 @@ int c1551x_read_handshake (TPI6525 *This)
 	return data;
 }
 
-int c1551x_read_status (TPI6525 *This)
+int c1551x_read_status (TPI6525 *this)
 {
 	int data=0xff;
 #ifdef CPU_SYNC

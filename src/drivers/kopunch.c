@@ -166,13 +166,13 @@ static struct GfxDecodeInfo gfxdecodeinfo[] =
 
 
 
-static const struct MachineDriver machine_driver_kopunch =
+static struct MachineDriver machine_driver_kopunch =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3072000,	/* 3.072 MHz ? */
+			3072000,	/* 3.072 Mhz ? */
 			readmem,writemem,readport,writeport,
 			kopunch_interrupt,1
 		}

@@ -288,8 +288,8 @@ WRITE_HANDLER( bwidow_misc_w )
 	static int lastdata;
 
 	if (data == lastdata) return;
-	set_led_status (0,~data & 0x10);
-	set_led_status (1,~data & 0x20);
+	osd_led_w (0, ~((data & 0x10) >> 4));
+	osd_led_w (1, ~((data & 0x20) >> 5));
 	coin_counter_w (0, data & 0x01);
 	coin_counter_w (1, data & 0x02);
 	lastdata = data;
@@ -374,7 +374,7 @@ INPUT_PORTS_START( bwidow )
 	/* bit 6 is the VG HALT bit. We set it to "low" */
 	/* per default (busy vector processor). */
 	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_UNKNOWN )
-	/* bit 7 is tied to a 3kHz clock */
+	/* bit 7 is tied to a 3khz clock */
 	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 
 	PORT_START	/* DSW0 */
@@ -453,7 +453,7 @@ INPUT_PORTS_START( gravitar )
 	/* bit 6 is the VG HALT bit. We set it to "low" */
 	/* per default (busy vector processor). */
 	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_UNKNOWN )
-	/* bit 7 is tied to a 3kHz clock */
+	/* bit 7 is tied to a 3khz clock */
 	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 
 	PORT_START	/* DSW0 */
@@ -527,7 +527,7 @@ INPUT_PORTS_START( spacduel )
 	/* bit 6 is the VG HALT bit. We set it to "low" */
 	/* per default (busy vector processor). */
 	PORT_BIT ( 0x40, IP_ACTIVE_HIGH, IPT_UNKNOWN )
-	/* bit 7 is tied to a 3kHz clock */
+	/* bit 7 is tied to a 3khz clock */
 	PORT_BIT ( 0x80, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 
 	PORT_START	/* DSW0 */
@@ -618,13 +618,13 @@ static struct POKEYinterface pokey_interface =
 
 
 
-static const struct MachineDriver machine_driver_bwidow =
+static struct MachineDriver machine_driver_bwidow =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			1500000,	/* 1.5 MHz */
+			1500000,	/* 1.5 Mhz */
 			bwidow_readmem,bwidow_writemem,0,0,
 			interrupt,4	/* 4.1ms */
 		}
@@ -639,7 +639,7 @@ static const struct MachineDriver machine_driver_bwidow =
 	256, 0,
 	avg_init_palette_multi,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	avg_start,
 	avg_stop,
@@ -655,13 +655,13 @@ static const struct MachineDriver machine_driver_bwidow =
 	}
 };
 
-static const struct MachineDriver machine_driver_gravitar =
+static struct MachineDriver machine_driver_gravitar =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			1500000,	/* 1.5 MHz */
+			1500000,	/* 1.5 Mhz */
 			bwidow_readmem,bwidow_writemem,0,0,
 			interrupt,4 /* 4.1ms */
 		}
@@ -676,7 +676,7 @@ static const struct MachineDriver machine_driver_gravitar =
 	256, 0,
 	avg_init_palette_multi,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	avg_start,
 	avg_stop,
@@ -694,13 +694,13 @@ static const struct MachineDriver machine_driver_gravitar =
 	atari_vg_earom_handler
 };
 
-static const struct MachineDriver machine_driver_spacduel =
+static struct MachineDriver machine_driver_spacduel =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			1500000,	/* 1.5 MHz */
+			1500000,	/* 1.5 Mhz */
 			spacduel_readmem,spacduel_writemem,0,0,
 			interrupt,4 /* 5.4ms */
 		}
@@ -715,7 +715,7 @@ static const struct MachineDriver machine_driver_spacduel =
 	256, 0,
 	avg_init_palette_multi,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	avg_start,
 	avg_stop,

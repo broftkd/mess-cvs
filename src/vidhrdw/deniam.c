@@ -188,7 +188,7 @@ WRITE_HANDLER( deniam_coinctrl_w )
 	/* bit 0 is coin counter */
 	coin_counter_w(0,coinctrl & 0x01);
 
-	/* bit 6 is display enable (0 freezes screen) */
+	/* bit 6 is display enable */
 	display_enable = coinctrl & 0x20;
 
 	/* other bits unknown (unused?) */
@@ -237,13 +237,11 @@ static void draw_sprites(struct osd_bitmap *bitmap)
 
 
 		sx = (READ_WORD(&spriteram[offs+2]) & 0x01ff) + 16*8 - 1;
-		if (sx >= 512) sx -= 512;
 		starty = READ_WORD(&spriteram[offs+0]) & 0xff;
 		endy = READ_WORD(&spriteram[offs+0]) >> 8;
 
 		width = READ_WORD(&spriteram[offs+4]) & 0x007f;
 		flipx = READ_WORD(&spriteram[offs+4]) & 0x0100;
-		if (flipx) sx++;
 
 		color = 0x40 + (READ_WORD(&spriteram[offs+8]) & 0x3f);
 
@@ -256,6 +254,9 @@ static void draw_sprites(struct osd_bitmap *bitmap)
 			case 0xc0:                   break;	/* above everything */
 		}
 
+
+if (READ_WORD(&spriteram[offs+4]) & 0x0080) color = rand() & 0x7f;
+if (READ_WORD(&spriteram[offs+10])) color = rand() & 0x7f;
 
 		start = READ_WORD(&spriteram[offs+6]) +
 				((READ_WORD(&spriteram[offs+8]) & 0x1f00) << 8);

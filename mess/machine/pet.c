@@ -871,10 +871,10 @@ void pet_frame_interrupt (int param)
 	}
 	quickload = QUICKLOAD;
 
-	set_led_status (1 /*KB_CAPSLOCK_FLAG */ , KEY_B_SHIFTLOCK ? 1 : 0);
+	osd_led_w (1 /*KB_CAPSLOCK_FLAG */ , KEY_B_SHIFTLOCK ? 1 : 0);
 }
 
-void pet_state(PRASTER *This)
+void pet_state(PRASTER *this)
 {
 	int y;
 	char text[70];
@@ -894,12 +894,12 @@ void pet_state(PRASTER *This)
 			 pet_keyline[7],
 			 pet_keyline[8],
 			 pet_keyline[9]);
-	praster_draw_text (This, text, &y);
+	praster_draw_text (this, text, &y);
 #endif
 
 	cbm_drive_0_status (text, sizeof (text));
-	praster_draw_text (This, text, &y);
+	praster_draw_text (this, text, &y);
 
 	cbm_drive_1_status (text, sizeof (text));
-	praster_draw_text (This, text, &y);
+	praster_draw_text (this, text, &y);
 }

@@ -224,13 +224,13 @@ static Z80_DaisyChain daisy_chain[] =
 
 
 
-static const struct MachineDriver machine_driver_dlair =
+static struct MachineDriver machine_driver_dlair =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3072000,	/* 3.072 MHz ? */
+			3072000,	/* 3.072 Mhz ? */
 			readmem,writemem,readport,writeport,
 			0,0, /* interrupts are made by z80 daisy chain system */
 			0,0,daisy_chain
@@ -246,7 +246,7 @@ static const struct MachineDriver machine_driver_dlair =
 	8,8,
 	0,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER|VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_vh_start,
 	generic_vh_stop,

@@ -1,42 +1,6 @@
 Whats new:
 
 ----------
-0.37 BETA 7
-------------
-
-- MESS32 will now remember what items were selected in the software picker.
-  [Nate Woods]
-
-- Unknown file types are no longer displayed in software pane.  Unknown ZIPs
-  will now be X'ed [Nate Woods]
-
-- Added "Open Other Software..." menu item so that software not in the software
-  directory can be used (similar to the pre 37b5 mechanism) [Nate Woods]
-
-- Fixed a few minor file bugs [Nate Woods]
-
-- Added a "Modified/Hacked" item in the treeview [Nate Woods]
-
-- Added support for custom icons for different software types.  These icons
-  must have the following names:
-
-  cart.ico for cartridges
-  flop.ico for floppies
-  hard.ico for hard drives
-  cass.ico for cartridges
-  snap.ico for snapshots
-  quik.ico for quick loads
-
-  To make these icons show up, they must be placed in a subdirectory of the
-  icons directory that matches the name of the driver.  Thus an icon for NES
-  cartridges would have the path "nes/cart.ico" [Nate Woods]
-
-- Fixed a bug that caused ROMless drivers to be marked as "Missing ROMs" [Nate
-  Woods]
-
-- New help file for MESS32 [Juan Rivera]
-
-----------
 0.37 BETA 5
 ------------
 
@@ -45,11 +9,6 @@ Whats new:
 - Worked around a MSFT compiler bug that caused the emulation to stop on the
   disclaimer screens. [Nate Woods]
 
-- This is not a part of the MESS32 release, it is worth talking about:  There
-  is now a MESS32 picture archive being hosted at the following URL:
-
-    http://tkmame.retrogames.com/new/rom_images/mess/
-  
 ----------
 0.37 BETA 4
 ------------

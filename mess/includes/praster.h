@@ -15,10 +15,6 @@
 
 ***************************************************************************/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* insert following into the Machine structure */
 extern int praster_vh_start (void);
 extern void praster_vh_stop (void);
@@ -44,7 +40,7 @@ typedef enum {
 /* basic structure for 1 cathod ray tube */
 typedef struct _PRASTER {
 	int on;
-	void (*display_state)(struct _PRASTER *This); /* calls machine after rastering frame*/
+	void (*display_state)(struct _PRASTER *this); /* calls machine after rastering frame*/
     /* for rasterline, rastercolumn, and lightpen positions */
 	struct {
 		struct { int x, y; } size; /* Pixels */
@@ -118,11 +114,6 @@ extern READ_HANDLER  ( praster_2_videoram_r );
 
 
 /* use to draw text in display_state function */
-extern void praster_draw_text (PRASTER *This, char *text, int *y);
-
-#ifdef __cplusplus
-}
-#endif
-
+extern void praster_draw_text (PRASTER *this, char *text, int *y);
 
 #endif

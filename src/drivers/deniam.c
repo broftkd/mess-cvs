@@ -341,7 +341,7 @@ static void irqhandler(int linestate)
 static struct YM3812interface ym3812_interface =
 {
 	1,			/* 1 chip */
-	25000000/8,	/* ??? */
+	3579545,	/* 3.579545 MHz ???? */
 	{ 30 },	/* volume */
 	{ irqhandler },
 };
@@ -356,7 +356,7 @@ static struct OKIM6295interface okim6295_interface =
 
 
 
-static const struct MachineDriver machine_driver_deniam16b =
+static struct MachineDriver machine_driver_deniam16b =
 {
 	/* basic machine hardware */
 	{
@@ -368,7 +368,7 @@ static const struct MachineDriver machine_driver_deniam16b =
 		},
 		{
 			CPU_Z80,
-			25000000/4,	/* (makes logicpro music tempo correct) */
+			25000000/6,	/* ??? */
 			sound_readmem,sound_writemem,sound_readport,sound_writeport,
 			ignore_interrupt,1	/* NMI is caused by the main cpu */
 		}
@@ -403,7 +403,7 @@ static const struct MachineDriver machine_driver_deniam16b =
 	}
 };
 
-static const struct MachineDriver machine_driver_deniam16c =
+static struct MachineDriver machine_driver_deniam16c =
 {
 	/* basic machine hardware */
 	{

@@ -5,16 +5,16 @@
 #define VERBOSE 0
 
 
-static UINT8 *game_palette;	/* RGB palette as set by the driver. */
-static UINT8 *new_palette;	/* changes to the palette are stored here before */
+static unsigned char *game_palette;	/* RGB palette as set by the driver. */
+static unsigned char *new_palette;	/* changes to the palette are stored here before */
 							/* being moved to game_palette by palette_recalc() */
-static UINT8 *palette_dirty;
+static unsigned char *palette_dirty;
 /* arrays which keep track of colors actually used, to help in the palette shrinking. */
-UINT8 *palette_used_colors;
-static UINT8 *old_used_colors;
+unsigned char *palette_used_colors;
+static unsigned char *old_used_colors;
 static int *pen_visiblecount,*pen_cachedcount;
-static UINT8 *just_remapped;	/* colors which have been remapped in this frame, */
-								/* returned by palette_recalc() */
+static unsigned char *just_remapped;	/* colors which have been remapped in this frame, */
+										/* returned by palette_recalc() */
 
 static int use_16bit;
 #define NO_16BIT			0
@@ -22,12 +22,12 @@ static int use_16bit;
 #define PALETTIZED_16BIT	2
 
 static int total_shrinked_pens;
-UINT16 *shrinked_pens;
-static UINT8 *shrinked_palette;
-static UINT16 *palette_map;	/* map indexes from game_palette to shrinked_palette */
-static UINT16 pen_usage_count[DYNAMIC_MAX_PENS];
+unsigned short *shrinked_pens;
+static unsigned char *shrinked_palette;
+static unsigned short *palette_map;	/* map indexes from game_palette to shrinked_palette */
+static unsigned short pen_usage_count[DYNAMIC_MAX_PENS];
 
-UINT16 palette_transparent_pen;
+unsigned short palette_transparent_pen;
 int palette_transparent_color;
 
 
@@ -41,9 +41,9 @@ int palette_transparent_color;
 #define rgbpenindex(r,g,b) ((Machine->scrbitmap->depth==16) ? ((((r)>>3)<<10)+(((g)>>3)<<5)+((b)>>3)) : ((((r)>>5)<<5)+(((g)>>5)<<2)+((b)>>6)))
 
 
-UINT16 *palette_shadow_table;
+unsigned short *palette_shadow_table;
 
-void artwork_remap(void);
+void overlay_remap(void);
 
 
 
@@ -52,15 +52,14 @@ int palette_start(void)
 	int i,num;
 
 
-	game_palette = malloc(3 * Machine->drv->total_colors * sizeof(UINT8));
-	palette_map = malloc(Machine->drv->total_colors * sizeof(UINT16));
+	game_palette = malloc(3 * Machine->drv->total_colors * sizeof(unsigned char));
+	palette_map = malloc(Machine->drv->total_colors * sizeof(unsigned short));
 	if (Machine->drv->color_table_len)
 	{
-		Machine->game_colortable = malloc(Machine->drv->color_table_len * sizeof(UINT16));
-		Machine->remapped_colortable = malloc(Machine->drv->color_table_len * sizeof(UINT16));
+		Machine->game_colortable = malloc(Machine->drv->color_table_len * sizeof(unsigned short));
+		Machine->remapped_colortable = malloc(Machine->drv->color_table_len * sizeof(unsigned short));
 	}
 	else Machine->game_colortable = Machine->remapped_colortable = 0;
-	Machine->debug_remapped_colortable = malloc(2*DEBUGGER_TOTAL_COLORS*DEBUGGER_TOTAL_COLORS * sizeof(UINT16));
 
 	if (Machine->color_depth == 16 || (Machine->gamedrv->flags & GAME_REQUIRES_16BIT))
 	{
@@ -89,16 +88,15 @@ int palette_start(void)
 	}
 
 	shrinked_pens = malloc(total_shrinked_pens * sizeof(short));
-	shrinked_palette = malloc(3 * total_shrinked_pens * sizeof(UINT8));
+	shrinked_palette = malloc(3 * total_shrinked_pens * sizeof(unsigned char));
 
 	Machine->pens = malloc(Machine->drv->total_colors * sizeof(short));
-	Machine->debug_pens = malloc(DEBUGGER_TOTAL_COLORS * sizeof(short));
 
 	if ((Machine->drv->video_attributes & VIDEO_MODIFIES_PALETTE))
 	{
 		/* if the palette changes dynamically, */
 		/* we'll need the usage arrays to help in shrinking. */
-		palette_used_colors = malloc((1+1+1+3+1) * Machine->drv->total_colors * sizeof(UINT8));
+		palette_used_colors = malloc((1+1+1+3+1) * Machine->drv->total_colors * sizeof(unsigned char));
 		pen_visiblecount = malloc(2 * Machine->drv->total_colors * sizeof(int));
 
 		if (palette_used_colors == 0 || pen_visiblecount == 0)
@@ -107,13 +105,13 @@ int palette_start(void)
 			return 1;
 		}
 
-		old_used_colors = palette_used_colors + Machine->drv->total_colors * sizeof(UINT8);
-		just_remapped = old_used_colors + Machine->drv->total_colors * sizeof(UINT8);
-		new_palette = just_remapped + Machine->drv->total_colors * sizeof(UINT8);
-		palette_dirty = new_palette + 3*Machine->drv->total_colors * sizeof(UINT8);
-		memset(palette_used_colors,PALETTE_COLOR_USED,Machine->drv->total_colors * sizeof(UINT8));
-		memset(old_used_colors,PALETTE_COLOR_UNUSED,Machine->drv->total_colors * sizeof(UINT8));
-		memset(palette_dirty,0,Machine->drv->total_colors * sizeof(UINT8));
+		old_used_colors = palette_used_colors + Machine->drv->total_colors * sizeof(unsigned char);
+		just_remapped = old_used_colors + Machine->drv->total_colors * sizeof(unsigned char);
+		new_palette = just_remapped + Machine->drv->total_colors * sizeof(unsigned char);
+		palette_dirty = new_palette + 3*Machine->drv->total_colors * sizeof(unsigned char);
+		memset(palette_used_colors,PALETTE_COLOR_USED,Machine->drv->total_colors * sizeof(unsigned char));
+		memset(old_used_colors,PALETTE_COLOR_UNUSED,Machine->drv->total_colors * sizeof(unsigned char));
+		memset(palette_dirty,0,Machine->drv->total_colors * sizeof(unsigned char));
 		pen_cachedcount = pen_visiblecount + Machine->drv->total_colors;
 		memset(pen_visiblecount,0,Machine->drv->total_colors * sizeof(int));
 		memset(pen_cachedcount,0,Machine->drv->total_colors * sizeof(int));
@@ -122,7 +120,7 @@ int palette_start(void)
 
 	if (Machine->color_depth == 8) num = 256;
 	else num = 65536;
-	palette_shadow_table = malloc(num * sizeof(UINT16));
+	palette_shadow_table = malloc(num * sizeof(unsigned short));
 	if (palette_shadow_table == 0)
 	{
 		palette_stop();
@@ -133,8 +131,7 @@ int palette_start(void)
 
 	if ((Machine->drv->color_table_len && (Machine->game_colortable == 0 || Machine->remapped_colortable == 0))
 			|| game_palette == 0 ||	palette_map == 0
-			|| shrinked_pens == 0 || shrinked_palette == 0 || Machine->pens == 0
-			|| Machine->debug_pens == 0 || Machine->debug_remapped_colortable == 0)
+			|| shrinked_pens == 0 || shrinked_palette == 0 || Machine->pens == 0)
 	{
 		palette_stop();
 		return 1;
@@ -157,16 +154,12 @@ void palette_stop(void)
 	Machine->game_colortable = 0;
 	free(Machine->remapped_colortable);
 	Machine->remapped_colortable = 0;
-	free(Machine->debug_remapped_colortable);
-	Machine->debug_remapped_colortable = 0;
 	free(shrinked_pens);
 	shrinked_pens = 0;
 	free(shrinked_palette);
 	shrinked_palette = 0;
 	free(Machine->pens);
 	Machine->pens = 0;
-	free(Machine->debug_pens);
-	Machine->debug_pens = 0;
 	free(palette_shadow_table);
 	palette_shadow_table = 0;
 }
@@ -176,21 +169,7 @@ void palette_stop(void)
 int palette_init(void)
 {
 	int i;
-	UINT8 *debug_palette;
-	UINT16 *debug_pens;
 
-#ifdef MAME_DEBUG
-	if (mame_debug)
-	{
-		debug_palette = debugger_palette;
-		debug_pens = Machine->debug_pens;
-	}
-	else
-#endif
-	{
-		debug_palette = NULL;
-		debug_pens = NULL;
-	}
 
 	/* We initialize the palette and colortable to some default values so that */
 	/* drivers which dynamically change the palette don't need a vh_init_palette() */
@@ -248,7 +227,7 @@ int palette_init(void)
 				for (i = 0;i < Machine->drv->total_colors;i++)
 					palette_map[i] = (i & 7) + 8;
 
-				if (osd_allocate_colors(total_shrinked_pens,shrinked_palette,shrinked_pens,1,debug_palette,debug_pens))
+				if (osd_allocate_colors(total_shrinked_pens,shrinked_palette,shrinked_pens,1))
 					return 1;
 			}
 			else
@@ -294,7 +273,7 @@ logerror("error: ran out of free pens to shrink the palette.\n");
 
 logerror("shrinked palette uses %d colors\n",used);
 
-				if (osd_allocate_colors(used,shrinked_palette,shrinked_pens,0,debug_palette,debug_pens))
+				if (osd_allocate_colors(used,shrinked_palette,shrinked_pens,0))
 					return 1;
 			}
 
@@ -308,7 +287,7 @@ logerror("shrinked palette uses %d colors\n",used);
 
 		case STATIC_16BIT:
 		{
-			UINT8 *p = shrinked_palette;
+			unsigned char *p = shrinked_palette;
 			int r,g,b;
 
 			if (Machine->scrbitmap->depth == 16)
@@ -326,7 +305,7 @@ logerror("shrinked palette uses %d colors\n",used);
 					}
 				}
 
-				if (osd_allocate_colors(32768,shrinked_palette,shrinked_pens,0,debug_palette,debug_pens))
+				if (osd_allocate_colors(32768,shrinked_palette,shrinked_pens,0))
 					return 1;
 			}
 			else
@@ -344,7 +323,7 @@ logerror("shrinked palette uses %d colors\n",used);
 					}
 				}
 
-				if (osd_allocate_colors(256,shrinked_palette,shrinked_pens,0,debug_palette,debug_pens))
+				if (osd_allocate_colors(256,shrinked_palette,shrinked_pens,0))
 					return 1;
 			}
 
@@ -377,7 +356,7 @@ logerror("shrinked palette uses %d colors\n",used);
 				shrinked_palette[3*(i+RESERVED_PENS) + 2] = game_palette[3*i + 2];
 			}
 
-			if (osd_allocate_colors(total_shrinked_pens,shrinked_palette,shrinked_pens,(Machine->drv->video_attributes & VIDEO_MODIFIES_PALETTE),debug_palette,debug_pens))
+			if (osd_allocate_colors(total_shrinked_pens,shrinked_palette,shrinked_pens,(Machine->drv->video_attributes & VIDEO_MODIFIES_PALETTE)))
 				return 1;
 
 			for (i = 0;i < Machine->drv->total_colors;i++)
@@ -400,18 +379,12 @@ logerror("shrinked palette uses %d colors\n",used);
 					i,color,Machine->drv->total_colors);
 	}
 
-	for (i = 0;i < DEBUGGER_TOTAL_COLORS*DEBUGGER_TOTAL_COLORS;i++)
-	{
-		Machine->debug_remapped_colortable[2*i+0] = Machine->debug_pens[i / DEBUGGER_TOTAL_COLORS];
-		Machine->debug_remapped_colortable[2*i+1] = Machine->debug_pens[i % DEBUGGER_TOTAL_COLORS];
-	}
-
 	return 0;
 }
 
 
 
-INLINE void palette_change_color_16_static(int color,UINT8 red,UINT8 green,UINT8 blue)
+INLINE void palette_change_color_16_static(int color,unsigned char red,unsigned char green,unsigned char blue)
 {
 	if (color == palette_transparent_color)
 	{
@@ -444,7 +417,7 @@ INLINE void palette_change_color_16_static(int color,UINT8 red,UINT8 green,UINT8
 		old_used_colors[color] |= PALETTE_COLOR_NEEDS_REMAP;
 }
 
-INLINE void palette_change_color_16_palettized(int color,UINT8 red,UINT8 green,UINT8 blue)
+INLINE void palette_change_color_16_palettized(int color,unsigned char red,unsigned char green,unsigned char blue)
 {
 	if (color == palette_transparent_color)
 	{
@@ -466,7 +439,7 @@ INLINE void palette_change_color_16_palettized(int color,UINT8 red,UINT8 green,U
 	game_palette[3*color + 2] = blue;
 }
 
-INLINE void palette_change_color_8(int color,UINT8 red,UINT8 green,UINT8 blue)
+INLINE void palette_change_color_8(int color,unsigned char red,unsigned char green,unsigned char blue)
 {
 	int pen;
 
@@ -504,7 +477,7 @@ INLINE void palette_change_color_8(int color,UINT8 red,UINT8 green,UINT8 blue)
 	}
 }
 
-void palette_change_color(int color,UINT8 red,UINT8 green,UINT8 blue)
+void palette_change_color(int color,unsigned char red,unsigned char green,unsigned char blue)
 {
 	if ((Machine->drv->video_attributes & VIDEO_MODIFIES_PALETTE) == 0)
 	{
@@ -573,7 +546,7 @@ void palette_decrease_usage_count(int table_offset,unsigned int usage_mask,int c
 	}
 }
 
-void palette_increase_usage_countx(int table_offset,int num_pens,const UINT8 *pen_data,int color_flags)
+void palette_increase_usage_countx(int table_offset,int num_pens,const unsigned char *pen_data,int color_flags)
 {
 	char flag[256];
 	memset(flag,0,256);
@@ -592,7 +565,7 @@ void palette_increase_usage_countx(int table_offset,int num_pens,const UINT8 *pe
 	}
 }
 
-void palette_decrease_usage_countx(int table_offset, int num_pens, const UINT8 *pen_data,int color_flags)
+void palette_decrease_usage_countx(int table_offset, int num_pens, const unsigned char *pen_data,int color_flags)
 {
 	char flag[256];
 	memset(flag,0,256);
@@ -619,7 +592,7 @@ void palette_init_used_colors(void)
 	/* if we are not dynamically reducing the palette, return immediately. */
 	if (palette_used_colors == 0) return;
 
-	memset(palette_used_colors,PALETTE_COLOR_UNUSED,Machine->drv->total_colors * sizeof(UINT8));
+	memset(palette_used_colors,PALETTE_COLOR_UNUSED,Machine->drv->total_colors * sizeof(unsigned char));
 
 	for (pen = 0;pen < Machine->drv->total_colors;pen++)
 	{
@@ -631,7 +604,7 @@ void palette_init_used_colors(void)
 
 
 
-static UINT8 rgb6_to_pen[64][64][64];
+static unsigned char rgb6_to_pen[64][64][64];
 
 static void build_rgb_to_pen(void)
 {
@@ -733,14 +706,14 @@ static int compress_palette(void)
 }
 
 
-static const UINT8 *palette_recalc_16_static(void)
+static const unsigned char *palette_recalc_16_static(void)
 {
 	int i,color;
 	int did_remap = 0;
 	int need_refresh = 0;
 
 
-	memset(just_remapped,0,Machine->drv->total_colors * sizeof(UINT8));
+	memset(just_remapped,0,Machine->drv->total_colors * sizeof(unsigned char));
 
 	for (color = 0;color < Machine->drv->total_colors;color++)
 	{
@@ -787,14 +760,14 @@ static const UINT8 *palette_recalc_16_static(void)
 	else return 0;
 }
 
-static const UINT8 *palette_recalc_16_palettized(void)
+static const unsigned char *palette_recalc_16_palettized(void)
 {
 	int i,color;
 	int did_remap = 0;
 	int need_refresh = 0;
 
 
-	memset(just_remapped,0,Machine->drv->total_colors * sizeof(UINT8));
+	memset(just_remapped,0,Machine->drv->total_colors * sizeof(unsigned char));
 
 	for (color = 0;color < Machine->drv->total_colors;color++)
 	{
@@ -830,7 +803,7 @@ static const UINT8 *palette_recalc_16_palettized(void)
 	else return 0;
 }
 
-static const UINT8 *palette_recalc_8(void)
+static const unsigned char *palette_recalc_8(void)
 {
 	int i,color;
 	int did_remap = 0;
@@ -841,7 +814,7 @@ static const UINT8 *palette_recalc_8(void)
 	int need,avail;
 
 
-	memset(just_remapped,0,Machine->drv->total_colors * sizeof(UINT8));
+	memset(just_remapped,0,Machine->drv->total_colors * sizeof(unsigned char));
 
 
 	/* first of all, apply the changes to the palette which were */
@@ -1203,9 +1176,9 @@ for (color = 0;color < Machine->drv->total_colors;color++)
 }
 
 
-const UINT8 *palette_recalc(void)
+const unsigned char *palette_recalc(void)
 {
-	const UINT8 *ret = NULL;
+	const unsigned char* ret = NULL;
 
 	/* if we are not dynamically reducing the palette, return NULL. */
 	if (palette_used_colors != 0)
@@ -1225,7 +1198,7 @@ const UINT8 *palette_recalc(void)
 		}
 	}
 
-	if (ret) artwork_remap();
+	if (ret) overlay_remap();
 
 	return ret;
 }
@@ -1238,7 +1211,7 @@ const UINT8 *palette_recalc(void)
 
 ******************************************************************************/
 
-UINT8 *paletteram,*paletteram_2;
+unsigned char *paletteram,*paletteram_2;
 
 READ_HANDLER( paletteram_r )
 {
@@ -1501,12 +1474,6 @@ WRITE_HANDLER( paletteram_xxxxRRRRGGGGBBBB_w )
 {
 	paletteram[offset] = data;
 	changecolor_xxxxRRRRGGGGBBBB(offset / 2,paletteram[offset & ~1] | (paletteram[offset | 1] << 8));
-}
-
-WRITE_HANDLER( paletteram_xxxxRRRRGGGGBBBB_swap_w )
-{
-	paletteram[offset] = data;
-	changecolor_xxxxRRRRGGGGBBBB(offset / 2,paletteram[offset | 1] | (paletteram[offset & ~1] << 8));
 }
 
 WRITE_HANDLER( paletteram_xxxxRRRRGGGGBBBB_word_w )

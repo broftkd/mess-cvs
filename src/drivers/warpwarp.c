@@ -86,7 +86,7 @@ static READ_HANDLER( warpwarp_input_controller_r )
 
 static WRITE_HANDLER( warpwarp_leds_w )
 {
-	set_led_status(offset,data & 1);
+	osd_led_w(offset,data);
 }
 
 
@@ -368,12 +368,12 @@ static struct CustomSound_interface custom_interface =
 
 
 #define MACHINE(NAME) 								\
-static const struct MachineDriver machine_driver_##NAME = \
+static struct MachineDriver machine_driver_##NAME = \
 { 			 										\
 	{ 												\
 		{ 											\
 			CPU_8080, 								\
-			2048000,	/* 3 MHz? */ 				\
+			2048000,	/* 3 Mhz? */ 				\
 			NAME##_readmem,NAME##_writemem,0,0, 	\
 			interrupt,1 							\
 		} 											\
@@ -388,7 +388,7 @@ static const struct MachineDriver machine_driver_##NAME = \
 	256, 2*256, 									\
 	warpwarp_vh_convert_color_prom, 				\
  													\
-	VIDEO_TYPE_RASTER,						 		\
+	VIDEO_TYPE_RASTER|VIDEO_SUPPORTS_DIRTY, 		\
 	0, 												\
 	generic_vh_start, 								\
 	generic_vh_stop, 								\

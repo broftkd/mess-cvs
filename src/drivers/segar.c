@@ -1183,19 +1183,19 @@ static struct CustomSound_interface astrob_custom_interface =
 	astrob_speech_sh_update
 };
 
-static const struct MachineDriver machine_driver_astrob =
+static struct MachineDriver machine_driver_astrob =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3867120,    /* 3.86712 MHz ??? */
+			3867120,    /* 3.86712 Mhz ??? */
 			readmem,writemem,readport,astrob_writeport,
 			segar_interrupt,1
 		},
 		{
 			CPU_I8035 | CPU_AUDIO_CPU,
-			3120000/15,    /* 3.12MHz crystal ??? */
+			3120000/15,    /* 3.12Mhz crystal ??? */
 			speech_readmem,speech_writemem,speech_readport,speech_writeport,
 			ignore_interrupt,1
 		}
@@ -1237,13 +1237,13 @@ static struct Samplesinterface spaceod_samples_interface =
 	spaceod_sample_names
 };
 
-static const struct MachineDriver machine_driver_spaceod =
+static struct MachineDriver machine_driver_spaceod =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3867120,    /* 3.86712 MHz ??? */
+			3867120,    /* 3.86712 Mhz ??? */
 			readmem,writemem,readport,spaceod_writeport,
 			segar_interrupt,1
 		}
@@ -1281,13 +1281,13 @@ static struct Samplesinterface samples_interface_005 =
 	s005_sample_names
 };
 
-static const struct MachineDriver machine_driver_005 =
+static struct MachineDriver machine_driver_005 =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3867120,    /* 3.86712 MHz ??? */
+			3867120,    /* 3.86712 Mhz ??? */
 			readmem,writemem,readport,writeport_005,
 			segar_interrupt,1
 		}
@@ -1340,19 +1340,19 @@ static struct TMS36XXinterface monsterb_tms3617_interface =
 	{ {0.5,0.5,0.5,0.5,0.5,0.5} }  /* decay times of voices */
 };
 
-static const struct MachineDriver machine_driver_monsterb =
+static struct MachineDriver machine_driver_monsterb =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3867120,    /* 3.86712 MHz ??? */
+			3867120,    /* 3.86712 Mhz ??? */
 			readmem,writemem,readport,monsterb_writeport,
 			segar_interrupt,1
 		},
 		{
 			CPU_N7751 | CPU_AUDIO_CPU,
-			6000000/15,    /* 6MHz crystal */
+			6000000/15,    /* 6Mhz crystal */
 			monsterb_7751_readmem,monsterb_7751_writemem,monsterb_7751_readport,monsterb_7751_writeport,
 			ignore_interrupt,1
 		}
@@ -1391,13 +1391,13 @@ static const struct MachineDriver machine_driver_monsterb =
 	}
 };
 
-static const struct MachineDriver machine_driver_pignewt =
+static struct MachineDriver machine_driver_pignewt =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3867120,    /* 3.86712 MHz ??? */
+			3867120,    /* 3.86712 Mhz ??? */
 			readmem,writemem,readport,pignewt_writeport,
 			segar_interrupt,1
 		}
@@ -1430,19 +1430,19 @@ static struct SN76496interface sn76496_interface =
 	{ 100, 100 }
 };
 
-static const struct MachineDriver machine_driver_sindbadm =
+static struct MachineDriver machine_driver_sindbadm =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3072000,    /* 3.072 MHz ? */
+			3072000,    /* 3.072 Mhz ? */
 			sindbadm_readmem,sindbadm_writemem,readport,sindbadm_writeport,
 			segar_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,    /* 4 MHz ? - see system1.c */
+			4000000,    /* 4 Mhz ? - see system1.c */
 			sindbadm_sound_readmem,sindbadm_sound_writemem,0,0,
 			interrupt,4		     /* NMIs are caused by the main CPU */
 		}

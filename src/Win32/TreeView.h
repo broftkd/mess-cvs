@@ -27,7 +27,6 @@ enum FolderIds
 #ifdef MESS
     FOLDER_CONSOLE,
     FOLDER_COMPUTER,
-	FOLDER_MODIFIED,
 #endif
     FOLDER_MANUFACTURER,
     FOLDER_YEAR,
@@ -53,9 +52,7 @@ typedef enum
 
 typedef enum
 {
-#ifndef MESS
     F_NEOGEO        = 0x00000001,
-#endif
     F_CLONES        = 0x00000002,
     F_NONWORKING    = 0x00000004,
     F_UNAVAILABLE   = 0x00000008,
@@ -64,14 +61,7 @@ typedef enum
     F_ORIGINALS     = 0x00000040,
     F_WORKING       = 0x00000080,
     F_AVAILABLE     = 0x00000100,
-#ifdef MESS
-    F_COMPUTER      = 0x00000200,
-    F_CONSOLE       = 0x00000400,
-	F_MODIFIED      = 0x00000800,
-    F_NUM_FILTERS   = 11,
-#else
     F_NUM_FILTERS   = 9,
-#endif
     F_MASK          = 0x00000FFF,
     F_CUSTOM        = 0x01000000
 } FOLDERFLAG;

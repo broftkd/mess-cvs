@@ -1070,7 +1070,7 @@ static struct GfxDecodeInfo gfxdecodeinfo[] =
 static struct YM2151interface ym2151_interface =
 {
 	1,			/* 1 chip */
-	7159160/2,	/* 3.58 MHz ? */
+	7159160/2,	/* 3.58 MHZ ? */
 	{ YM3012_VOL(100,MIXER_PAN_LEFT,100,MIXER_PAN_RIGHT) },
 	{ 0 }
 };
@@ -1102,7 +1102,7 @@ static struct UPD7759_interface upd7759_interface =
 
 
 #define MACHINE_DRIVER(NAME,NVRAM)				\
-static const struct MachineDriver machine_driver_##NAME =	\
+static struct MachineDriver machine_driver_##NAME =	\
 {	\
 	{	\
 		{	\
@@ -1162,7 +1162,7 @@ static const struct MachineDriver machine_driver_##NAME =	\
 MACHINE_DRIVER(twin16,0)
 MACHINE_DRIVER(cuebrick,cuebrick_nvram_handler)
 
-static const struct MachineDriver machine_driver_heavysync =
+static struct MachineDriver machine_driver_heavysync =
 {
 	{
 		{
@@ -1218,7 +1218,7 @@ static const struct MachineDriver machine_driver_heavysync =
 	}
 };
 
-static const struct MachineDriver machine_driver_fround =
+static struct MachineDriver machine_driver_fround =
 {
 	{
 		{

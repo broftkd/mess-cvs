@@ -25,6 +25,7 @@
 
 /* from mess/Win32/dirio.c */
 extern const char *resolve_path(const char *path, char *buf, size_t buflen);
+extern char *strncpyz(char *dest, const char *source, size_t len);
 
 static int MessImageFopenZip(const char *filename, mame_file *mf, int write)
 {
@@ -34,8 +35,10 @@ static int MessImageFopenZip(const char *filename, mame_file *mf, int write)
 	ZIP *pZip;
 	struct zipent *pZipEnt;
 
-	if (write != OSD_FOPEN_READ)
+#if 0
+	if (write)
 		return 0;	/* Can't write to a ZIP file */
+#endif
 
 	filename = resolve_path(filename, buf1, sizeof(buf1) / sizeof(buf1[0]));
 	if (!filename)
@@ -78,7 +81,7 @@ static int MessImageFopenZip(const char *filename, mame_file *mf, int write)
 int MessImageFopen(const char *filename, mame_file *mf, int write, int (*checksum_file)(const char* file, unsigned char **p, unsigned int *size, unsigned int *crc))
 {
 	static char zipext[] = ".ZIP";
-	static char *write_modes[] = {"rb","wb","r+b","r+b"};
+	static char *write_modes[] = {"rb","wb","r+b","r+b","w+b"};
 	LPSTR lpExt;
 	unsigned int dummy;
 	int found;
@@ -107,7 +110,7 @@ int MessImageFopen(const char *filename, mame_file *mf, int write, int (*checksu
 				return 0;
 			strcpy(s, filename);
 			if (lpExt)
-				strcpy(s + (strlen(filename) - strlen(lpExt)), zipext);
+				strcpy(s + (strlen(lpExt) - strlen(filename)), zipext);
 			else
 				strcat(s, zipext);
 			found = MessImageFopenZip(s, mf, write);
@@ -129,7 +132,3 @@ int MessImageFopen(const char *filename, mame_file *mf, int write, int (*checksu
 	return 1;
 }
 
-int osd_select_file(int sel, char *filename)
-{
-	return 0;
-}

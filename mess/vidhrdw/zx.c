@@ -9,7 +9,6 @@
 #include "driver.h"
 #include "vidhrdw/generic.h"
 #include "cpu/z80/z80.h"
-#include "includes/zx.h"
 
 void *ula_nmi = NULL;
 void *ula_irq = NULL;

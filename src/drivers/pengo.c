@@ -235,14 +235,14 @@ static struct namco_interface namco_interface =
 
 
 
-static const struct MachineDriver machine_driver_pengo =
+static struct MachineDriver machine_driver_pengo =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-/*			18432000/6,	* 3.072 MHz */
-			3020000,	/* The correct speed is 3.072 MHz, but 3.020 gives a more */
+/*			18432000/6,	* 3.072 Mhz */
+			3020000,	/* The correct speed is 3.072 Mhz, but 3.020 gives a more */
 						/* accurate emulation speed (time for two attract mode */
 						/* cycles after power up, until the high score list appears */
 						/* for the second time: 3'39") */
@@ -260,7 +260,7 @@ static const struct MachineDriver machine_driver_pengo =
 	32,4*64,
 	pengo_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER | VIDEO_SUPPORTS_DIRTY,
 	0,
 	pengo_vh_start,
 	generic_vh_stop,

@@ -93,12 +93,14 @@
   - emulation of other hardware...?
  ******************************************************************************/
 #include "driver.h"
+#include "cpuintrf.h"
 // nec765 interface
 #include "includes/nec765.h"
 #include "includes/dsk.h"
 // pcw video hardware
 #include "includes/pcw.h"
 // pcw/pcw16 beeper
+#include "includes/beep.h"
 
 // uncomment for debug log output
 //#define VERBOSE
@@ -195,8 +197,6 @@ void pcw_timer_interrupt(int dummy)
 	pcw_interrupt_handle();
 }
 
-static int previous_fdc_int_state;
-
 /* set/clear fdc interrupt */
 void	pcw_trigger_fdc_int(void)
 {
@@ -209,20 +209,19 @@ void	pcw_trigger_fdc_int(void)
 		/* attach fdc to nmi */
 		case 0:
 		{
-			/* I'm assuming that the nmi is edge triggered */
-			/* a interrupt from the fdc will cause a change in line state, and
-			the nmi will be triggered, but when the state changes because the int
-			is cleared this will not cause another nmi */
-			/* I'll emulate it like this to be sure */
-		
-			if (state!=previous_fdc_int_state)
+			if (state)
 			{
-				if (state)
-				{
-					/* I'll pulse it because if I used hold-line I'm not sure
-					it would clear - to be checked */
-					cpu_set_nmi_line(0, PULSE_LINE);
-				}
+#ifdef VERBOSE
+				logerror("asserting nmi\r\n");
+#endif
+				cpu_set_nmi_line(0, ASSERT_LINE);
+			}
+			else
+			{
+#ifdef VERBOSE
+				logerror("clearing nmi\r\n");
+#endif
+				cpu_set_nmi_line(0, CLEAR_LINE);
 			}
 		}
 		break;
@@ -239,8 +238,6 @@ void	pcw_trigger_fdc_int(void)
 		default:
 			break;
 	}
-
-	previous_fdc_int_state = state;
 }
 
 /* fdc interrupt callback. set/clear fdc int */
@@ -496,7 +493,7 @@ READ_HANDLER(pcw_interrupt_counter_r)
 WRITE_HANDLER(pcw_bank_select_w)
 {
 #ifdef VERBOSE
-	logerror("BANK: %2x %x\n",offset, data);
+	logerror("BANK: %2x %x\r\n",offset, data);
 #endif
 	pcw_banks[offset] = data;
 
@@ -536,7 +533,7 @@ WRITE_HANDLER(pcw_vdu_video_control_register_w)
 WRITE_HANDLER(pcw_system_control_w)
 {
 #ifdef VERBOSE
-	logerror("SYSTEM CONTROL: %d\n",data);
+	logerror("SYSTEM CONTROL: %d\r\n",data);
 #endif
 
 	switch (data)
@@ -656,34 +653,37 @@ WRITE_HANDLER(pcw_system_control_w)
 		/* disc motor on */
 		case 9:
 		{
-			floppy_drive_set_motor_state(0,1);
-			floppy_drive_set_motor_state(1,1);
-			floppy_drive_set_ready_state(0,1,1);
-			floppy_drive_set_ready_state(1,1,1);
-		}
+                        floppy_drive_set_motor_state(0,1);
+                        floppy_drive_set_motor_state(1,1);
+                        floppy_drive_set_ready_state(0,1,1);
+                        floppy_drive_set_ready_state(1,1,1);
+
+                }
 		break;
 
 		/* disc motor off */
 		case 10:
 		{
-			floppy_drive_set_motor_state(0,0);
-			floppy_drive_set_motor_state(1,0);
-			floppy_drive_set_ready_state(0,1,1);
-			floppy_drive_set_ready_state(1,1,1);
+                        floppy_drive_set_motor_state(0,0);
+                        floppy_drive_set_motor_state(1,0);
+                        floppy_drive_set_ready_state(0,1,1);
+                        floppy_drive_set_ready_state(1,1,1);
+
+
 		}
 		break;
 
 		/* beep on */
 		case 11:
 		{
-                        beep_set_state(0,1);
+			beep_set_state(1);
 		}
 		break;
 
 		/* beep off */
 		case 12:
 		{
-                        beep_set_state(0,0);
+			beep_set_state(0);
 		}
 		break;
 
@@ -861,8 +861,7 @@ void pcw_init_machine(void)
 
 	cpu_0_irq_line_vector_w(0, 0x0ff);
 
-    floppy_drives_init();
-    nec765_init(&pcw_nec765_interface,NEC765A);
+	nec765_init(&pcw_nec765_interface,NEC765A);
 
 
 	/* ram paging is actually undefined at power-on */
@@ -883,15 +882,17 @@ void pcw_init_machine(void)
 	pcw_interrupt_counter = 0;
 
 	floppy_drive_set_geometry(0, FLOPPY_DRIVE_DS_80);
+	floppy_drive_set_geometry(1, FLOPPY_DRIVE_DS_80);
         floppy_drive_set_flag_state(0, FLOPPY_DRIVE_PRESENT, 1);
+        floppy_drive_set_flag_state(1, FLOPPY_DRIVE_PRESENT, 1);
 
 
 	roller_ram_offset = 0;
 
 	pcw_int_timer = timer_pulse(TIME_IN_HZ(300), 0, pcw_timer_interrupt);
 
-        beep_set_state(0,0);
-        beep_set_frequency(0,3750);
+	beep_set_state(0);
+	beep_set_frequency(3750);
 }
 
 void pcw_init_memory(int size)
@@ -945,8 +946,6 @@ void	init_pcw10(void)
 
 void pcw_shutdown_machine(void)
 {
-	nec765_stop();
-
 	if (pcw_ram!=NULL)
 	{
 		free(pcw_ram);
@@ -1157,10 +1156,11 @@ INPUT_PORTS_START(pcw)
 
 INPUT_PORTS_END
 
-static struct beep_interface pcw_beep_interface =
+static struct CustomSound_interface pcw_custom_interface =
 {
-	1,
-	{100}
+	beep_sh_start,
+	beep_sh_stop,
+	beep_sh_update
 };
 
 /* PCW8256, PCW8512, PCW9256 */
@@ -1206,8 +1206,8 @@ static struct MachineDriver machine_driver_pcw =
 	0,0,0,0,
 	{
 		{
-                        SOUND_BEEP,
-                        &pcw_beep_interface
+			SOUND_CUSTOM,
+			&pcw_custom_interface
 		}
 	},
 };
@@ -1255,8 +1255,8 @@ static struct MachineDriver machine_driver_pcw9512 =
 	0,0,0,0,
 	{
 		{
-                        SOUND_BEEP,
-                        &pcw_beep_interface
+			SOUND_CUSTOM,
+			&pcw_custom_interface
 		}
 	},
 };
@@ -1288,23 +1288,23 @@ ROM_PCW(pcw10)
 static const struct IODevice io_pcw[] =
 {
 	{
-		IO_FLOPPY,			/* type */
-		2,					/* count */
-		"dsk\0",            /* file extensions */
-		IO_RESET_NONE,		/* reset if file changed */
-		dsk_floppy_id,		/* id */
-		dsk_floppy_load,	/* init */
-		dsk_floppy_exit,	/* exit */
-		NULL,				/* info */
-		NULL,				/* open */
-		NULL,				/* close */
-                floppy_status,                           /* status */
-		NULL,				/* seek */
-		NULL,				/* tell */
-		NULL,				/* input */
-		NULL,				/* output */
-		NULL,				/* input_chunk */
-		NULL				/* output_chunk */
+		IO_FLOPPY,					/* type */
+		2,							/* count */
+		"dsk\0",                    /* file extensions */
+		NULL,						/* private */
+		dsk_floppy_id,			/* id */
+		dsk_floppy_load,		/* init */
+		dsk_floppy_exit,		/* exit */
+		NULL,						/* info */
+		NULL,						/* open */
+		NULL,						/* close */
+		NULL,						/* status */
+        NULL,                       /* seek */
+		NULL,						/* tell */
+        NULL,                       /* input */
+		NULL,						/* output */
+		NULL,						/* input_chunk */
+		NULL						/* output_chunk */
 	},
 	{IO_END}
 };
@@ -1317,10 +1317,10 @@ static const struct IODevice io_pcw[] =
 
 /* these are all variants on the pcw design */
 /* major difference is memory configuration and drive type */
-/*	  YEAR	NAME	  PARENT	MACHINE   INPUT INIT	COMPANY 	   FULLNAME */
-COMP( 198?, pcw8256,   0,		pcw,	  pcw,	pcw8256,"Amstrad plc", "PCW8256")
-COMP( 198?, pcw8512,   pcw8256, pcw,	  pcw,	pcw8512,"Amstrad plc", "PCW8512")
-COMP( 198?, pcw9256,   pcw8256, pcw,	  pcw,	pcw9256,"Amstrad plc", "PCW9256")
-COMP( 198?, pcw9512,   pcw8256, pcw9512,  pcw,	pcw9512,"Amstrad plc", "PCW9512 (+)")
-COMP( 198?, pcw10,	   pcw8256, pcw9512,  pcw,	pcw10,	"Amstrad plc", "PCW10")
+/*	  YEAR	NAME	  PARENT	MACHINE   INPUT 	INIT COMPANY   FULLNAME */
+COMP( 198?, pcw8256,   0,		pcw,		pcw,	pcw8256,	 "Amstrad plc", "PCW8256")
+COMP( 198?, pcw8512,   pcw8256,		pcw,		pcw,	pcw8512,	 "Amstrad plc", "PCW8512")
+COMP( 198?, pcw9256,   pcw8256,		pcw,		pcw,	pcw9256,	 "Amstrad plc", "PCW9256")
+COMP( 198?, pcw9512,   pcw8256,		pcw9512,	pcw,	pcw9512,	 "Amstrad plc", "PCW9512 (+)")
+COMP( 198?, pcw10,	   pcw8256,		pcw9512,	pcw,	pcw10,	 "Amstrad plc", "PCW10")
 

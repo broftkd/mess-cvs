@@ -4,8 +4,9 @@
 #include "unzip.h"
 #include "osdepend.h"	/* for CLIB_DECL */
 #include <stdarg.h>
-#ifdef macintosh
-#	include "macromcmp.h"
+#ifdef macintosh	/* JB 981117 */
+#	include "mac_dos.h"
+#	include "stat.h"
 #else
 #ifndef WIN32
 #   include <dirent.h>
@@ -19,12 +20,13 @@
 
 #define MAX_FILES 100
 
-#ifndef MAX_FILENAME_LEN
-#define MAX_FILENAME_LEN 12	/* increase this if you are using a real OS... */
-#endif
+#ifdef macintosh	/* JB 981117 */
 
-#ifndef PATH_DELIM
-#define PATH_DELIM '/'
+static int errno = 0;
+#define MAX_FILENAME_LEN 31
+
+#else
+#define MAX_FILENAME_LEN 12	/* increase this if you are using a real OS... */
 #endif
 
 
@@ -36,27 +38,24 @@ void CLIB_DECL logerror(const char *text,...)
 
 /* compare modes when one file is twice as long as the other */
 /* A = All file */
-/* BS = All file, byte swapped */
 /* 1 = 1st half */
 /* 2 = 2nd half */
 /* E = Even bytes */
-/* O = Odd bytes */
+/* O = Odd butes */
 /* E1 = Even bytes 1st half */
-/* O1 = Odd bytes 1st half */
+/* O1 = Odd butes 1st half */
 /* E2 = Even bytes 2nd half */
-/* O2 = Odd bytes 2nd half */
-enum {	MODE_A_A, MODE_A_BS,
-		MODE_12_A, MODE_22_A, MODE_E_A, MODE_O_A,
-		MODE_14_A, MODE_24_A, MODE_34_A, MODE_44_A,
-		MODE_E1_A, MODE_O1_A, MODE_E2_A, MODE_O2_A,
-		MODE_A_12, MODE_A_22, MODE_A_E, MODE_A_O,
-		MODE_A_14, MODE_A_24, MODE_A_34, MODE_A_44,
-		MODE_A_E1, MODE_A_O1, MODE_A_E2, MODE_A_O2,
+/* O2 = Odd butes 2nd half */
+enum {	MODE_A_A, MODE_12_A, MODE_22_A, MODE_E_A, MODE_O_A,
+		          MODE_14_A, MODE_24_A, MODE_34_A, MODE_44_A,
+		          MODE_E1_A, MODE_O1_A, MODE_E2_A, MODE_O2_A,
+		          MODE_A_12, MODE_A_22, MODE_A_E, MODE_A_O,
+		          MODE_A_14, MODE_A_24, MODE_A_34, MODE_A_44,
+		          MODE_A_E1, MODE_A_O1, MODE_A_E2, MODE_A_O2,
 		TOTAL_MODES };
 char *modenames[][2] =
 {
 	{ "          ", "          " },
-	{ "          ", "[byteswap]" },
 	{ "[1/2]     ", "          " },
 	{ "[2/2]     ", "          " },
 	{ "[even]    ", "          " },
@@ -259,7 +258,7 @@ static float filecompare(const struct fileinfo *file1,const struct fileinfo *fil
 		file2 = temp;
 	}
 
-	if (mode == MODE_A_A || mode == MODE_A_BS)
+	if (mode == MODE_A_A)
 	{
 		if (file1->size != file2->size) return 0.0;
 	}
@@ -280,14 +279,6 @@ static float filecompare(const struct fileinfo *file1,const struct fileinfo *fil
 			for (i = 0;i < file2->size;i++)
 			{
 				if (file1->buf[i] == file2->buf[i]) match++;
-			}
-			score = (float)match/file2->size;
-			break;
-
-		case MODE_A_BS:
-			for (i = 0;i < file2->size;i++)
-			{
-				if (file1->buf[i] == file2->buf[i^1]) match++;
 			}
 			score = (float)match/file2->size;
 			break;
@@ -364,9 +355,12 @@ static void readfile(const char *path,struct fileinfo *file)
 
 	if (path)
 	{
-		char delim[2] = { PATH_DELIM, '\0' };
 		strcpy(fullname,path);
-		strcat(fullname,delim);
+#ifdef macintosh	/* JB 981117 */
+		strcat(fullname,":");
+#else
+		strcat(fullname,"/");
+#endif
 	}
 	else fullname[0] = 0;
 	strcat(fullname,file->name);
@@ -379,12 +373,18 @@ static void readfile(const char *path,struct fileinfo *file)
 
 	if ((f = fopen(fullname,"rb")) == 0)
 	{
+#ifdef macintosh	/* JB 981117 */
+		errno = fnfErr;
+#endif
 		printf("%s: %s\n",fullname,strerror(errno));
 		return;
 	}
 
 	if (fread(file->buf,1,file->size,f) != file->size)
 	{
+#ifdef macintosh	/* JB 981117 */
+		errno = fnfErr;
+#endif
 		printf("%s: %s\n",fullname,strerror(errno));
 		fclose(f);
 		return;
@@ -419,6 +419,9 @@ static int load_files(int i, int *found, const char *path)
 
 	if (stat(path,&st) != 0)
 	{
+#ifdef macintosh
+		errno = fnfErr;
+#endif
 		printf("%s: %s\n",path,strerror(errno));
 		return 10;
 	}
@@ -437,7 +440,7 @@ static int load_files(int i, int *found, const char *path)
 				char buf[255+1];
 				struct stat st_file;
 
-				sprintf(buf, "%s%c%s", path, PATH_DELIM, d->d_name);
+				sprintf(buf, "%s/%s", path, d->d_name);
 				if(stat(buf, &st_file) == 0 && S_ISREG(st_file.st_mode))
 				{
 					unsigned size = st_file.st_size;
@@ -627,8 +630,7 @@ int CLIB_DECL main(int argc,char **argv)
 					matchscore[besti][bestj][bestmode] = 0.0;
 					for (mode = 0;mode < TOTAL_MODES;mode++)
 					{
-						if (bestmode == MODE_A_A || bestmode == MODE_A_BS ||
-								mode == bestmode ||
+						if (bestmode == MODE_A_A || mode == bestmode ||
 								(bestmode >= MODE_12_A && bestmode <= MODE_O_A &&
 								((mode-MODE_12_A)&~1) != ((bestmode-MODE_12_A)&~1)) ||
 								(bestmode >= MODE_14_A && bestmode <= MODE_44_A &&

@@ -186,14 +186,14 @@ void sound_command_w_callback(int data)
 }
 
 
-static WRITE_HANDLER(sound_command_w)
+WRITE_HANDLER(sound_command_w)
 {
 	if (!(data & 0x00ff0000))
 		timer_set(TIME_NOW, data & 0xff, sound_command_w_callback);
 }
 
 
-static READ_HANDLER(sound_command_r)
+READ_HANDLER(sound_command_r)
 {
 	sound_busy = 0;
 	cpu_set_irq_line(1, 0, (ym2151_irq | sound_busy) ? ASSERT_LINE : CLEAR_LINE);
@@ -201,7 +201,7 @@ static READ_HANDLER(sound_command_r)
 }
 
 
-static READ_HANDLER(sound_busy_r)
+READ_HANDLER(sound_busy_r)
 {
 	return sound_busy;
 }
@@ -657,7 +657,7 @@ static struct UPD7759_interface upd7759_interface =
  *
  *************************************/
 
-static const struct MachineDriver machine_driver_rpunch =
+static struct MachineDriver machine_driver_rpunch =
 {
 	/* basic machine hardware */
 	{

@@ -10,6 +10,8 @@
 #include "vidhrdw/generic.h"
 
 unsigned char *missile_videoram;
+int missile_flipscreen;
+static int screen_flipped;
 
 
 /***************************************************************************
@@ -25,6 +27,7 @@ int missile_vh_start(void)
 		return 1;
 
 	memset (missile_videoram, 0, 256 * 256);
+	missile_flipscreen = 0x40;
 	return 0;
 }
 
@@ -41,13 +44,20 @@ void missile_vh_stop(void)
 }
 
 /********************************************************************************************/
-READ_HANDLER( missile_video_r )
+int missile_video_r (int address)
 {
-	return (missile_videoram[offset] & 0xe0);
+	return (missile_videoram[address] & 0xe0);
 }
 
 /********************************************************************************************/
-static void missile_blit_w (offs_t offset)
+/* This routine is called when the flipscreen bit changes. It forces a redraw of the entire bitmap. */
+void missile_flip_screen (void)
+{
+	screen_flipped = 1;
+}
+
+/********************************************************************************************/
+void missile_blit_w (int offset)
 {
 	int x, y;
 	int bottom;
@@ -62,7 +72,7 @@ static void missile_blit_w (offs_t offset)
 		bottom = 0;
 
 	/* cocktail mode */
-	if (flip_screen)
+	if (missile_flipscreen)
 	{
 		y = Machine->scrbitmap->height - 1 - y;
 	}
@@ -75,24 +85,24 @@ static void missile_blit_w (offs_t offset)
 }
 
 /********************************************************************************************/
-WRITE_HANDLER( missile_video_w )
+void missile_video_w (int address,int data)
 {
 	/* $0640 - $4fff */
 	int wbyte, wbit;
 	unsigned char *RAM = memory_region(REGION_CPU1);
 
 
-	if (offset < 0xf800)
+	if (address < 0xf800)
 	{
-		missile_videoram[offset] = data;
-		missile_blit_w (offset);
+		missile_videoram[address] = data;
+		missile_blit_w (address);
 	}
 	else
 	{
-		missile_videoram[offset] = (missile_videoram[offset] & 0x20) | data;
-		missile_blit_w (offset);
-		wbyte = ((offset - 0xf800) >> 2) & 0xfffe;
-		wbit = (offset - 0xf800) % 8;
+		missile_videoram[address] = (missile_videoram[address] & 0x20) | data;
+		missile_blit_w (address);
+		wbyte = ((address - 0xf800) >> 2) & 0xfffe;
+		wbit = (address - 0xf800) % 8;
 		if(data & 0x20)
 			RAM[0x401 + wbyte] |= (1 << wbit);
 		else
@@ -108,7 +118,7 @@ WRITE_HANDLER( missile_video2_w )
 }
 
 /********************************************************************************************/
-WRITE_HANDLER( missile_video_mult_w )
+void missile_video_mult_w (int address, int data)
 {
 	/*
 		$1900 - $3fff
@@ -120,20 +130,20 @@ WRITE_HANDLER( missile_video_mult_w )
 	*/
 
 	data = (data & 0x80) + ((data & 8) << 3);
-	offset = offset << 2;
+	address = address << 2;
 
 	/* If this is the bottom 8 lines of the screen, set the 3rd color bit */
-	if (offset >= 0xf800) data |= 0x20;
+	if (address >= 0xf800) data |= 0x20;
 
-	missile_videoram[offset]     = data;
-	missile_videoram[offset + 1] = data;
-	missile_videoram[offset + 2] = data;
-	missile_videoram[offset + 3] = data;
+	missile_videoram[address]     = data;
+	missile_videoram[address + 1] = data;
+	missile_videoram[address + 2] = data;
+	missile_videoram[address + 3] = data;
 
-	missile_blit_w (offset);
-	missile_blit_w (offset + 1);
-	missile_blit_w (offset + 2);
-	missile_blit_w (offset + 3);
+	missile_blit_w (address);
+	missile_blit_w (address + 1);
+	missile_blit_w (address + 2);
+	missile_blit_w (address + 3);
 }
 
 
@@ -142,19 +152,19 @@ WRITE_HANDLER( missile_video_3rd_bit_w )
 {
 	int i;
 	unsigned char *RAM = memory_region(REGION_CPU1);
-	offset = offset + 0x400;
+	int address = offset + 0x400;
 
 	/* This is needed to make the scrolling text work properly */
-	RAM[offset] = data;
+	RAM[address] = data;
 
-	offset = ((offset - 0x401) << 2) + 0xf800;
+	address = ((address - 0x401) << 2) + 0xf800;
 	for (i=0; i<8; i++)
 	{
 		if (data & (1 << i))
-			missile_videoram[offset + i] |= 0x20;
+			missile_videoram[address + i] |= 0x20;
 		else
-			missile_videoram[offset + i] &= 0xc0;
-		missile_blit_w (offset + i);
+			missile_videoram[address + i] &= 0xc0;
+		missile_blit_w (address + i);
 	}
 }
 
@@ -162,11 +172,13 @@ WRITE_HANDLER( missile_video_3rd_bit_w )
 /********************************************************************************************/
 void missile_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 {
-	if (palette_recalc() || full_refresh)
-	{
-		int offs;
+	int address;
 
-		for (offs = 0x1900; offs <= 0xffff; offs++)
-			missile_blit_w (offs);
+	if (palette_recalc() || full_refresh || screen_flipped)
+	{
+		for (address = 0x1900; address <= 0xffff; address++)
+			missile_blit_w (address);
+
+		screen_flipped = 0;
 	}
 }

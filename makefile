@@ -6,7 +6,7 @@ TARGET = mame
 # TARGET = tiny
 
 # uncomment next line to include the debugger
-# DEBUG = 1
+DEBUG = 1
 
 # uncomment next line to include the symbols for symify
 # SYMBOLS = 1
@@ -32,12 +32,6 @@ LD = @gcc
 #ASM = @nasm
 ASM = @nasmw
 ASMFLAGS = -f coff
-MD = -mkdir
-RM = @rm -f
-
-# Utility source path
-UTIL = src/util
-MAKELIST = $(UTIL)/makelist$(EXE)
 
 ifdef DEBUG
 NAME = $(TARGET)d
@@ -111,14 +105,12 @@ nozlib:
 	@echo Missing zlib library! Get it from http://www.cdrom.com/pub/infozip/zlib/
 endif
 
-OBJDIRS = $(OBJ) $(OBJ)/cpu $(OBJ)/sound $(OBJ)/msdos \
-	$(OBJ)/drivers $(OBJ)/machine $(OBJ)/vidhrdw $(OBJ)/sndhrdw
-ifdef MESS
-OBJDIRS += $(OBJ)/mess $(OBJ)/mess/systems $(OBJ)/mess/machine \
-	$(OBJ)/mess/vidhrdw $(OBJ)/mess/sndhrdw $(OBJ)/mess/tools
+#if obj subdirectory doesn't exist, create the tree before proceeding
+ifeq ($(wildcard $(OBJ)),)
+noobj: maketree all
 endif
 
-all:	maketree $(EMULATOR) extra
+all:	$(EMULATOR) extra
 
 # include the various .mak files
 include src/core.mak
@@ -133,7 +125,7 @@ DBGDEFS =
 DBGOBJS =
 endif
 
-extra:	romcmp$(EXE) $(MAKELIST) $(TOOLS) $(TEXTS)
+extra:	romcmp$(EXE) $(TOOLS) $(TEXTS)
 
 # combine the various definitions to one
 CDEFS = $(DEFS) $(COREDEFS) $(CPUDEFS) $(SOUNDDEFS) $(ASMDEFS) $(DBGDEFS)
@@ -144,24 +136,12 @@ $(EMULATOR): $(OBJS) $(COREOBJS) $(OSOBJS) $(LIBS) $(DRVLIBS)
 	@echo Linking $@...
 	$(LD) $(LDFLAGS) $(OBJS) $(COREOBJS) $(OSOBJS) $(LIBS) $(DRVLIBS) -o $@
 ifndef DEBUG
-	upx $(EMULATOR)
+#	upx $(EMULATOR)
 endif
 
 romcmp$(EXE): $(OBJ)/romcmp.o $(OBJ)/unzip.o
 	@echo Linking $@...
 	$(LD) $(LDFLAGS) $^ -lz -o $@
-
-src/cpuintrf.h src/cpuintrf.c: src/rules.mak $(MAKELIST)
-	@echo Checking CPU core build rules...
-	@$(MAKELIST) src/cpuintrf.h src/cpuintrf.c src/rules.mak
-
-src/sndintrf.h src/sndintrf.c: src/rules.mak $(MAKELIST)
-	@echo Checking sound chip build rules...
-	@$(MAKELIST) src/sndintrf.h src/sndintrf.c src/rules.mak
-
-$(MAKELIST): $(UTIL)/makelist.c
-	@echo Compling $@...
-	$(CC) $(CDEFS) $(CLAGS) -o $@ $<
 
 $(OBJ)/%.o: src/%.c
 	@echo Compiling $<...
@@ -180,7 +160,7 @@ $(OBJ)/cpu/m68000/m68kmake$(EXE): src/cpu/m68000/m68kmake.c
 	@echo M68K make $<...
 	$(CC) $(CDEFS) $(CFLAGS) -DDOS -o $(OBJ)/cpu/m68000/m68kmake$(EXE) $<
 	@echo Generating M68K source files...
-	$(OBJ)/cpu/m68000/m68kmake$(EXE) $(OBJ)/cpu/m68000 src/cpu/m68000/m68k_in.c
+	$(OBJ)/cpu/m68000/m68kmake $(OBJ)/cpu/m68000 src/cpu/m68000/m68k_in.c
 
 # generate asm source files for the 68000 emulator
 $(OBJ)/cpu/m68000/68kem.asm:  src/cpu/m68000/make68k.c
@@ -196,22 +176,89 @@ $(OBJ)/cpu/m68000/68kem.o:  $(OBJ)/cpu/m68000/68kem.asm
 
 $(OBJ)/%.a:
 	@echo Archiving $@...
-	$(RM) $@
 	$(AR) cr $@ $^
 
 makedir:
 	@echo make makedir is no longer necessary, just type make
 
-$(sort $(OBJDIRS)):
-	$(MD) $@
-
-maketree: $(sort $(OBJDIRS))
+maketree:
+	@echo Making MAME object tree in $(OBJ)...
+	@md $(OBJ)
+	@md $(OBJ)\cpu
+	@md $(OBJ)\cpu\z80
+	@md $(OBJ)\cpu\z80gb
+	@md $(OBJ)\cpu\m6502
+	@md $(OBJ)\cpu\h6280
+	@md $(OBJ)\cpu\i86
+	@md $(OBJ)\cpu\nec
+	@md $(OBJ)\cpu\i8039
+	@md $(OBJ)\cpu\i8085
+	@md $(OBJ)\cpu\m6800
+	@md $(OBJ)\cpu\m6805
+	@md $(OBJ)\cpu\m6809
+	@md $(OBJ)\cpu\konami
+	@md $(OBJ)\cpu\m68000
+	@md $(OBJ)\cpu\s2650
+	@md $(OBJ)\cpu\t11
+	@md $(OBJ)\cpu\tms34010
+	@md $(OBJ)\cpu\tms9900
+	@md $(OBJ)\cpu\z8000
+	@md $(OBJ)\cpu\tms32010
+	@md $(OBJ)\cpu\ccpu
+	@md $(OBJ)\cpu\adsp2100
+	@md $(OBJ)\cpu\pdp1
+	@md $(OBJ)\cpu\mips
+	@md $(OBJ)\cpu\sc61860
+	@md $(OBJ)\cpu\arm
+	@md $(OBJ)\sound
+	@md $(OBJ)\msdos
+	@md $(OBJ)\drivers
+	@md $(OBJ)\machine
+	@md $(OBJ)\vidhrdw
+	@md $(OBJ)\sndhrdw
+ifdef MESS
+	@echo Making MESS object tree in $(OBJ)\mess...
+	@md $(OBJ)\mess
+	@md $(OBJ)\mess\systems
+	@md $(OBJ)\mess\machine
+	@md $(OBJ)\mess\vidhrdw
+	@md $(OBJ)\mess\sndhrdw
+	@md $(OBJ)\mess\tools
+endif
 
 clean:
 	@echo Deleting object tree $(OBJ)...
-	$(RM) -r $(OBJ)
-	@echo Deleting $(UTIL)/makelist$(EXE)...
-	$(RM) -r $(UTIL)/makelist$(EXE)
+	deltree /Y $(OBJ)
 	@echo Deleting $(EMULATOR)...
-	$(RM) $(EMULATOR)
+	@del $(EMULATOR)
+
+cleandebug:
+	@echo Deleting debug obj tree...
+	@del $(OBJ)\*.o
+	@del $(OBJ)\cpu\z80\*.o
+	@del $(OBJ)\cpu\z80gb\*.o
+	@del $(OBJ)\cpu\m6502\*.o
+	@del $(OBJ)\cpu\h6280\*.o
+	@del $(OBJ)\cpu\i86\*.o
+	@del $(OBJ)\cpu\nec\*.o
+	@del $(OBJ)\cpu\i8039\*.o
+	@del $(OBJ)\cpu\i8085\*.o
+	@del $(OBJ)\cpu\m6800\*.o
+	@del $(OBJ)\cpu\m6805\*.o
+	@del $(OBJ)\cpu\m6809\*.o
+	@del $(OBJ)\cpu\konami\*.o
+	@del $(OBJ)\cpu\m68000\*.o
+	@del $(OBJ)\cpu\m68000\*.c
+	@del $(OBJ)\cpu\s2650\*.o
+	@del $(OBJ)\cpu\t11\*.o
+	@del $(OBJ)\cpu\tms34010\*.o
+	@del $(OBJ)\cpu\tms9900\*.o
+	@del $(OBJ)\cpu\z8000\*.o
+	@del $(OBJ)\cpu\tms32010\*.o
+	@del $(OBJ)\cpu\ccpu\*.o
+	@del $(OBJ)\cpu\adsp2100\*.o
+	@del $(OBJ)\cpu\pdp1\*.o
+	@del $(OBJ)\cpu\mips\*.o
+	@del $(OBJ)\cpu\arm\*.o
+	@del $(EMULATOR)
 

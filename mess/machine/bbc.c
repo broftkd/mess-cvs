@@ -127,11 +127,10 @@ B7 - Operates the SHIFT lock LED (Pin 16 keyboard connector)
 #include "driver.h"
 #include "cpu/m6502/m6502.h"
 #include "machine/6522via.h"
-#include "includes/wd179x.h"
-#include "includes/bbc.h"
+#include "machine/wd179x.h"
+#include "machine/bbc.h"
 #include "vidhrdw/bbc.h"
-#include "includes/i8271.h"
-#include "includes/basicdsk.h"
+#include "i8271.h"
 
 static int b0_sound;
 static int b1_speech_read;
@@ -459,42 +458,25 @@ bbcb_user_via= {
 };
 
 
+static UINT8 first_fdc_access = 1;
 static UINT8 motor_drive = 0;
 static short motor_count = 0;
-static UINT8 head=0;
+static UINT8 head[4]={0,};
 
 
-static void bbc_fdc_callback(int);
+static int flop_specified[4] = {0,};
 
-
-static int previous_i8271_int_state;
 
 void	bbc_i8271_interrupt(int state)
 {
-	/* I'm assuming that the nmi is edge triggered */
-	/* a interrupt from the fdc will cause a change in line state, and
-	the nmi will be triggered, but when the state changes because the int
-	is cleared this will not cause another nmi */
-	/* I'll emulate it like this to be sure */
-	
-	if (state!=previous_i8271_int_state)
-	{
-		if (state)
-		{
-			/* I'll pulse it because if I used hold-line I'm not sure
-			it would clear - to be checked */
-			cpu_set_nmi_line(0, PULSE_LINE);
-		}
-	}
-
-	previous_i8271_int_state = state;
+	cpu_set_nmi_line(0, state);
 }
 
 
 static i8271_interface bbc_i8271_interface=
 {
-	bbc_i8271_interrupt,
-    NULL
+	//bbc_i8271_interrupt,
+	NULL
 };
 
 
@@ -535,8 +517,11 @@ void init_machine_bbcb(void)
 	via_reset();
 	bbcb_IC32_initialise();
 
-    floppy_drives_init();
-	wd179x_init(bbc_fdc_callback);
+	if( flop_specified[0] )
+		wd179x_init(1);
+	else
+		wd179x_init(0);
+	first_fdc_access=1;
 
 	i8271_init(&bbc_i8271_interface);
 	i8271_reset();
@@ -546,22 +531,23 @@ void init_machine_bbcb(void)
 void stop_machine_bbcb(void)
 {
 	wd179x_stop_drive();
-    i8271_stop();
 }
+
 
 /* load floppy */
 int bbc_floppy_init(int id)
 {
-	if (basicdsk_floppy_init(id)==INIT_OK)
-	{
-		/* sector id's 0-9 */
-		/* drive, tracks, heads, sectors per track, sector length, dir_sector, dir_length, first sector id */
-		basicdsk_set_geometry(id,80,1,10,256,0);
+	/* load disk image */
+    flop_specified[id] = device_filename(IO_FLOPPY,id) != NULL;
+    return 0;
+}
 
-		return INIT_OK;
-	}
 
-	return INIT_FAILED;
+void bbc_floppy_exit(int id)
+{
+	wd179x_stop_drive();
+	flop_specified[id] = 0;
+	first_fdc_access=1;
 }
 
 void check_disc_status(void)
@@ -573,16 +559,29 @@ void check_disc_status(void)
 void bbc_wd179x_status_w(int offset,int data)
 {
 	UINT8 drive = 255;
+	void *file0;
 
 	drive = 0;
-        head=0;
+	head[drive]=0;
+	if (!flop_specified[drive])
+		return;
 
 	motor_drive=drive;
 	motor_count=5*60;
 
-	wd179x_set_drive(drive);
-        wd179x_set_side(head);
+	file0=wd179x_select_drive(drive,head[drive],bbc_fdc_callback,device_filename(IO_FLOPPY,drive));
 
+	if (!file0)
+		return;
+
+	first_fdc_access=0;
+
+	if (file0 == REAL_FDD)
+		return;
+
+	wd179x_set_geometry(drive,80,1,10,256,0,2,0);
+
+	wd179x_select_drive(drive,head[drive],bbc_fdc_callback,device_filename(IO_FLOPPY,drive));
 }
 
 READ_HANDLER ( bbc_wd1770_read)

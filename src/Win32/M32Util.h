@@ -16,7 +16,7 @@
 #define RECT_WIDTH(r)   (r.right  - r.left)
 #define RECT_HEIGHT(r)  (r.bottom - r.top)
 
-extern BOOL bErrorMsgBox;
+extern BOOL     bErrorMsgBox;
 
 extern void __cdecl ErrorMsg(const char* fmt, ...);
 
@@ -28,11 +28,10 @@ extern UINT GetDepth(HWND hWnd);
 extern BOOL OnNT(void);
 
 /* Open a text file */
-extern void DisplayTextFile(HWND hWnd, char *cName);
+void    DisplayTextFile(HWND hWnd, char *cName);
 
 /* Check for old version of comctl32.dll */
-extern BOOL GetDllVersion(void);
+BOOL    GetDllVersion(void);
 
-extern char* MyStrStrI(const char* pFirst, const char* pSrch);
 
 #endif

@@ -601,13 +601,13 @@ static struct CustomSound_interface asteroid_custom_interface = {
 	asteroid_sh_update
 };
 
-static const struct MachineDriver machine_driver_asteroid =
+static struct MachineDriver machine_driver_asteroid =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			1500000,	/* 1.5 MHz */
+			1500000,	/* 1.5 Mhz */
 			asteroid_readmem,asteroid_writemem,0,0,
 			asteroid_interrupt,4	/* 250 Hz */
 		}
@@ -622,7 +622,7 @@ static const struct MachineDriver machine_driver_asteroid =
 	256+32768, 0,
 	avg_init_palette_white,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	dvg_start,
 	dvg_stop,
@@ -638,13 +638,13 @@ static const struct MachineDriver machine_driver_asteroid =
 	}
 };
 
-static const struct MachineDriver machine_driver_asteroib =
+static struct MachineDriver machine_driver_asteroib =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			1500000,	/* 1.5 MHz */
+			1500000,	/* 1.5 Mhz */
 			asteroib_readmem,asteroid_writemem,0,0,
 			asteroid_interrupt,4	/* 250 Hz */
 		}
@@ -659,7 +659,7 @@ static const struct MachineDriver machine_driver_asteroib =
 	256+32768, 0,
 	avg_init_palette_white,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	dvg_start,
 	dvg_stop,
@@ -701,13 +701,13 @@ static struct CustomSound_interface astdelux_custom_interface = {
 	astdelux_sh_update
 };
 
-static const struct MachineDriver machine_driver_astdelux =
+static struct MachineDriver machine_driver_astdelux =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			1500000,	/* 1.5 MHz */
+			1500000,	/* 1.5 Mhz */
 			astdelux_readmem,astdelux_writemem,0,0,
 			asteroid_interrupt,4	/* 250 Hz */
 		}
@@ -722,7 +722,7 @@ static const struct MachineDriver machine_driver_astdelux =
 	256+32768, 0,
 	avg_init_palette_astdelux,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	dvg_start,
 	dvg_stop,
@@ -753,13 +753,13 @@ static struct CustomSound_interface llander_custom_interface =
 };
 
 
-static const struct MachineDriver machine_driver_llander =
+static struct MachineDriver machine_driver_llander =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			1500000,			/* 1.5 MHz */
+			1500000,			/* 1.5 Mhz */
 			llander_readmem, llander_writemem,0,0,
 			llander_interrupt,6	/* 250 Hz */
 		}
@@ -774,7 +774,7 @@ static const struct MachineDriver machine_driver_llander =
 	256+32768, 0,
 	llander_init_colors,
 
-	VIDEO_TYPE_VECTOR | VIDEO_SUPPORTS_DIRTY,
+	VIDEO_TYPE_VECTOR,
 	0,
 	llander_start,
 	llander_stop,

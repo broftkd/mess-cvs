@@ -1063,7 +1063,7 @@ void m92_sprite_interrupt(void)
 	cpu_cause_interrupt(0,M92_IRQ_3);
 }
 
-static const struct MachineDriver machine_driver_raster =
+static struct MachineDriver machine_driver_raster =
 {
 	/* basic machine hardware */
 	{
@@ -1111,7 +1111,7 @@ static const struct MachineDriver machine_driver_raster =
 #endif
 };
 
-static const struct MachineDriver machine_driver_nonraster =
+static struct MachineDriver machine_driver_nonraster =
 {
 	/* basic machine hardware */
 	{
@@ -1159,7 +1159,7 @@ static const struct MachineDriver machine_driver_nonraster =
 #endif
 };
 
-static const struct MachineDriver machine_driver_lethalth =
+static struct MachineDriver machine_driver_lethalth =
 {
 	/* basic machine hardware */
 	{
@@ -1207,7 +1207,7 @@ static const struct MachineDriver machine_driver_lethalth =
 #endif
 };
 
-static const struct MachineDriver machine_driver_psoldier =
+static struct MachineDriver machine_driver_psoldier =
 {
 	/* basic machine hardware */
 	{

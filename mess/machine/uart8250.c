@@ -47,7 +47,7 @@ typedef struct {
 	} send;
 } UART8250;
 
-UART8250 uart[4]={ { { TYPE8250 } } };
+UART8250 uart[4]={ { { 0 } } };
 
 /* int's pending */
 #define COM_INT_PENDING_RECEIVED_DATA_AVAILABLE	0x0001
@@ -263,8 +263,6 @@ int uart8250_r(int n, int idx)
 {
 	int data = 0x0ff;
 
-        COM_LOG(1,"COM_r",("COM%d $%02x:\n",
-                                        n+1));
 
 	switch (idx)
 	{

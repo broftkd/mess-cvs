@@ -8,7 +8,8 @@
 
 #include "driver.h"
 #include "cpu/z80/z80.h"
-#include "includes/astrocde.h"
+
+extern void AstrocadeCopyLine(int Line);
 
 /****************************************************************************
  * Scanline Interrupt System
@@ -43,7 +44,7 @@ int astrocade_id_rom(int id)
 	return 0;
 }
 
-WRITE_HANDLER ( astrocade_interrupt_enable_w )
+void astrocade_interrupt_enable_w(int offset, int data)
 {
 
 	screen_interrupts_enabled = data & 0x08;
@@ -56,7 +57,7 @@ WRITE_HANDLER ( astrocade_interrupt_enable_w )
 #endif
 }
 
-WRITE_HANDLER ( astrocade_interrupt_w )
+void astrocade_interrupt_w(int offset, int data)
 {
 	/* A write to 0F triggers an interrupt at that scanline */
 
@@ -79,7 +80,7 @@ int astrocade_interrupt(void)
 		CurrentScan = 0;
     }
 
-    if (CurrentScan < 204) astrocade_copy_line(CurrentScan);
+    if (CurrentScan < 204) AstrocadeCopyLine(CurrentScan);
 
     /* Scanline interrupt enabled ? */
 

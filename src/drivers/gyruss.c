@@ -495,32 +495,32 @@ static struct DACinterface dac_interface =
 
 
 
-static const struct MachineDriver machine_driver_gyruss =
+static struct MachineDriver machine_driver_gyruss =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			3072000,	/* 3.072 MHz (?) */
+			3072000,	/* 3.072 Mhz (?) */
 			readmem,writemem,0,0,
 			nmi_interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			14318180/4,	/* 3.579545 MHz */
+			14318180/4,	/* 3.579545 Mhz */
 			sound_readmem,sound_writemem,sound_readport,sound_writeport,
 			ignore_interrupt,1	/* interrupts are triggered by the main CPU */
 		},
 		{
 			CPU_I8039 | CPU_AUDIO_CPU,
-			8000000/15,	/* 8MHz crystal */
+			8000000/15,	/* 8Mhz crystal */
 			i8039_readmem,i8039_writemem,i8039_readport,i8039_writeport,
 			ignore_interrupt,1
 		},
 #ifdef EMULATE_6809
 		{
 			CPU_M6809,
-			2000000,        /* 2 MHz ??? */
+			2000000,        /* 2 Mhz ??? */
 			m6809_readmem,m6809_writemem,0,0,
 			interrupt,1
 		},
@@ -541,7 +541,7 @@ static const struct MachineDriver machine_driver_gyruss =
 	32,16*4+16*16,
 	gyruss_vh_convert_color_prom,
 
-	VIDEO_TYPE_RASTER,
+	VIDEO_TYPE_RASTER|VIDEO_SUPPORTS_DIRTY,
 	0,
 	generic_vh_start,
 	generic_vh_stop,

@@ -151,9 +151,6 @@ static net_options  netOpts;/* Network options */
 /* Global UI options */
 REG_OPTIONS regSettings[] = {
     {"DefaultGame",     RO_STRING,  settings.default_game,      0, 0},
-#ifdef MESS
-    {"DefaultSoftware", RO_PSTRING, &settings.default_software, 0, 0},
-#endif
     {"FolderID",        RO_INT,     &settings.folder_id,        0, 0},
     {"ShowScreenShot",  RO_BOOL,    &settings.show_screenshot,  0, 0},
 	{"ShowFlyer",		RO_INT,		&settings.show_pict_type,		0, 0},
@@ -175,7 +172,7 @@ REG_OPTIONS regSettings[] = {
 
     {"RomDirs",         RO_PSTRING, &settings.romdirs,          0, 0},
     {"SampleDirs",      RO_PSTRING, &settings.sampledirs,       0, 0},
-#ifdef MESS
+#ifdef MESS_PICKER
     {"SoftwareDirs",    RO_PSTRING, &settings.softwaredirs,     0, 0},
 #endif
     {"CfgDir",          RO_PSTRING, &settings.cfgdir,           0, 0},
@@ -187,7 +184,6 @@ REG_OPTIONS regSettings[] = {
 	{"MemcardDir",		RO_PSTRING, &settings.memcarddir,		0, 0},
 	{"FlyerDir",	 	RO_PSTRING, &settings.flyerdir,	    	0, 0},
 	{"CabinetDir",	 	RO_PSTRING, &settings.cabinetdir,   	0, 0},
-	{"MarqueeDir",	 	RO_PSTRING, &settings.marqueedir,   	0, 0},
 	{"NVRAMDir",	 	RO_PSTRING, &settings.nvramdir,     	0, 0},
     /* ListMode needs to be before ColumnWidths settings */
     {"ListMode",        RO_ENCODE,  &settings.view,             ListEncodeString,       ListDecodeString},
@@ -196,7 +192,7 @@ REG_OPTIONS regSettings[] = {
     {"ColumnWidths",    RO_ENCODE,  &settings.column_width,     ColumnEncodeString,     ColumnDecodeWidths},
     {"ColumnOrder",     RO_ENCODE,  &settings.column_order,     ColumnEncodeString,     ColumnDecodeString},
     {"ColumnShown",     RO_ENCODE,  &settings.column_shown,     ColumnEncodeString,     ColumnDecodeString},
-#ifdef MESS
+#ifdef MESS_PICKER
     {"MessColumnWidths",    RO_ENCODE,  &settings.mess_column_width,     ColumnEncodeString,     ColumnDecodeWidths},
     {"MessColumnOrder",     RO_ENCODE,  &settings.mess_column_order,     ColumnEncodeString,     ColumnDecodeString},
     {"MessColumnShown",     RO_ENCODE,  &settings.mess_column_shown,     ColumnEncodeString,     ColumnDecodeString},
@@ -282,7 +278,7 @@ static int default_column_shown[] = {   1,  0,  1,  1,  1,  1,  1,  1,  1,  1 };
 // Hidden columns need to go at the end of the order array
 static int default_column_order[] = {   0,  2,  3,  4,  5,  6,  7,  8,  9,  1 };
 
-#ifdef MESS
+#ifdef MESS_PICKER
 static int default_mess_column_width[] = { 186, 68, 84, 84 };
 static int default_mess_column_shown[] = {   1,  0,  0,  0 };
 static int default_mess_column_order[] = {   0,  1,  2,  3 };
@@ -297,12 +293,6 @@ The current version is %s. It is recommended that the\n\
 configuration is set to the new defaults.\n\n\
 Would you like to use the new configuration?";
 
-#ifdef MESS
-#define DEFAULT_GAME "nes"
-#else
-#define DEFAULT_GAME "pacman"
-#endif
-
 /***************************************************************************
     External functions  
  ***************************************************************************/
@@ -313,10 +303,7 @@ void OptionsInit(int total_games)
 
     num_games = total_games;
 
-    strcpy(settings.default_game, DEFAULT_GAME);
-#ifdef MESS
-	settings.default_software = NULL;
-#endif
+    strcpy(settings.default_game, "pacman");
     settings.folder_id       = 0;
     settings.view            = VIEW_REPORT;
     settings.show_folderlist = TRUE;
@@ -334,7 +321,7 @@ void OptionsInit(int total_games)
         settings.column_shown[i] = default_column_shown[i];
     }
 
-#ifdef MESS
+#ifdef MESS_PICKER
     for (i = 0; i < MESS_COLUMN_MAX; i++)
     {
         settings.mess_column_width[i] = default_mess_column_width[i];
@@ -347,7 +334,7 @@ void OptionsInit(int total_games)
     settings.sort_reverse= FALSE;
     settings.area.x      = 0;
     settings.area.y      = 0;
-#ifdef MESS
+#ifdef MESS_PICKER
     settings.area.width  = 790;
 #else
     settings.area.width  = 640;
@@ -355,7 +342,7 @@ void OptionsInit(int total_games)
     settings.area.height = 400;
     settings.splitter[0] = 150;
     settings.splitter[1] = 300;
-#ifdef MESS
+#ifdef MESS_PICKER
     settings.splitter[2] = 450;
 #endif
 
@@ -363,7 +350,7 @@ void OptionsInit(int total_games)
 
     settings.romdirs     = strdup(".;roms");
     settings.sampledirs  = strdup(".;samples");
-#ifdef MESS
+#ifdef MESS_PICKER
     settings.softwaredirs = strdup("roms;software");
 #endif
     settings.cfgdir      = strdup("cfg");
@@ -375,7 +362,6 @@ void OptionsInit(int total_games)
 	settings.memcarddir  = strdup("memcard");
 	settings.flyerdir	 = strdup("flyers");
 	settings.cabinetdir	 = strdup("cabinets");
-	settings.marqueedir	 = strdup("marquees");
 	settings.nvramdir	 = strdup("nvram");
 
     settings.list_font.lfHeight         = -8;
@@ -492,7 +478,6 @@ void OptionsExit(void)
 	free(settings.memcarddir);
 	free(settings.flyerdir);
 	free(settings.cabinetdir);
-	free(settings.marqueedir);
 	free(settings.nvramdir);
 }
 
@@ -650,25 +635,6 @@ const char *GetDefaultGame(void)
     return settings.default_game;
 }
 
-#ifdef MESS
-void SetDefaultSoftware(const char *name)
-{
-    if (settings.default_software != NULL)
-    {
-        free(settings.default_software);
-        settings.default_software = NULL;
-    }
-
-    if (name != NULL)
-        settings.default_software = strdup(name);
-}
-
-const char *GetDefaultSoftware(void)
-{
-    return settings.default_software ? settings.default_software : "";
-}
-#endif
-
 void SetWindowArea(AREA *area)
 {
     memcpy(&settings.area, area, sizeof(AREA));
@@ -721,7 +687,7 @@ void GetColumnWidths(int width[])
         width[i] = settings.column_width[i];
 }
 
-#ifdef MESS
+#ifdef MESS_PICKER
 void SetMessColumnWidths(int width[])
 {
     int i;
@@ -873,7 +839,7 @@ void GetColumnShown(int shown[])
         shown[i] = settings.column_shown[i];
 }
 
-#ifdef MESS
+#ifdef MESS_PICKER
 void SetMessColumnOrder(int order[])
 {
     int i;
@@ -974,7 +940,7 @@ void SetSampleDirs(const char* paths)
         settings.sampledirs = strdup(paths);
 }
 
-#ifdef MESS
+#ifdef MESS_PICKER
 const char* GetSoftwareDirs(void)
 {
     return settings.softwaredirs;
@@ -1161,23 +1127,6 @@ void SetCabinetDir(const char* path)
 
     if (path != NULL)
         settings.cabinetdir = strdup(path);
-}
-
-const char* GetMarqueeDir(void)
-{
-    return settings.marqueedir;
-}
-
-void SetMarqueeDir(const char* path)
-{
-    if (settings.marqueedir != NULL)
-    {
-        free(settings.marqueedir);
-        settings.marqueedir = NULL;
-    }
-
-    if (path != NULL)
-        settings.marqueedir = strdup(path);
 }
 
 void ResetGameOptions(int num_game)

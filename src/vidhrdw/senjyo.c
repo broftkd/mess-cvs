@@ -29,6 +29,8 @@ static struct tilemap *fg_tilemap,*bg1_tilemap,*bg2_tilemap,*bg3_tilemap;
 static int senjyo, scrollhack;
 
 static struct osd_bitmap *bgbitmap;
+static int bgbitmap_dirty;
+static int flipscreen;
 
 
 void init_starforc(void)
@@ -141,7 +143,7 @@ int senjyo_vh_start(void)
 	bg3_tilemap->transparent_pen = 0;
 	tilemap_set_scroll_cols(fg_tilemap,32);
 
-	schedule_full_refresh();
+	bgbitmap_dirty = 1;
 
 	return 0;
 }
@@ -197,11 +199,19 @@ WRITE_HANDLER( senjyo_bg3videoram_w )
 
 WRITE_HANDLER( senjyo_bgstripes_w )
 {
-	static data_t bgstripes;
-
-	senjyo_bgstripes[offset] = data;
-	set_vh_global_attribute(&bgstripes, data);
+	if (*senjyo_bgstripes != data)
+	{
+		*senjyo_bgstripes = data;
+		bgbitmap_dirty = 1;
+	}
 }
+
+WRITE_HANDLER( senjyo_flipscreen_w )
+{
+	flipscreen = data & 0x01;
+	tilemap_set_flip(ALL_TILEMAPS,flipscreen ? (TILEMAP_FLIPX | TILEMAP_FLIPY) : 0);
+}
+
 
 /***************************************************************************
 
@@ -209,7 +219,7 @@ WRITE_HANDLER( senjyo_bgstripes_w )
 
 ***************************************************************************/
 
-static void draw_bgbitmap(struct osd_bitmap *bitmap, int full_refresh)
+static void draw_bgbitmap(struct osd_bitmap *bitmap)
 {
 	int x,y,pen,strwid,count;
 
@@ -220,17 +230,19 @@ static void draw_bgbitmap(struct osd_bitmap *bitmap, int full_refresh)
 		return;
 	}
 
-	if (full_refresh)
+	if (bgbitmap_dirty)
 	{
+		bgbitmap_dirty = 0;
+
 		pen = 0;
 		count = 0;
 		strwid = *senjyo_bgstripes;
 		if (strwid == 0) strwid = 0x100;
-		if (flip_screen) strwid ^= 0xff;
+		if (flipscreen) strwid ^= 0xff;
 
 		for (x = 0;x < 256;x++)
 		{
-			if (flip_screen)
+			if (flipscreen)
 			{
 				for (y = 0;y < 256;y++)
 				{
@@ -274,7 +286,7 @@ static void draw_radar(struct osd_bitmap *bitmap)
 					sx = (8 * (offs % 8) + x) + 256-64;
 					sy = ((offs & 0x1ff) / 8) + 96;
 
-					if (flip_screen)
+					if (flipscreen)
 					{
 						sx = 255 - sx;
 						sy = 255 - sy;
@@ -313,7 +325,7 @@ static void draw_sprites(struct osd_bitmap *bitmap,int priority)
 			flipx = spriteram[offs+1] & 0x40;
 			flipy = spriteram[offs+1] & 0x80;
 
-			if (flip_screen)
+			if (flipscreen)
 			{
 				flipx = !flipx;
 				flipy = !flipy;
@@ -358,7 +370,7 @@ void senjyo_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 
 		scrollx = senjyo_scrollx1[0];
 		scrolly = senjyo_scrolly1[0] + 256 * senjyo_scrolly1[1];
-		if (flip_screen)
+		if (flipscreen)
 			scrollx = -scrollx;
 		tilemap_set_scrollx(bg1_tilemap,0,scrollx);
 		tilemap_set_scrolly(bg1_tilemap,0,scrolly);
@@ -370,14 +382,14 @@ void senjyo_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 			scrollx = senjyo_scrollx1[0];
 			scrolly = senjyo_scrolly1[0] + 256 * senjyo_scrolly1[1];
 		}
-		if (flip_screen)
+		if (flipscreen)
 			scrollx = -scrollx;
 		tilemap_set_scrollx(bg2_tilemap,0,scrollx);
 		tilemap_set_scrolly(bg2_tilemap,0,scrolly);
 
 		scrollx = senjyo_scrollx3[0];
 		scrolly = senjyo_scrolly3[0] + 256 * senjyo_scrolly3[1];
-		if (flip_screen)
+		if (flipscreen)
 			scrollx = -scrollx;
 		tilemap_set_scrollx(bg3_tilemap,0,scrollx);
 		tilemap_set_scrolly(bg3_tilemap,0,scrolly);
@@ -399,15 +411,15 @@ void senjyo_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 	palette_used_colors[400] = PALETTE_COLOR_USED;
 	palette_used_colors[401] = PALETTE_COLOR_USED;
 
-	full_refresh |= (palette_recalc() != 0);
-	if (full_refresh)
+	if (palette_recalc())
 	{
 		tilemap_mark_all_pixels_dirty(ALL_TILEMAPS);
+		bgbitmap_dirty = 1;
 	}
 
 	tilemap_render(ALL_TILEMAPS);
 
-	draw_bgbitmap(bitmap, full_refresh);
+	draw_bgbitmap(bitmap);
 	draw_sprites(bitmap,0);
 	tilemap_draw(bitmap,bg3_tilemap,0);
 	draw_sprites(bitmap,1);

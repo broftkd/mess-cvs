@@ -1676,19 +1676,19 @@ static struct DACinterface dac_interface =
 
 
 
-static const struct MachineDriver machine_driver_nomcu =
+static struct MachineDriver machine_driver_nomcu =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			8000000/2,      /* 4 MHz */
+			8000000/2,      /* 4 Mhz */
 			readmem,writemem,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			6000000/2,      /* 3 MHz */
+			6000000/2,      /* 3 Mhz */
 			sound_readmem,sound_writemem,0,0,
 			/* interrupts: */
 			/* - no interrupts synced with vblank */
@@ -1730,19 +1730,19 @@ static const struct MachineDriver machine_driver_nomcu =
 };
 
 /* same as above, but with additional 68705 MCU */
-static const struct MachineDriver machine_driver_mcu =
+static struct MachineDriver machine_driver_mcu =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			8000000/2,      /* 4 MHz */
+			8000000/2,      /* 4 Mhz */
 			mcu_readmem,mcu_writemem,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			6000000/2,      /* 3 MHz */
+			6000000/2,      /* 3 Mhz */
 			sound_readmem,sound_writemem,0,0,
 			/* interrupts: */
 			/* - no interrupts synced with vblank */

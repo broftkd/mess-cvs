@@ -271,7 +271,7 @@ static struct YM2151interface ym2151_interface =
 	{ aliens_snd_bankswitch_w }
 };
 
-static const struct MachineDriver machine_driver_aliens =
+static struct MachineDriver machine_driver_aliens =
 {
 	/* basic machine hardware */
 	{

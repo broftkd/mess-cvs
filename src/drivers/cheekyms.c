@@ -145,13 +145,13 @@ static struct DACinterface dac_interface =
 };
 
 
-static const struct MachineDriver machine_driver_cheekyms =
+static struct MachineDriver machine_driver_cheekyms =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			5000000/2,  /* 2.5 MHz */
+			5000000/2,  /* 2.5 Mhz */
 			readmem, writemem,
 			readport, writeport,
 			cheekyms_interrupt,1

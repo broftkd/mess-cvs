@@ -10,6 +10,7 @@
 #include "vidhrdw/generic.h"
 
 static int spritectrl[3];
+static int flipscreen;
 
 int crbaloon_collision;
 
@@ -65,7 +66,11 @@ WRITE_HANDLER( crbaloon_spritectrl_w )
 
 WRITE_HANDLER( crbaloon_flipscreen_w )
 {
-	flip_screen_w(0,data & 1);
+	if (flipscreen != (data & 1))
+	{
+		flipscreen = data & 1;
+		memset(dirtybuffer,1,videoram_size);
+	}
 }
 
 /***************************************************************************
@@ -81,11 +86,6 @@ void crbaloon_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 	int offs,x,y;
 	int bx,by;
 
-
-	if (full_refresh)
-		memset(dirtybuffer,1,videoram_size);
-
-
 	/* for every character in the Video RAM, check if it has been modified */
 	/* since last time and update it accordingly. */
 	for (offs = videoram_size - 1;offs >= 0;offs--)
@@ -99,16 +99,16 @@ void crbaloon_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
 
 			sx = offs % 32;
 			sy = offs / 32;
-			if (!flip_screen)
+			if (flipscreen == 0)
 			{
 				sx = 31 - sx;
-				sy = 31 - sy;
+				sy = 35 - sy;
 			}
 
 			drawgfx(tmpbitmap,Machine->gfx[0],
 					videoram[offs],
 					colorram[offs] & 0x0f,
-					flip_screen,flip_screen,
+					flipscreen,flipscreen,
 					8*sx,8*sy,
 					&Machine->visible_area,TRANSPARENCY_NONE,0);
 		}
@@ -122,12 +122,7 @@ void crbaloon_vh_screenrefresh(struct osd_bitmap *bitmap,int full_refresh)
     /* collision occured, bitmap will be same as tmpbitmap        */
 
 	bx = spritectrl[1];
-	by = spritectrl[2] - 32;
-
-	if (flip_screen)
-	{
-		by += 32;
-	}
+	by = spritectrl[2];
 
 	drawgfx(bitmap,Machine->gfx[1],
 			spritectrl[0] & 0x0f,

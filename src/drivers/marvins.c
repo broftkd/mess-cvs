@@ -77,7 +77,7 @@ static int sound_fetched;
 
 static struct namco_interface snkwave_interface =
 {
-	23920,	/* ? (wave generator has a 8MHz clock near it) */
+	23920,	/* ? (wave generator has a 8Mhz clock near it) */
 	1,		/* number of voices */
 	8,		/* playback volume */
 	-1		/* memory region */
@@ -615,23 +615,23 @@ static struct GfxDecodeInfo marvins_gfxdecodeinfo[] =
 **
 ***************************************************************************/
 
-static const struct MachineDriver machine_driver_marvins = {
+static struct MachineDriver machine_driver_marvins = {
 	{
 		{
 			CPU_Z80,
-			3360000,	/* 3.336 MHz */
+			3360000,	/* 3.336 Mhz */
 			readmem_CPUA,writemem_CPUA,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80,
-			3360000,	/* 3.336 MHz */
+			3360000,	/* 3.336 Mhz */
 			marvins_readmem_CPUB,marvins_writemem_CPUB,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,	/* 4.0 MHz */
+			4000000,	/* 4.0 Mhz */
 			readmem_sound,writemem_sound,0,0,
 			nmi_interrupt,4 /* seems to be correct */
 		},
@@ -666,23 +666,23 @@ static const struct MachineDriver machine_driver_marvins = {
 	}
 };
 
-static const struct MachineDriver machine_driver_madcrash = {
+static struct MachineDriver machine_driver_madcrash = {
 	{
 		{
 			CPU_Z80,
-			3360000,	/* 3.336 MHz */
+			3360000,	/* 3.336 Mhz */
 			readmem_CPUA,writemem_CPUA,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80,
-			3360000,	/* 3.336 MHz */
+			3360000,	/* 3.336 Mhz */
 			madcrash_readmem_CPUB,madcrash_writemem_CPUB,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,	/* 4.0 MHz */
+			4000000,	/* 4.0 Mhz */
 			readmem_sound,writemem_sound,0,0,
 			nmi_interrupt,4 /* wrong? */
 		},

@@ -447,13 +447,13 @@ static struct CustomSound_interface custom_interface =
 	geebee_sh_update
 };
 
-static const struct MachineDriver machine_driver_geebee =
+static struct MachineDriver machine_driver_geebee =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			18432000/9, 		/* 18.432 MHz / 9 */
+			18432000/9, 		/* 18.432 Mhz / 9 */
 			readmem,writemem,readport,writeport,
 			geebee_interrupt,1	/* one interrupt per frame */
 		}
@@ -485,13 +485,13 @@ static const struct MachineDriver machine_driver_geebee =
 };
 
 
-static const struct MachineDriver machine_driver_navalone =
+static struct MachineDriver machine_driver_navalone =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			18432000/9, 		/* 18.432 MHz / 9 */
+			18432000/9, 		/* 18.432 Mhz / 9 */
 			readmem_navalone,writemem,readport_navalone,writeport,
 			geebee_interrupt,1	/* one interrupt per frame */
 		}
@@ -524,13 +524,13 @@ static const struct MachineDriver machine_driver_navalone =
 
 
 
-static const struct MachineDriver machine_driver_kaitei =
+static struct MachineDriver machine_driver_kaitei =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			18432000/9, 		/* 18.432 MHz / 9 */
+			18432000/9, 		/* 18.432 Mhz / 9 */
 			readmem_navalone,writemem,readport_navalone,writeport,
 			kaitei_interrupt,1	/* one interrupt per frame */
 		}
@@ -561,13 +561,13 @@ static const struct MachineDriver machine_driver_kaitei =
     }
 };
 
-static const struct MachineDriver machine_driver_sos =
+static struct MachineDriver machine_driver_sos =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_8080,
-			18432000/9, 		/* 18.432 MHz / 9 */
+			18432000/9, 		/* 18.432 Mhz / 9 */
 			readmem_navalone,writemem,readport_navalone,writeport,
 			geebee_interrupt,1	/* one interrupt per frame */
 		}

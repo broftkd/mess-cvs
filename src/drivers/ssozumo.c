@@ -253,13 +253,13 @@ static struct DACinterface dac_interface =
 };
 
 
-static const struct MachineDriver machine_driver_ssozumo =
+static struct MachineDriver machine_driver_ssozumo =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			1200000,	/* 1.2 MHz ???? */
+			1200000,	/* 1.2 Mhz ???? */
 			readmem, writemem, 0, 0,
 			ssozumo_interrupt, 1
 		},

@@ -51,8 +51,8 @@ fa00-ffff       Sprite registers (misc RAM)
 
 1) CPU
 
-1 OSC 12 MHz
-1 OSC 5 MHz
+1 OSC 12 Mhz
+1 OSC 5 Mhz
 2 YM 2203C.......CaBBe!.
 
 The Z80 runs in IM0,the game expects execution of RST10 each
@@ -273,7 +273,7 @@ int ninjakd2_init_samples(const struct MachineSound *msound)
 			samples->sample[i]->data[n] = source[sample_info[i][0]+n] ^ 0x80;
 	}
 
-	/*	The samples are now ready to be used.  They are a 8 bit, 16 kHz samples. 	 */
+	/*	The samples are now ready to be used.  They are a 8 bit, 16 khz samples. 	 */
 
 	return 0;
 }
@@ -534,7 +534,7 @@ static struct YM2203interface ym2203_interface =
 };
 
 
-static const struct MachineDriver machine_driver_ninjakd2 =
+static struct MachineDriver machine_driver_ninjakd2 =
 {
 	{
 		{
@@ -568,7 +568,7 @@ static const struct MachineDriver machine_driver_ninjakd2 =
 	}
 };
 
-static const struct MachineDriver machine_driver_ninjak2a =
+static struct MachineDriver machine_driver_ninjak2a =
 {
 	{
 		{

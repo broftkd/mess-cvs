@@ -728,7 +728,7 @@ static struct TMS5220interface tms5220_interface =
  *
  *************************************/
 
-static const struct MachineDriver machine_driver_gauntlet =
+static struct MachineDriver machine_driver_gauntlet =
 {
 	/* basic machine hardware */
 	{

@@ -95,9 +95,7 @@
 // for pc serial mouse
 #include "includes/pc_mouse.h"
 // pcw/pcw16 beeper
-//#include "sound/beep.h"
-
-#include "includes/28f008sa.h"
+#include "includes/beep.h"
 
 //#define PCW16_DUMP_RAM
 //#define PCW16_DUMP_CPU_RAM
@@ -249,6 +247,430 @@ const mem_read_handler pcw16_read_handler_dram[4] =
 	MRA_BANK3,
 	MRA_BANK4
 };
+
+/*******************************************/
+/* Intel 28F008SA 5 Volt Flash-File Memory */
+
+void flash_init(int);
+void flash_reset(int);
+void flash_store(int, char *);
+void flash_restore(int, char *);
+char *flash_get_base(int);
+
+/* commands */
+#define FLASH_COMMAND_READ_ARRAY_OR_RESET					0x00FF
+#define FLASH_COMMAND_INTELLIGENT_IDENTIFIER				0x0090
+#define FLASH_COMMAND_READ_STATUS_REGISTER					0x0070
+#define FLASH_COMMAND_CLEAR_STATUS_REGISTER					0x0050
+#define FLASH_COMMAND_ERASE_SETUP_OR_ERASE_CONFIRM			0x0020
+#define FLASH_COMMAND_ERASE_SUSPEND_OR_ERASE_RESUME			0x00b0
+#define FLASH_COMMAND_BYTE_WRITE_SETUP_OR_WRITE				0x0040
+#define FLASH_COMMAND_ALTERNATIVE_BYTE_WRITE_SETUP_OR_WRITE	0x0010
+#define FLASH_COMMAND_ERASE_CONFIRM							0x00d0
+
+/* status bits */
+#define FLASH_STATUS_WRITE_STATE_MACHINE_STATUS_READY						0x0080
+#define FLASH_STATUS_WRITE_STATE_MACHINE_STATUS_BUSY						0x0000
+
+#define FLASH_STATUS_ERASE_SUSPEND_STATUS_SUSPENDED							0x0040
+#define FLASH_STATUS_ERASE_SUSPEND_STATUS_ERASE_IN_PROGRESS_OR_COMPLETED	0x0000
+
+#define FLASH_STATUS_ERASE_STATUS_ERROR_IN_BLOCK							0x0020
+#define FLASH_STATUS_ERASE_STATUS_SUCCESSFUL_BLOCK_ERASE					0x0000
+
+#define FLASH_STATUS_BYTE_WRITE_STATUS_ERROR								0x0010
+#define FLASH_STATUS_BYTE_WRITE_STATUS_SUCCESSFUL							0x0000
+
+#define FLASH_STATUS_VPP_STATUS_LOW_OPERATION_ABORTED						0x0008
+#define FLASH_STATUS_VPP_STATUS_HIGH										0x0000
+
+#define FLASH_STATUS_RESERVED												(0x0004 | 0x0002 | 0x0001)
+
+#define FLASH_MANUFACTURER_CODE				0x089
+#define FLASH_DEVICE_CODE					0x0a2
+
+/* setup command has been issued */
+#define FLASH_ERASE_STATUS_SETUP 0x001
+/* suspended */
+#define FLASH_ERASE_STATUS_SUSPENDED 0x002
+/* nothing */
+#define FLASH_ERASE_STATUS_NONE	0x000
+/* erase in progress */
+#define FLASH_ERASE_STATUS_ERASING 0x003
+
+/* datasheet states that a block will be erase typically in 1.6 seconds */
+#define FLASH_TIME_PER_BLOCK_SECS (1.6f)
+#define FLASH_TIME_PER_BYTE_IN_SECS (FLASH_TIME_PER_BLOCK_SECS/65536.0f)
+
+typedef struct FLASH_FILE_MEMORY
+{
+	/* internal status register */
+	unsigned long flash_status;
+	/* command */
+	unsigned long flash_command;
+	/* number of command cycles required */
+	unsigned long flash_command_parameters_required;
+
+	/* index of 64k block to erase */
+	unsigned long flash_erase_block;
+
+	/* offset we were last suspended at, or offset the erase procedure started at*/
+	unsigned long flash_offset;
+
+	void	*flash_timer;
+
+	int		flash_erase_status;
+
+	/* address of 1mb data */
+	char *base;
+} FLASH_FILE_MEMORY;
+
+#define MAX_FLASH_DEVICES 4
+
+static FLASH_FILE_MEMORY flash[MAX_FLASH_DEVICES];
+
+char *flash_get_base(int index1)
+{
+	return flash[index1].base;
+}
+
+
+static void flash_remove_timer(int index1)
+{
+	if (flash[index1].flash_timer!=NULL)
+	{
+		timer_remove(flash[index1].flash_timer);
+	}
+
+	flash[index1].flash_timer = NULL;
+}
+
+static void flash_check_complete_erase(int index1)
+{
+	if (flash[index1].flash_offset>=65536)
+	{
+
+		flash[index1].flash_status = (FLASH_STATUS_WRITE_STATE_MACHINE_STATUS_READY |
+				FLASH_STATUS_ERASE_SUSPEND_STATUS_ERASE_IN_PROGRESS_OR_COMPLETED);
+
+		/* set erase state to none */
+		flash[index1].flash_erase_status = FLASH_ERASE_STATUS_NONE;
+	}
+}
+
+
+/* callback for flash erase - if it gets to here, the erase procedure is completed */
+static void	flash_timer_callback(int index1)
+{
+	if (flash[index1].flash_offset<65536)
+	{
+		/* complete erase */
+		memset(flash[index1].base + (flash[index1].flash_erase_block<<16) + flash[index1].flash_offset, 0x0ff,65536-flash[index1].flash_offset);
+		flash[index1].flash_offset = 65536;
+	}
+
+	flash_check_complete_erase(index1);
+
+	/* stop timer from activating again, and do not let
+	MAME sub-system remove it from the list */
+	timer_reset(flash[index1].flash_timer, TIME_NEVER);
+}
+
+/* suspend erase operation */
+static void flash_suspend_erase(int index1)
+{
+	/* suspend */
+	flash[index1].flash_status = FLASH_STATUS_ERASE_SUSPEND_STATUS_SUSPENDED |
+						FLASH_STATUS_WRITE_STATE_MACHINE_STATUS_READY;
+	
+
+	if (flash[index1].flash_timer!=0)
+	{
+		int num_bytes;
+		double time_elapsed;
+
+		/* get time passed */
+		time_elapsed = timer_timeelapsed(flash[index1].flash_timer);
+
+		/* at this point in time, I don't believe it is necessary to know number of bits that have
+		been erased*/
+
+		/* num bytes that have been erased in that time */
+		num_bytes = time_elapsed/FLASH_TIME_PER_BYTE_IN_SECS;
+
+		/* this should not happen, but check anyway */
+		if (num_bytes>65536)
+		{
+			num_bytes = 65536;
+		}
+
+		if (num_bytes!=0)
+		{
+			/* back-fill from previous suspend point with erase data (fills up to this point)*/
+			memset(flash[index1].base + (flash[index1].flash_erase_block<<16) + flash[index1].flash_offset, 0x0ff, num_bytes);
+		}
+		/* update offset */
+		flash[index1].flash_offset += num_bytes;
+
+		/* remove timer */
+		flash_remove_timer(index1);
+
+		/* set erase state to suspended */
+		flash[index1].flash_erase_status = FLASH_ERASE_STATUS_SUSPENDED;
+	}
+
+	flash_check_complete_erase(index1);
+}
+
+static void flash_resume_erase(int index1)
+{
+	int num_bytes_remaining;
+
+	flash[index1].flash_status = (FLASH_STATUS_WRITE_STATE_MACHINE_STATUS_BUSY |
+					FLASH_STATUS_ERASE_SUSPEND_STATUS_ERASE_IN_PROGRESS_OR_COMPLETED);
+
+	flash[index1].flash_erase_status = FLASH_ERASE_STATUS_ERASING;
+
+	/* remove timer if present */
+	flash_remove_timer(index1);
+
+	/* calc number of bytes remaining to erase */
+	num_bytes_remaining = 65536-flash[index1].flash_offset;
+
+	/* issue a timer for this */
+	flash[index1].flash_timer = timer_set(TIME_IN_SEC((FLASH_TIME_PER_BYTE_IN_SECS*num_bytes_remaining)), index1, flash_timer_callback);
+}
+
+
+void	flash_init(int index1)
+{
+	flash[index1].flash_timer = NULL;
+
+	/* 1mb ram */
+	flash[index1].base = (char *)malloc(1024*1024);
+	if (flash[index1].base!=NULL)
+	{
+		memset(flash[index1].base, 0x080, 1024*1024);
+	}
+	flash_reset(index1);
+	/* no erase state */
+	flash[index1].flash_erase_status = FLASH_ERASE_STATUS_NONE;
+}
+
+void	flash_finish(int index1)
+{
+	flash_remove_timer(index1);
+
+	if (flash[index1].base!=NULL)
+	{
+		free(flash[index1].base);
+		flash[index1].base = NULL;
+	}
+}
+
+void	flash_store(int index1, char *flash_name)
+{
+	void *file;
+
+	if (flash[index1].base!=NULL)
+	{
+		file = osd_fopen(Machine->gamedrv->name, flash_name, OSD_FILETYPE_MEMCARD,OSD_FOPEN_WRITE);
+
+		if (file)
+		{
+			osd_fwrite(file, flash[index1].base, (1024*1024));
+	
+			osd_fclose(file);
+		}
+	}
+}
+
+
+
+void	flash_restore(int index1, char *flash_name)
+{
+	void *file;
+
+	if (flash[index1].base!=NULL)
+	{
+		file = osd_fopen(Machine->gamedrv->name, flash_name, OSD_FILETYPE_MEMCARD,OSD_FOPEN_READ);
+
+		if (file)
+		{
+			osd_fread(file, flash[index1].base, (1024*1024));
+	
+			osd_fclose(file);
+		}
+	}
+}
+
+
+void	flash_reset(int index1)
+{
+	flash[index1].flash_status = FLASH_STATUS_WRITE_STATE_MACHINE_STATUS_READY;
+	flash[index1].flash_command = FLASH_COMMAND_READ_ARRAY_OR_RESET;
+	flash[index1].flash_erase_status = FLASH_ERASE_STATUS_NONE;
+	flash_remove_timer(index1);
+}
+	
+
+/* flash read - offset is offset within flash-file (offset within 1mb)*/
+int flash_bank_handler_r(int index1, int offset)
+{
+	switch (flash[index1].flash_command)
+	{
+		/* read mode, return flash-rom data */
+		case FLASH_COMMAND_READ_ARRAY_OR_RESET:
+			return flash[index1].base[offset];
+
+		/* read intelligent identifier */
+		case FLASH_COMMAND_INTELLIGENT_IDENTIFIER:
+		{
+			/* offset/address zero returns manufacturer code */
+			if (offset==0)
+				return FLASH_MANUFACTURER_CODE;
+			/* offset/address one returns device code */
+			if (offset==1)
+				return FLASH_DEVICE_CODE;
+		}
+		break;
+
+		/* read status */
+		case FLASH_COMMAND_BYTE_WRITE_SETUP_OR_WRITE:
+		case FLASH_COMMAND_ALTERNATIVE_BYTE_WRITE_SETUP_OR_WRITE:
+		case FLASH_COMMAND_ERASE_SETUP_OR_ERASE_CONFIRM:
+		case FLASH_COMMAND_READ_STATUS_REGISTER:
+		case FLASH_COMMAND_CLEAR_STATUS_REGISTER:
+		case FLASH_COMMAND_ERASE_SUSPEND_OR_ERASE_RESUME:
+		case FLASH_COMMAND_ERASE_CONFIRM:
+			return flash[index1].flash_status;
+
+	}
+
+	return 0x0ff;
+}
+
+/* flash write - offset is offset within flash-file (offset within 1mb)*/
+void flash_bank_handler_w(int index1, int offset, int data)
+{
+	/* for commands requiring more than one cycle */
+	if (flash[index1].flash_command_parameters_required!=0)
+	{
+		switch (flash[index1].flash_command)
+		{
+			case FLASH_COMMAND_BYTE_WRITE_SETUP_OR_WRITE:
+			case FLASH_COMMAND_ALTERNATIVE_BYTE_WRITE_SETUP_OR_WRITE:
+			{
+				/* ready, with no errors */
+				flash[index1].flash_status &= FLASH_STATUS_ERASE_SUSPEND_STATUS_SUSPENDED;
+				flash[index1].flash_status |= FLASH_STATUS_WRITE_STATE_MACHINE_STATUS_READY;
+				flash[index1].base[offset] = data;
+			
+				/* no parameters required */
+				flash[index1].flash_command_parameters_required = 0;
+			}
+			return;
+
+			default:
+				break;
+		}
+
+	}
+
+	
+	flash[index1].flash_command_parameters_required = 0;
+	/* set command */
+	flash[index1].flash_command = data;
+
+	switch (data)
+	{
+		case FLASH_COMMAND_READ_ARRAY_OR_RESET:
+		case FLASH_COMMAND_INTELLIGENT_IDENTIFIER:
+		case FLASH_COMMAND_READ_STATUS_REGISTER:
+		case FLASH_COMMAND_CLEAR_STATUS_REGISTER:
+		{
+			/* if clear status register */
+			if (data == FLASH_COMMAND_CLEAR_STATUS_REGISTER)
+			{
+				/* clear it */
+				flash[index1].flash_status &=FLASH_STATUS_ERASE_SUSPEND_STATUS_SUSPENDED;
+			}
+		}
+		break;
+
+		case FLASH_COMMAND_BYTE_WRITE_SETUP_OR_WRITE:
+		case FLASH_COMMAND_ALTERNATIVE_BYTE_WRITE_SETUP_OR_WRITE:
+		{
+			/* expecting a parameter */
+			flash[index1].flash_command_parameters_required = 1;
+		}
+		break;
+
+		/* setup an erase */
+		case FLASH_COMMAND_ERASE_SETUP_OR_ERASE_CONFIRM:
+		{
+			flash[index1].flash_erase_status = FLASH_ERASE_STATUS_SETUP;
+		}
+		break;
+
+		case FLASH_COMMAND_ERASE_SUSPEND_OR_ERASE_RESUME:
+		{
+			/* is it suspended? */
+			if ((flash[index1].flash_status & FLASH_STATUS_ERASE_SUSPEND_STATUS_SUSPENDED)==0)
+			{
+				/* no */
+
+				/* suspend it */
+				flash_suspend_erase(index1);
+			}
+		}
+		break;
+
+
+		case FLASH_COMMAND_ERASE_CONFIRM:
+		{
+			switch (flash[index1].flash_erase_status)
+			{
+				/* suspended? */
+				case FLASH_ERASE_STATUS_SUSPENDED:
+				{
+					/* has the erase procedure completed? */
+
+					/* if suspended.. and not completed */
+					/* confirm start erase */
+
+					/* no longer suspended */
+					flash_resume_erase(index1);
+				}
+				break;
+
+				/* setup? */
+				case FLASH_ERASE_STATUS_SETUP:
+				{
+					/* get block we are erasing */
+					flash[index1].flash_erase_block = offset>>16;
+
+					/* set initial offset */
+					flash[index1].flash_offset = 0;
+
+					/* start the timer for erase */
+					flash_resume_erase(index1);
+				}
+				break;
+
+				default:
+					break;
+			}
+		}
+		break;
+
+		default:
+			break;
+
+	}
+
+}
+
 /*******************************************/
 
 
@@ -567,14 +989,14 @@ static void pcw16_update_memory(void)
 
 READ_HANDLER(pcw16_bankhw_r)
 {
-//	logerror("bank r: %d \n", offset);
+//	logerror("bank r: %d \r\n", offset);
 
 	return pcw16_banks[offset];
 }
 
 WRITE_HANDLER(pcw16_bankhw_w)
 {
-	//logerror("bank w: %d block: %02x\n", offset, data);
+	//logerror("bank w: %d block: %02x\r\n", offset, data);
 
 	pcw16_banks[offset] = data;
 
@@ -583,7 +1005,7 @@ WRITE_HANDLER(pcw16_bankhw_w)
 
 WRITE_HANDLER(pcw16_video_control_w)
 {
-	//logerror("video control w: %02x\n", data);
+	//logerror("video control w: %02x\r\n", data);
 
 	pcw16_video_control = data;
 }
@@ -697,7 +1119,7 @@ static void pcw16_keyboard_reset(void)
 /* interfaces to a pc-at keyboard */
 READ_HANDLER(pcw16_keyboard_data_shift_r)
 {
-	//logerror("keyboard data shift r: %02x\n", pcw16_keyboard_data_shift);
+	//logerror("keyboard data shift r: %02x\r\n", pcw16_keyboard_data_shift);
 	pcw16_keyboard_state &= ~(PCW16_KEYBOARD_BUSY_STATUS);
 
 	pcw16_keyboard_int(0);
@@ -754,7 +1176,7 @@ void	pcw16_keyboard_signal_byte_received(int data)
 
 WRITE_HANDLER(pcw16_keyboard_data_shift_w)
 {
-	//logerror("Keyboard Data Shift: %02x\n", data);
+	//logerror("Keyboard Data Shift: %02x\r\n", data);
 	/* writing to shift register clears parity */
 	/* writing to shift register clears start bit */
 	pcw16_keyboard_state &= ~(
@@ -782,7 +1204,7 @@ READ_HANDLER(pcw16_keyboard_status_r)
 
 WRITE_HANDLER(pcw16_keyboard_control_w)
 {
-	//logerror("Keyboard control w: %02x\n",data);
+	//logerror("Keyboard control w: %02x\r\n",data);
 
 	pcw16_keyboard_previous_state = pcw16_keyboard_state;
 
@@ -1062,8 +1484,6 @@ WRITE_HANDLER(rtc_year_w)
 	rtc_setup_max_days();
 }
 
-static int previous_fdc_int_state;
-
 static void pcw16_trigger_fdc_int(void)
 {
 	int state;
@@ -1075,20 +1495,13 @@ static void pcw16_trigger_fdc_int(void)
 		/* nmi */
 		case 0:
 		{
-			/* I'm assuming that the nmi is edge triggered */
-			/* a interrupt from the fdc will cause a change in line state, and
-			the nmi will be triggered, but when the state changes because the int
-			is cleared this will not cause another nmi */
-			/* I'll emulate it like this to be sure */
-		
-			if (state!=previous_fdc_int_state)
+			if (state)
 			{
-				if (state)
-				{
-					/* I'll pulse it because if I used hold-line I'm not sure
-					it would clear - to be checked */
-					cpu_set_nmi_line(0, PULSE_LINE);
-				}
+				cpu_set_nmi_line(0, ASSERT_LINE);
+			}
+			else
+			{
+				cpu_set_nmi_line(0, CLEAR_LINE);
 			}
 		}
 		break;
@@ -1104,13 +1517,11 @@ static void pcw16_trigger_fdc_int(void)
 		default:
 			break;
 	}
-
-	previous_fdc_int_state = state;
 }
 
 READ_HANDLER(pcw16_system_status_r)
 {
-//	logerror("system status r: \n");
+//	logerror("system status r: \r\n");
 
 	return pcw16_system_status | (readinputport(0) & 0x04);
 }
@@ -1133,7 +1544,7 @@ READ_HANDLER(pcw16_timer_interrupt_counter_r)
 
 WRITE_HANDLER(pcw16_system_control_w)
 {
-	//logerror("0x0f8: function: %d\n",data);
+	//logerror("0x0f8: function: %d\r\n",data);
 
 	/* lower 4 bits define function code */
 	switch (data & 0x0f)
@@ -1188,14 +1599,14 @@ WRITE_HANDLER(pcw16_system_control_w)
 		/* bleeper on */
 		case 0x0b:
 		{
-                        beep_set_state(0,1);
+			beep_set_state(1);
 		}
 		break;
 
 		/* bleeper off */
 		case 0x0c:
 		{
-                        beep_set_state(0,0);
+			beep_set_state(0);
 		}
 		break;
 
@@ -1485,15 +1896,13 @@ void pcw16_init_machine(void)
 	
 	pcw16_reset();
 
-	beep_set_state(0,0);
-	beep_set_frequency(0,3750);
+	beep_set_state(0);
+	beep_set_frequency(3750);
 }
 
 
 void pcw16_shutdown_machine(void)
 {
-	pc_fdc_exit();
-
 	if (pcw16_ram!=NULL)
 	{
 		free(pcw16_ram);
@@ -1541,10 +1950,11 @@ INPUT_PORTS_START(pcw16)
 	AT_KEYBOARD
 INPUT_PORTS_END
 
-static struct beep_interface pcw16_beep_interface =
+static struct CustomSound_interface pcw16_custom_interface =
 {
-	1,
-	{100}
+	beep_sh_start,
+	beep_sh_stop,
+	beep_sh_update
 };
 
 static struct MachineDriver machine_driver_pcw16 =
@@ -1590,8 +2000,8 @@ static struct MachineDriver machine_driver_pcw16 =
 	0,0,0,0,
 	{
 		{
-                        SOUND_BEEP,
-                        &pcw16_beep_interface
+			SOUND_CUSTOM,
+			&pcw16_custom_interface
 		}
 	},
 };
@@ -1617,14 +2027,14 @@ static const struct IODevice io_pcw16[] =
 		IO_FLOPPY,			/* type */
 		2,					/* count */
 		"dsk\0",            /* file extensions */
-		IO_RESET_NONE,		/* reset if file changed */
+        NULL,               /* private */
         NULL,               /* id */
 		pc_floppy_init, 	/* init */
 		pc_floppy_exit, 	/* exit */
         NULL,               /* info */
         NULL,               /* open */
         NULL,               /* close */
-        floppy_status,               /* status */
+        NULL,               /* status */
         NULL,               /* seek */
 		NULL,				/* tell */
         NULL,               /* input */
@@ -1635,5 +2045,5 @@ static const struct IODevice io_pcw16[] =
 	{IO_END}
 };
 
-/*	  YEAR	NAME	  PARENT	MACHINE   INPUT 	INIT COMPANY		FULLNAME */
-COMP( 1995, pcw16,	  0,		pcw16,	  pcw16,	0,	 "Amstrad plc", "PCW16")
+/*	  YEAR	NAME	  PARENT	MACHINE   INPUT 	INIT COMPANY   FULLNAME */
+COMP( 1995, pcw16,   0,	pcw16,  pcw16,	0,	 "Amstrad plc", "PCW16")

@@ -799,7 +799,7 @@ static struct GfxDecodeInfo tdfever_gfxdecodeinfo[] =
 
 /**********************************************************************/
 
-static const struct MachineDriver machine_driver_tnk3 =
+static struct MachineDriver machine_driver_tnk3 =
 {
 	{
 		{
@@ -816,7 +816,7 @@ static const struct MachineDriver machine_driver_tnk3 =
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,	/* 4 MHz (?) */
+			4000000,	/* 4 Mhz (?) */
 			YM3526_readmem_sound,YM3526_writemem_sound,0,0,
 			interrupt,2 /* ? */
 		},
@@ -848,7 +848,7 @@ static const struct MachineDriver machine_driver_tnk3 =
 	}
 };
 
-static const struct MachineDriver machine_driver_athena =
+static struct MachineDriver machine_driver_athena =
 /* mostly identical to TNK3, but with an aditional YM3526 */
 {
 	{
@@ -866,7 +866,7 @@ static const struct MachineDriver machine_driver_athena =
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,	/* 4 MHz (?) */
+			4000000,	/* 4 Mhz (?) */
 			YM3526_YM3526_readmem_sound,YM3526_YM3526_writemem_sound,0,0,
 			interrupt,1
 		},
@@ -899,24 +899,24 @@ static const struct MachineDriver machine_driver_athena =
 	}
 };
 
-static const struct MachineDriver machine_driver_ikari =
+static struct MachineDriver machine_driver_ikari =
 {
 	{
 		{
 			CPU_Z80,
-			4000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuA,writemem_cpuA,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80,
-			4000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuB,writemem_cpuB,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,	/* 4 MHz (?) */
+			4000000,	/* 4 Mhz (?) */
 			YM3526_YM3526_readmem_sound,YM3526_YM3526_writemem_sound,0,0,
 			interrupt,1
 		},
@@ -948,25 +948,25 @@ static const struct MachineDriver machine_driver_ikari =
 	}
 };
 
-static const struct MachineDriver machine_driver_victroad =
+static struct MachineDriver machine_driver_victroad =
 /* identical to Ikari Warriors, but sound system replaces one of the YM3526 with Y8950 */
 {
 	{
 		{
 			CPU_Z80,
-			4000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuA,writemem_cpuA,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80,
-			4000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuB,writemem_cpuB,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,	/* 4 MHz (?) */
+			4000000,	/* 4 Mhz (?) */
 			YM3526_Y8950_readmem_sound,YM3526_Y8950_writemem_sound,0,0,
 			interrupt,1
 		},
@@ -998,24 +998,24 @@ static const struct MachineDriver machine_driver_victroad =
 	}
 };
 
-static const struct MachineDriver machine_driver_gwar =
+static struct MachineDriver machine_driver_gwar =
 {
 	{
 		{
 			CPU_Z80,
-			4000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuA,writemem_cpuA,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80,
-			4000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuB,writemem_cpuB,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,	/* 4 MHz (?) */
+			4000000,	/* 4 Mhz (?) */
 			YM3526_Y8950_readmem_sound,YM3526_Y8950_writemem_sound,0,0,
 			interrupt,1
 		},
@@ -1046,25 +1046,24 @@ static const struct MachineDriver machine_driver_gwar =
 	}
 };
 
-static const struct MachineDriver machine_driver_bermudat =
+static struct MachineDriver machine_driver_bermudat =
 {
 	{
 		{
 			CPU_Z80,
-			4000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuA,writemem_cpuA,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80,
-//			4000000,	/* 4.0 MHz (?) */ doesn't work with this clock speed
-			5000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuB,writemem_cpuB,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,	/* 4 MHz (?) */
+			4000000,	/* 4 Mhz (?) */
 			YM3526_Y8950_readmem_sound,YM3526_Y8950_writemem_sound,0,0,
 			interrupt,1
 		},
@@ -1095,24 +1094,24 @@ static const struct MachineDriver machine_driver_bermudat =
 	}
 };
 
-static const struct MachineDriver machine_driver_psychos =
+static struct MachineDriver machine_driver_psychos =
 {
 	{
 		{
 			CPU_Z80,
-			4000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuA,writemem_cpuA,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80,
-			4000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuB,writemem_cpuB,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,	/* 4 MHz (?) */
+			4000000,	/* 4 Mhz (?) */
 			YM3526_Y8950_readmem_sound,YM3526_Y8950_writemem_sound,0,0,
 			interrupt,1
 		},
@@ -1143,24 +1142,24 @@ static const struct MachineDriver machine_driver_psychos =
 	}
 };
 
-static const struct MachineDriver machine_driver_chopper1 =
+static struct MachineDriver machine_driver_chopper1 =
 {
 	{
 		{
 			CPU_Z80,
-			4000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuA,writemem_cpuA,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80,
-			4000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuB,writemem_cpuB,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,	/* 4 MHz (?) */
+			4000000,	/* 4 Mhz (?) */
 			YM3812_Y8950_readmem_sound,YM3812_Y8950_writemem_sound,0,0,
 			interrupt,1
 		},
@@ -1195,24 +1194,24 @@ static const struct MachineDriver machine_driver_chopper1 =
 	}
 };
 
-static const struct MachineDriver machine_driver_tdfever =
+static struct MachineDriver machine_driver_tdfever =
 {
 	{
 		{
 			CPU_Z80,
-			4000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuA,writemem_cpuA,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80,
-			4000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuB,writemem_cpuB,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,	/* 4 MHz (?) */
+			4000000,	/* 4 Mhz (?) */
 //			YM3526_Y8950_readmem_sound, YM3526_Y8950_writemem_sound,0,0,
 			YM3526_YM3526_readmem_sound, YM3526_YM3526_writemem_sound,0,0,
 			interrupt,1
@@ -1249,24 +1248,24 @@ static const struct MachineDriver machine_driver_tdfever =
 	}
 };
 
-static const struct MachineDriver machine_driver_ftsoccer =
+static struct MachineDriver machine_driver_ftsoccer =
 {
 	{
 		{
 			CPU_Z80,
-			4000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuA,writemem_cpuA,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80,
-			4000000,	/* 4.0 MHz (?) */
+			4000000,	/* 4.0 Mhz (?) */
 			readmem_cpuB,writemem_cpuB,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,	/* 4 MHz (?) */
+			4000000,	/* 4 Mhz (?) */
 			Y8950_readmem_sound, Y8950_writemem_sound,0,0,
 			interrupt,1
 		},

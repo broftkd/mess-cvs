@@ -675,7 +675,7 @@ static WRITE_HANDLER( eeprom_w )
 
 READ_HANDLER( p_read )
 {
-	//logerror("puzzle_read off%x\n",offset);
+	logerror("puzzle_read off%x\n",offset);
 	return 0xffff;
 }
 
@@ -786,13 +786,9 @@ static struct MemoryWriteAddress spacedx_writemem[] =
 
 
 
-READ_HANDLER( qzshowby_input6_r )
+READ_HANDLER( puzbobb_input_r2 )
 {
-	return readinputport(6) << 8;
-}
-READ_HANDLER( qzshowby_input7_r )
-{
-	return readinputport(7) << 8;
+	return 0xffff;
 }
 
 static struct MemoryReadAddress qzshowby_readmem[] =
@@ -808,9 +804,10 @@ static struct MemoryReadAddress qzshowby_readmem[] =
 	{ 0x413800, 0x413bff, MRA_BANK3 }, /*1st.w foreground x, 2nd.w foreground y scroll*/
 	{ 0x413c00, 0x413fff, MRA_BANK4 }, /*1st.w background x, 2nd.w background y scroll*/
 
+//{ 0x200010, 0x20002f, p_read }, //????
+
 	{ 0x200000, 0x20000f, puzbobb_input_r },	/* DSW A/B, player inputs*/
-	{ 0x200024, 0x200025, qzshowby_input7_r},	/* player 3,4 start */
-	{ 0x20002e, 0x20002f, qzshowby_input6_r},	/* player 3,4 buttons */
+	{ 0x200024, 0x20002f, puzbobb_input_r2},
 	{ 0x600000, 0x600003, taitob_sound_r },
 	{ -1 }  /* end of table */
 };
@@ -888,14 +885,20 @@ static int device_no =0 ;
 
 static WRITE_HANDLER( taitob_input_w )
 {
+//static int aa[8] = {1,1,1,1,1,1,1,1};
 
 	if (offset==2)
 	{
+//		if (aa[(data>>8)&0xff] != 0)
+//			logerror("control_w = %4x  ofs=%2x pc=%x\n",data,offset,cpu_get_pc() );
+//		aa[(data>>8)&0xff] = 0;
 		device_no = (data>>8)&0xff;
 	}
 
-}
+//if (offset==0)
+//      usrintf_showmessage("mow write to input offset 0 =%4x",data);
 
+}
 static READ_HANDLER( taitob_input_r )
 {
 	//logerror("control_r ofs=%2x pc=%x\n",offset,cpu_get_pc() );
@@ -929,6 +932,19 @@ if (offset==2)
 	return 0x0200;
 }
 
+#if 0
+static int palette_buf[0x1000];
+
+static WRITE_HANDLER( taitob_pal_w )
+{
+	paletteram_RRRRGGGGBBBBxxxx_word_w(offset+0x800, data);
+    palette_buf[offset]=data;
+}
+static READ_HANDLER( taitob_pal_r )
+{
+	return palette_buf[offset];
+}
+#endif
 
 static struct MemoryReadAddress masterw_readmem[] =
 {
@@ -1719,89 +1735,6 @@ INPUT_PORTS_START( puzbobb )
 
 INPUT_PORTS_END
 
-INPUT_PORTS_START( qzshowby )
-	PORT_START      /* IN2 */ /*all OK*/
-	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_TILT )
-	PORT_BIT_IMPULSE( 0x02, IP_ACTIVE_LOW, IPT_SERVICE1, 2 )
-	PORT_BIT_IMPULSE( 0x04, IP_ACTIVE_LOW, IPT_SERVICE2, 2 )
-	PORT_BIT_IMPULSE( 0x08, IP_ACTIVE_LOW, IPT_SERVICE3, 2 )
-	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_START1 )
-	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_START2 )
-	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_START3 )
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_START4 )
-
-	PORT_START /* IN X */ /*all OK*/
-	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNKNOWN  ) /* IPT_START1 in test mode */
-	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_UNKNOWN  ) /* IPT_START2 in test mode */
-	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_UNKNOWN )
-
-	PORT_START      /* IN0 */ /*all OK*/
-	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_BUTTON1 | IPF_PLAYER1 )
-	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_BUTTON2 | IPF_PLAYER1 )
-	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_BUTTON4 | IPF_PLAYER1 )
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_BUTTON3 | IPF_PLAYER1 )
-	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_BUTTON1 | IPF_PLAYER2 )
-	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_BUTTON2 | IPF_PLAYER2 )
-	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_BUTTON4 | IPF_PLAYER2 )
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_BUTTON3 | IPF_PLAYER2 )
-
-	PORT_START /* DSW B */
-	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNKNOWN ) /*unused in test mode*/
-	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_UNKNOWN ) /*unused in test mode*/
-	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_UNKNOWN ) /*unused in test mode*/
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_UNKNOWN ) /*unused in test mode*/
-	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_UNKNOWN ) /*unused in test mode*/
-	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_UNKNOWN ) /*unused in test mode*/
-	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_UNKNOWN ) /*unused in test mode*/
-	PORT_SERVICE_NO_TOGGLE( 0x80, IP_ACTIVE_LOW ) /*ok*/
-
-	PORT_START      /* IN1 */
-	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT_IMPULSE( 0x10, IP_ACTIVE_LOW, IPT_COIN1, 2 ) /*ok*/
-	PORT_BIT_IMPULSE( 0x20, IP_ACTIVE_LOW, IPT_COIN2, 2 ) /*ok*/
-	PORT_BIT_IMPULSE( 0x40, IP_ACTIVE_LOW, IPT_COIN3, 2 ) /*ok*/
-	PORT_BIT_IMPULSE( 0x80, IP_ACTIVE_LOW, IPT_COIN4, 2 ) /*ok*/
-
-	PORT_START      /* IN1 */
-	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_UNKNOWN )
-
-	PORT_START      /* IN6 */
-	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_BUTTON1 | IPF_PLAYER3 )
-	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_BUTTON2 | IPF_PLAYER3 )
-	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_BUTTON4 | IPF_PLAYER3 )
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_BUTTON3 | IPF_PLAYER3 )
-	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_BUTTON1 | IPF_PLAYER4 )
-	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_BUTTON2 | IPF_PLAYER4 )
-	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_BUTTON4 | IPF_PLAYER4 )
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_BUTTON3 | IPF_PLAYER4 )
-
-	PORT_START      /* IN7 */
-	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNKNOWN  ) /* IPT_START3 in test mode */
-	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_UNKNOWN  ) /* IPT_START4 in test mode */
-	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_UNKNOWN )
-
-INPUT_PORTS_END
-
 INPUT_PORTS_START( viofight )
 	PORT_START      /* IN0 */
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_JOYSTICK_UP    | IPF_8WAY | IPF_PLAYER1 )
@@ -2219,7 +2152,7 @@ static struct OKIM6295interface okim6295_interface =
 };
 
 
-static const struct MachineDriver machine_driver_rastsag2 =
+static struct MachineDriver machine_driver_rastsag2 =
 {
 	/* basic machine hardware */
 	{
@@ -2263,7 +2196,7 @@ static const struct MachineDriver machine_driver_rastsag2 =
 	}
 };
 
-static const struct MachineDriver machine_driver_ashura =
+static struct MachineDriver machine_driver_ashura =
 {
 	/* basic machine hardware */
 	{
@@ -2307,7 +2240,7 @@ static const struct MachineDriver machine_driver_ashura =
 	}
 };
 
-static const struct MachineDriver machine_driver_crimec =
+static struct MachineDriver machine_driver_crimec =
 {
 	/* basic machine hardware */
 	{
@@ -2351,7 +2284,7 @@ static const struct MachineDriver machine_driver_crimec =
 	}
 };
 
-static const struct MachineDriver machine_driver_tetrist =
+static struct MachineDriver machine_driver_tetrist =
 {
 	/* basic machine hardware */
 	{
@@ -2396,7 +2329,7 @@ static const struct MachineDriver machine_driver_tetrist =
 };
 
 
-static const struct MachineDriver machine_driver_hitice =
+static struct MachineDriver machine_driver_hitice =
 {
 	/* basic machine hardware */
 	{
@@ -2444,7 +2377,7 @@ static const struct MachineDriver machine_driver_hitice =
 	}
 };
 
-static const struct MachineDriver machine_driver_rambo3 =
+static struct MachineDriver machine_driver_rambo3 =
 {
 	/* basic machine hardware */
 	{
@@ -2488,7 +2421,7 @@ static const struct MachineDriver machine_driver_rambo3 =
 	}
 };
 
-static const struct MachineDriver machine_driver_rambo3a =
+static struct MachineDriver machine_driver_rambo3a =
 {
 	/* basic machine hardware */
 	{
@@ -2548,7 +2481,7 @@ static void patch_puzzb(void)
 }
 #endif
 
-static const struct MachineDriver machine_driver_puzbobb =
+static struct MachineDriver machine_driver_puzbobb =
 {
 	/* basic machine hardware */
 	{
@@ -2595,7 +2528,7 @@ static const struct MachineDriver machine_driver_puzbobb =
 
 };
 
-static const struct MachineDriver machine_driver_spacedx =
+static struct MachineDriver machine_driver_spacedx =
 {
 	/* basic machine hardware */
 	{
@@ -2643,7 +2576,7 @@ static const struct MachineDriver machine_driver_spacedx =
 };
 
 
-static const struct MachineDriver machine_driver_qzshowby =
+static struct MachineDriver machine_driver_qzshowby =
 {
 	/* basic machine hardware */
 	{
@@ -2690,7 +2623,7 @@ static const struct MachineDriver machine_driver_qzshowby =
 
 };
 
-static const struct MachineDriver machine_driver_viofight =
+static struct MachineDriver machine_driver_viofight =
 {
 	/* basic machine hardware */
 	{
@@ -2738,7 +2671,7 @@ static const struct MachineDriver machine_driver_viofight =
 	}
 };
 
-static const struct MachineDriver machine_driver_masterw =
+static struct MachineDriver machine_driver_masterw =
 {
 	/* basic machine hardware */
 	{
@@ -2782,7 +2715,7 @@ static const struct MachineDriver machine_driver_masterw =
 	}
 };
 
-static const struct MachineDriver machine_driver_silentd =
+static struct MachineDriver machine_driver_silentd =
 {
 	/* basic machine hardware */
 	{
@@ -2898,12 +2831,12 @@ ROM_START( nastar )
 	ROM_LOAD( "b81-02.bin", 0x00000, 0x80000, 0x20ec3b86 )
 ROM_END
 
-ROM_START( crimec )
+ROM_START( crimecu )
 	ROM_REGION( 0x80000, REGION_CPU1 )     /* 512k for 68000 code */
-	ROM_LOAD_EVEN( "b99-07",    0x00000, 0x20000, 0x26e886e6 )
-	ROM_LOAD_ODD ( "b99-05",    0x00000, 0x20000, 0xff7f9a9d )
-	ROM_LOAD_EVEN( "b99-06",    0x40000, 0x20000, 0x1f26aa92 )
-	ROM_LOAD_ODD ( "b99-14",    0x40000, 0x20000, 0x71c8b4d7 )
+	ROM_LOAD_EVEN( "b99-07"   , 0x00000, 0x20000, 0x26e886e6 )
+	ROM_LOAD_ODD ( "b99-05"   , 0x00000, 0x20000, 0xff7f9a9d )
+	ROM_LOAD_EVEN( "b99-06"   , 0x40000, 0x20000, 0x1f26aa92 )
+	ROM_LOAD_ODD ( "b99_14-2" , 0x40000, 0x20000, 0x06cf8441 )
 
 	ROM_REGION( 0x1c000, REGION_CPU2 )     /* 64k for Z80 code */
 	ROM_LOAD( "b99-08", 0x00000, 0x4000, 0x26135451 )
@@ -2917,12 +2850,12 @@ ROM_START( crimec )
 	ROM_LOAD( "b99-03.roa", 0x00000, 0x80000, 0xdda10df7 )
 ROM_END
 
-ROM_START( crimecu )
+ROM_START( crimec )
 	ROM_REGION( 0x80000, REGION_CPU1 )     /* 512k for 68000 code */
-	ROM_LOAD_EVEN( "b99-07",    0x00000, 0x20000, 0x26e886e6 )
-	ROM_LOAD_ODD ( "b99-05",    0x00000, 0x20000, 0xff7f9a9d )
-	ROM_LOAD_EVEN( "b99-06",    0x40000, 0x20000, 0x1f26aa92 )
-	ROM_LOAD_ODD ( "b99-13",    0x40000, 0x20000, 0x06cf8441 )
+	ROM_LOAD_EVEN( "b99-07"   , 0x00000, 0x20000, 0x26e886e6 )
+	ROM_LOAD_ODD ( "b99-05"   , 0x00000, 0x20000, 0xff7f9a9d )
+	ROM_LOAD_EVEN( "b99-06"   , 0x40000, 0x20000, 0x1f26aa92 )
+	ROM_LOAD_ODD ( "b99-14"   , 0x40000, 0x20000, 0x71c8b4d7 )
 
 	ROM_REGION( 0x1c000, REGION_CPU2 )     /* 64k for Z80 code */
 	ROM_LOAD( "b99-08", 0x00000, 0x4000, 0x26135451 )
@@ -2941,7 +2874,7 @@ ROM_START( crimecj )
 	ROM_LOAD_EVEN( "b99-07", 0x00000, 0x20000, 0x26e886e6 )
 	ROM_LOAD_ODD ( "b99-05", 0x00000, 0x20000, 0xff7f9a9d )
 	ROM_LOAD_EVEN( "b99-06", 0x40000, 0x20000, 0x1f26aa92 )
-	ROM_LOAD_ODD ( "15",     0x40000, 0x20000, 0xe8c1e56d )
+	ROM_LOAD_ODD ( "15"    , 0x40000, 0x20000, 0xe8c1e56d )
 
 	ROM_REGION( 0x1c000, REGION_CPU2 )     /* 64k for Z80 code */
 	ROM_LOAD( "b99-08", 0x00000, 0x4000, 0x26135451 )
@@ -3215,21 +3148,21 @@ ROM_END
 
 
 /*     year  rom       parent   machine   inp       init */
-GAMEX( 1989, masterw,  0,       masterw,  rastsag2, 0, ROT270,      "Taito Corporation Japan", "Master of Weapon (World)", GAME_NO_COCKTAIL)
 GAMEX( 1988, nastar,   0,       rastsag2, rastsag2, 0, ROT0,        "Taito Corporation Japan", "Nastar (World)", GAME_NO_COCKTAIL )
 GAMEX( 1988, nastarw,  nastar,  rastsag2, rastsag2, 0, ROT0,        "Taito America Corporation", "Nastar Warrior (US)", GAME_NO_COCKTAIL )
 GAMEX( 1988, rastsag2, nastar,  rastsag2, rastsag2, 0, ROT0,        "Taito Corporation", "Rastan Saga 2 (Japan)", GAME_NO_COCKTAIL )
-GAMEX( 1989, rambo3,   0,       rambo3,   rastsag2, 0, ROT180,      "Taito Europe Corporation", "Rambo III (set 1, Europe)", GAME_NO_COCKTAIL )
-GAMEX( 1989, rambo3a,  rambo3,  rambo3a,  rambo3a,  0, ROT180,      "Taito America Corporation", "Rambo III (set 2, US)", GAME_NO_COCKTAIL)
 GAMEX( 1989, crimec,   0,       crimec,   crimec,   0, ROT0,        "Taito Corporation Japan", "Crime City (World)", GAME_NO_COCKTAIL )
 GAMEX( 1989, crimecu,  crimec,  crimec,   crimec,   0, ROT0,        "Taito America Corporation", "Crime City (US)", GAME_NO_COCKTAIL )
 GAMEX( 1989, crimecj,  crimec,  crimec,   crimec,   0, ROT0,        "Taito Corporation", "Crime City (Japan)", GAME_NO_COCKTAIL )
 GAMEX( 1989, tetrist,  tetris,  tetrist,  tetrist,  0, ROT0,        "Sega", "Tetris (Japan, B-System)", GAME_NO_COCKTAIL )
-GAMEX( 1989, viofight, 0,       viofight, viofight, 0, ROT180,      "Taito Corporation Japan", "Violence Fight (World)", GAME_NO_COCKTAIL)
 GAMEX( 1990, ashura,   0,       ashura,   ashura,   0, ROT270,      "Taito Corporation", "Ashura Blaster (Japan)", GAME_NO_COCKTAIL )
 GAMEX( 1990, ashurau,  ashura,  ashura,   ashura,   0, ROT270,      "Taito America Corporation", "Ashura Blaster (US)", GAME_NO_COCKTAIL )
 GAMEX( 1990, hitice,   0,       hitice,   hitice,   0, ROT180,      "Williams", "Hit the Ice (US)", GAME_NO_COCKTAIL )
-GAMEX( 1993, qzshowby, 0,       qzshowby, qzshowby, 0, ROT0,        "Taito Corporation", "Quiz Sekai wa SHOW by shobai (Japan)", GAME_NO_COCKTAIL )
+GAMEX( 1989, rambo3,   0,       rambo3,   rastsag2, 0, ROT180,      "Taito Europe Corporation", "Rambo III (set 1, Europe)", GAME_NO_COCKTAIL )
+GAMEX( 1989, rambo3a,  rambo3,  rambo3a,  rambo3a,  0, ROT180,      "Taito America Corporation", "Rambo III (set 2, US)", GAME_NO_COCKTAIL)
 GAMEX( 1994, puzbobb,  pbobble, puzbobb,  puzbobb,  0, ROT0,        "Taito Corporation", "Puzzle Bobble (Japan, B-System)", GAME_NO_COCKTAIL )
 GAMEX( 1994, spacedx,  0,       spacedx,  puzbobb,  0, ROT0,        "Taito Corporation", "Space Invaders DX (Japan)", GAME_NO_COCKTAIL )
+GAMEX( 1993, qzshowby, 0,       qzshowby, puzbobb,  0, ROT0,        "Taito Corporation", "Quiz Sekai wa SHOW by shobai (Japan)", GAME_NO_COCKTAIL )
+GAMEX( 1989, viofight, 0,       viofight, viofight, 0, ROT180,      "Taito Corporation Japan", "Violence Fight (World)", GAME_NO_COCKTAIL)
+GAMEX( 1989, masterw,  0,       masterw,  rastsag2, 0, ROT270,      "Taito Corporation Japan", "Master of Weapon (World)", GAME_NO_COCKTAIL)
 GAMEX( 1992, silentd,  0,       silentd,  silentd,  0, ROT0_16BIT,  "Taito Corporation Japan", "Silent Dragon (World)", GAME_NO_COCKTAIL )

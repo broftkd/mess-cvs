@@ -6,13 +6,12 @@
   Driver provided by Paul Leaman
 
 TODO:
-- There is an additional ROM which seems to contain code for a third Z80,
+  There is an additional ROM which seems to contain code for a third Z80,
   however the board only has two. The ROM is related to the missing star
   background. At one point, the code jumps to A000, outside of the ROM
   address space.
   This ROM could be something entirely different from Z80 code. In another
   set, it consists of only the second half of the one we have here.
-- Lots of unknown PROMs.
 
 ***************************************************************************/
 
@@ -528,26 +527,26 @@ static struct YM2203interface ym2203_interface =
 
 
 
-static const struct MachineDriver machine_driver_sidearms =
+static struct MachineDriver machine_driver_sidearms =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			4000000,        /* 4 MHz (?) */
+			4000000,        /* 4 Mhz (?) */
 			readmem,writemem,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,        /* 4 MHz (?) */
+			4000000,        /* 4 Mhz (?) */
 			sound_readmem,sound_writemem,0,0,
 			ignore_interrupt,0      /* IRQs are triggered by the YM2203 */
 		},
 #ifdef THIRD_CPU
 		{
 			CPU_Z80,
-			4000000,        /* 4 MHz (?) */
+			4000000,        /* 4 Mhz (?) */
 			readmem2,writemem2,0,0,
 			nmi_interrupt,1
 		}
@@ -579,19 +578,19 @@ static const struct MachineDriver machine_driver_sidearms =
 	}
 };
 
-static const struct MachineDriver machine_driver_turtship =
+static struct MachineDriver machine_driver_turtship =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			4000000,        /* 4 MHz (?) */
+			4000000,        /* 4 Mhz (?) */
 			turtship_readmem,turtship_writemem,0,0,
 			interrupt,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,        /* 4 MHz (?) */
+			4000000,        /* 4 Mhz (?) */
 			sound_readmem,sound_writemem,0,0,
 			ignore_interrupt,0      /* IRQs are triggered by the YM2203 */
 		},
@@ -660,12 +659,6 @@ ROM_START( sidearms )
 
 	ROM_REGION( 0x08000, REGION_GFX4 )	/* background tilemaps */
 	ROM_LOAD( "b_03d.rom",    0x0000, 0x8000, 0x6f348008 )
-
-	ROM_REGION( 0x0320, REGION_PROMS )
-	ROM_LOAD( "63s141.16h",   0x0000, 0x0100, 0x75af3553 )	/* unknown */
-	ROM_LOAD( "63s141.11h",   0x0100, 0x0100, 0xa6e4d68f )	/* unknown */
-	ROM_LOAD( "63s141.15h",   0x0200, 0x0100, 0xc47c182a )	/* unknown */
-	ROM_LOAD( "63s081.3j",    0x0300, 0x0020, 0xc5817816 )	/* unknown */
 ROM_END
 
 ROM_START( sidearmr )
@@ -705,12 +698,6 @@ ROM_START( sidearmr )
 
 	ROM_REGION( 0x08000, REGION_GFX4 )	/* background tilemaps */
 	ROM_LOAD( "b_03d.rom",    0x0000, 0x8000, 0x6f348008 )
-
-	ROM_REGION( 0x0320, REGION_PROMS )
-	ROM_LOAD( "63s141.16h",   0x0000, 0x0100, 0x75af3553 )	/* unknown */
-	ROM_LOAD( "63s141.11h",   0x0100, 0x0100, 0xa6e4d68f )	/* unknown */
-	ROM_LOAD( "63s141.15h",   0x0200, 0x0100, 0xc47c182a )	/* unknown */
-	ROM_LOAD( "63s081.3j",    0x0300, 0x0020, 0xc5817816 )	/* unknown */
 ROM_END
 
 ROM_START( sidearjp )
@@ -750,12 +737,6 @@ ROM_START( sidearjp )
 
 	ROM_REGION( 0x08000, REGION_GFX4 )	/* background tilemaps */
 	ROM_LOAD( "b_03d.rom",    0x0000, 0x8000, 0x6f348008 )
-
-	ROM_REGION( 0x0320, REGION_PROMS )
-	ROM_LOAD( "63s141.16h",   0x0000, 0x0100, 0x75af3553 )	/* unknown */
-	ROM_LOAD( "63s141.11h",   0x0100, 0x0100, 0xa6e4d68f )	/* unknown */
-	ROM_LOAD( "63s141.15h",   0x0200, 0x0100, 0xc47c182a )	/* unknown */
-	ROM_LOAD( "63s081.3j",    0x0300, 0x0020, 0xc5817816 )	/* unknown */
 ROM_END
 
 ROM_START( turtship )

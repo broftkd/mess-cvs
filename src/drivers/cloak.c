@@ -134,7 +134,7 @@ static void nvram_handler(void *file, int read_or_write)
 
 WRITE_HANDLER( cloak_led_w )
 {
-	set_led_status(1 - offset,~data & 0x80);
+	osd_led_w(1 - offset,~data >> 7);
 }
 
 
@@ -312,19 +312,19 @@ static struct POKEYinterface pokey_interface =
 
 
 
-static const struct MachineDriver machine_driver_cloak =
+static struct MachineDriver machine_driver_cloak =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_M6502,
-			1000000,	/* 1 MHz ???? */
+			1000000,	/* 1 Mhz ???? */
 			readmem,writemem,0,0,
 			interrupt,4
 		},
 		{
 			CPU_M6502,
-            1250000,        /* 1 MHz ???? */
+            1250000,        /* 1 Mhz ???? */
 			readmem2,writemem2,0,0,
 			interrupt,2
 		}
@@ -340,7 +340,7 @@ static const struct MachineDriver machine_driver_cloak =
 	0,
 
 
-	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE,
+	VIDEO_TYPE_RASTER | VIDEO_MODIFIES_PALETTE | VIDEO_SUPPORTS_DIRTY,
 	0,
 	cloak_vh_start,
 	cloak_vh_stop,

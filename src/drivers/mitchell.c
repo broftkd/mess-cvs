@@ -117,7 +117,7 @@ static void nvram_handler(void *file,int read_or_write)
 			init_eeprom_count = 0;
 			EEPROM_load(file);					/* EEPROM */
 			if (nvram_size)	/* Super Pang, Block Block */
-				osd_fread(file,nvram,nvram_size);	/* NVRAM */
+			osd_fread(file,nvram,nvram_size);	/* NVRAM */
 		}
 		else
 			init_eeprom_count = 1000;	/* for Super Pang */
@@ -983,7 +983,7 @@ static struct OKIM6295interface okim6295_interface =
 
 
 
-static const struct MachineDriver machine_driver_mgakuen =
+static struct MachineDriver machine_driver_mgakuen =
 {
 	{
 		{
@@ -1021,7 +1021,7 @@ static const struct MachineDriver machine_driver_mgakuen =
 	/* no EEPROM */
 };
 
-static const struct MachineDriver machine_driver_pang =
+static struct MachineDriver machine_driver_pang =
 {
 	{
 		{
@@ -1059,7 +1059,7 @@ static const struct MachineDriver machine_driver_pang =
 	nvram_handler
 };
 
-static const struct MachineDriver machine_driver_marukin =
+static struct MachineDriver machine_driver_marukin =
 {
 	{
 		{

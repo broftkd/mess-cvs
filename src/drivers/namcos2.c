@@ -1057,7 +1057,7 @@ static struct GfxDecodeInfo gfxdecodeinfo[] =
 static struct YM2151interface ym2151_interface =
 {
 	1,			/* 1 chip */
-	3579580,	/* 3.58 MHz ? */
+	3579580,	/* 3.58 MHZ ? */
 	{ YM3012_VOL(50,MIXER_PAN_LEFT,50,MIXER_PAN_RIGHT) },
 	{ NULL }	/* YM2151 IRQ line is NOT connected on the PCB */
 };
@@ -1074,14 +1074,14 @@ static struct C140interface C140_interface =
 
 /******************************************
 
-Master clock = 49.152MHz
+Master clock = 49.152Mhz
 
-68000 Measured at  84ns = 12.4MHz	BUT 49.152MHz/4 = 12.288MHz = 81ns
+68000 Measured at  84ns = 12.4Mhz	BUT 49.152MHz/4 = 12.288MHz = 81ns
 6809  Measured at 343ns = 2.915 MHz BUT 49.152MHz/16 = 3.072MHz = 325ns
 63B05 Measured at 120ns = 8.333 MHz BUT 49.152MHz/6 = 8.192MHz = 122ns
 
 I've corrected all frequencies to be multiples of integer divisions of
-the 49.152MHz master clock. Additionally the 6305 looks to hav an
+the 49.152Mhz master clock. Additionally the 6305 looks to hav an
 internal divider.
 
 Soooo;
@@ -1106,7 +1106,7 @@ via software as INT1
 /*															 */
 /*************************************************************/
 
-static const struct MachineDriver machine_driver_default =
+static struct MachineDriver machine_driver_default =
 {
 	{
 		{
@@ -1174,7 +1174,7 @@ static const struct MachineDriver machine_driver_default =
 };
 
 
-static const struct MachineDriver machine_driver_driving =
+static struct MachineDriver machine_driver_driving =
 {
 	{
 		{
@@ -1242,7 +1242,7 @@ static const struct MachineDriver machine_driver_driving =
 };
 
 
-static const struct MachineDriver machine_driver_metlhawk =
+static struct MachineDriver machine_driver_metlhawk =
 {
 	{
 		{
@@ -3615,7 +3615,7 @@ GAME( 1989, finehour, 0,        default,  default,  finehour, ROT0_16BIT,   "Nam
 GAMEX(1989, fourtrax, 0,        driving,  driving,  fourtrax, ROT0,         "Namco", "Four Trax", GAME_NOT_WORKING)
 GAME( 1989, marvland, 0,        default,  default,  marvland, ROT0,         "Namco", "Marvel Land (US)" )
 GAME( 1989, marvlanj, marvland, default,  default,  marvlanj, ROT0,         "Namco", "Marvel Land (Japan)" )
-GAME( 1989, valkyrie, 0,        default,  default,  valkyrie, ROT90,        "Namco", "Valkyrie No Densetsu (Japan)" )
+GAME( 1989, valkyrie, 0,        default,  default,  valkyrie, ROT90,        "Namco", "Legend of the Valkyrie (Japan)" )
 GAME( 1990, kyukaidk, 0,        default,  default,  kyukaidk, ROT0_16BIT,   "Namco", "Kyuukai Douchuuki (Japan new version)" )
 GAME( 1990, kyukaido, kyukaidk, default,  default,  kyukaidk, ROT0_16BIT,   "Namco", "Kyuukai Douchuuki (Japan old version)" )
 GAME( 1990, dsaber,   0,        default,  default,  dsaber,   ROT90,        "Namco", "Dragon Saber" )

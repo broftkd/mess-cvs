@@ -172,21 +172,21 @@ void lazercmd_marker_dirty(int marker);
  * Statics
  *
  *************************************************************/
-
 static int timer_count = 0;
-static int sense_state = 0;
 
 /*************************************************************
  * Interrupt for the cpu
  * Fake something toggling the sense input line of the S2650
  * The rate should be at about 1 Hz
  *************************************************************/
-
 static int lazercmd_timer(void)
 {
+	static int sense_state = 0;
+
 	if( ++timer_count >= 64*128 ) {
 		timer_count = 0;
-		sense_state ^= 0x80;
+		sense_state ^= 1;
+		cpu_set_irq_line( 0, 1, (sense_state) ? ASSERT_LINE : CLEAR_LINE );
 	}
     return ignore_interrupt();
 }
@@ -220,11 +220,6 @@ static READ_HANDLER( lazercmd_data_port_r )
 	int data;
 	data = input_port_2_r(0) & 0x0f;
 	return data;
-}
-
-static READ_HANDLER( lazercmd_sense_port_r )
-{
-	return sense_state;
 }
 
 static WRITE_HANDLER( lazercmd_hardware_w )
@@ -369,9 +364,9 @@ static struct IOReadPort lazercmd_readport[] =
 {
 	{ S2650_CTRL_PORT, S2650_CTRL_PORT, lazercmd_ctrl_port_r },
 	{ S2650_DATA_PORT, S2650_DATA_PORT, lazercmd_data_port_r },
-    { S2650_SENSE_PORT, S2650_SENSE_PORT, lazercmd_sense_port_r },
 	{ -1 }					   /* end of table */
 };
+
 
 INPUT_PORTS_START( lazercmd )
 	PORT_START					   /* IN0 player 1 controls */
@@ -489,15 +484,13 @@ static unsigned char palette[] =
 /*  Red Green Blue */
 	0x00,0x00,0x00,		/* black */
 	0xb0,0xb0,0xb0,		/* white */
-	0xff,0xff,0xff,		/* bright white */
+	0xff,0xff,0xff		/* bright white */
 };
-
 static unsigned short colortable[] =
 {
 	 1, 0,
 	 0, 1
 };
-
 static void init_palette(unsigned char *game_palette, unsigned short *game_colortable,const unsigned char *color_prom)
 {
 	memcpy(game_palette,palette,sizeof(palette));
@@ -510,14 +503,14 @@ static struct DACinterface lazercmd_DAC_interface =
 	{ 100 }
 };
 
-static const struct MachineDriver machine_driver_lazercmd =
+static struct MachineDriver machine_driver_lazercmd =
 {
 /* basic machine hardware */
 	{
 		{
 			CPU_S2650,
 			8064000/12/3, 				/* 672 kHz? */
-/*          Main Clock is 8MHz divided by 12
+/*          Main Clock is 8Mhz divided by 12
 			but memory and IO access is only possible
 			within the line and frame blanking period
 			thus requiring an extra loading of approx 3-5 */
@@ -555,14 +548,14 @@ static const struct MachineDriver machine_driver_lazercmd =
 	}
 };
 
-static const struct MachineDriver machine_driver_medlanes =
+static struct MachineDriver machine_driver_medlanes =
 {
 /* basic machine hardware */
 	{
 		{
 			CPU_S2650,
 			8064000/12/3, 				/* 672 kHz? */
-/*          Main Clock is 8MHz divided by 12
+/*          Main Clock is 8Mhz divided by 12
 			but memory and IO access is only possible
 			within the line and frame blanking period
 			thus requiring an extra loading of approx 3-5 */

@@ -152,6 +152,17 @@ logerror("e000 = %02x\n",RAM[0xe000]);
 	}
 }
 
+static void init_gundealr(void)
+{
+	input_ports_hack = 0;
+}
+
+static void init_yamyam(void)
+{
+	input_ports_hack = 1;
+	install_mem_write_handler(0, 0xe000, 0xe000, yamyam_protection_w);
+}
+
 
 
 static struct MemoryReadAddress readmem[] =
@@ -362,26 +373,26 @@ INPUT_PORTS_END
 
 static struct GfxLayout charlayout =
 {
-	8,8,
-	RGN_FRAC(1,1),
-	4,
+	8,8,	/* 8*8 characters */
+	2048,	/* 2048 characters */
+	4,	/* 4 bits per pixel */
 	{ 0, 1, 2, 3 },
 	{ 0*4, 1*4, 2*4, 3*4, 4*4, 5*4, 6*4, 7*4 },
 	{ 0*32, 1*32, 2*32, 3*32, 4*32, 5*32, 6*32, 7*32 },
-	32*8
+	32*8	/* every char takes 32 consecutive bytes */
 };
 
 static struct GfxLayout spritelayout =
 {
-	16,16,
-	RGN_FRAC(1,1),
-	4,
+	16,16,	/* 16*16 sprites */
+	1024,	/* 1024 sprites */
+	4,	/* 4 bits per pixel */
 	{ 0, 1, 2, 3 },
 	{ 0*4, 1*4, 2*4, 3*4, 4*4, 5*4, 6*4, 7*4,
 			16*32+0*4, 16*32+1*4, 16*32+2*4, 16*32+3*4, 16*32+4*4, 16*32+5*4, 16*32+6*4, 16*32+7*4 },
 	{ 0*32, 1*32, 2*32, 3*32, 4*32, 5*32, 6*32, 7*32,
 			8*32, 9*32, 10*32, 11*32, 12*32, 13*32, 14*32, 15*32 },
-	128*8
+	128*8	/* every sprite takes 128 consecutive bytes */
 };
 
 static struct GfxDecodeInfo gfxdecodeinfo[] =
@@ -406,13 +417,13 @@ static struct YM2203interface ym2203_interface =
 
 
 
-static const struct MachineDriver machine_driver_gundealr =
+static struct MachineDriver machine_driver_gundealr =
 {
 	/* basic machine hardware */
 	{
 		{
 			CPU_Z80,
-			8000000,	/* 8 MHz ??? */
+			8000000,	/* 8 Mhz ??? */
 			readmem,writemem,readport,writeport,
 			yamyam_interrupt,4	/* ? */
 		}
@@ -499,20 +510,6 @@ ROM_START( wiseguy )
 	ROM_REGION( 0x20000, REGION_GFX2 | REGIONFLAG_DISPOSE )
 	ROM_LOAD( "b1.a16",       0x00000, 0x20000, 0xb122828d )
 ROM_END
-
-
-
-static void init_gundealr(void)
-{
-	input_ports_hack = 0;
-}
-
-static void init_yamyam(void)
-{
-	input_ports_hack = 1;
-	install_mem_write_handler(0, 0xe000, 0xe000, yamyam_protection_w);
-}
-
 
 
 GAME( 1990, gundealr, 0,        gundealr, gundealr, gundealr, ROT270, "Dooyong", "Gun Dealer (set 1)" )

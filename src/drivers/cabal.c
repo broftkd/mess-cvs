@@ -72,7 +72,7 @@ static WRITE_HANDLER( cabal_background_w ){
 static struct YM2151interface ym2151_interface =
 {
  	1,			/* 1 chip */
- 	3579580,	/* 3.58 MHz ? */ /* 4 MHz in raine */
+ 	3579580,	/* 3.58 MHZ ? */ /* 4 MHZ in raine */
 	{ YM3012_VOL(80,MIXER_PAN_LEFT,80,MIXER_PAN_RIGHT) },
  	{ 0 }
 };
@@ -82,6 +82,7 @@ struct ADPCMinterface adpcm_interface =
 	2,			/* total number of ADPCM decoders in the machine */
 	8000,		/* playback frequency */
 	REGION_SOUND1, /* memory region where the samples come from */
+	0,			/* initialization function */
 	{40,40}
 };
 
@@ -152,7 +153,7 @@ static struct MemoryReadAddress readmem_cpu[] = {
 	{ 0x60000, 0x607ff, MRA_BANK1 },  /* text layer */
 	{ 0x80000, 0x801ff, cabal_background_r }, /* background layer */
 	{ 0x80200, 0x803ff, MRA_BANK2 },
-	{ 0xa0000, 0xa0013, cabal_io_r },
+	{ 0xa0000, 0xa0012, cabal_io_r },
 	{ 0xe0000, 0xe07ff, paletteram_word_r },
 	{ 0xe8000, 0xe800f, cabal_coin_r },
 	{ -1 }
@@ -385,18 +386,18 @@ static struct GfxDecodeInfo cabal_gfxdecodeinfo[] = {
 	{ -1 }
 };
 
-static const struct MachineDriver machine_driver_cabal =
+static struct MachineDriver machine_driver_cabal =
 {
 	{
 		{
 			CPU_M68000,
-			12000000, /* 12 MHz */
+			12000000, /* 12 Mhz */
 			readmem_cpu,writemem_cpu,0,0,
 			m68_level1_irq,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,	/* 4 MHz */
+			4000000,	/* 4 Mhz */
 			readmem_sound,writemem_sound,0,0,
 			interrupt,1
 		},
@@ -422,18 +423,18 @@ static const struct MachineDriver machine_driver_cabal =
 	0,0,0,0,
 };
 
-static const struct MachineDriver machine_driver_cabalbl =
+static struct MachineDriver machine_driver_cabalbl =
 {
 	{
 		{
 			CPU_M68000,
-			12000000, /* 12 MHz */
+			12000000, /* 12 Mhz */
 			readmem_cpu,writemem_cpu,0,0,
 			m68_level1_irq,1
 		},
 		{
 			CPU_Z80 | CPU_AUDIO_CPU,
-			4000000,	/* 4 MHz */
+			4000000,	/* 4 Mhz */
 			cabalbl_readmem_sound,cabalbl_writemem_sound,0,0,
 			interrupt,1
 		},
